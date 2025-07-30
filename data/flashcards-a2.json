@@ -1,0 +1,4318 @@
+{
+  "categories": [
+    {
+      "id": 1,
+      "name": "Con người & Mối quan hệ",
+      "color": "cyan",
+      "progress": 0,
+      "wordCount": 51,
+      "level": "A2"
+    },
+    {
+      "id": 2,
+      "name": "Công việc & Học tập",
+      "color": "purple",
+      "progress": 0,
+      "wordCount": 42,
+      "level": "A2"
+    },
+    {
+      "id": 3,
+      "name": "Đồ vật & Thiết bị",
+      "color": "teal",
+      "progress": 0,
+      "wordCount": 60,
+      "level": "A2"
+    },
+    {
+      "id": 4,
+      "name": "Nơi chốn & Di chuyển",
+      "color": "green",
+      "progress": 0,
+      "wordCount": 41,
+      "level": "A2"
+    },
+    {
+      "id": 5,
+      "name": "Đồ ăn & Thức uống",
+      "color": "orange",
+      "progress": 0,
+      "wordCount": 18,
+      "level": "A2"
+    },
+    {
+      "id": 6,
+      "name": "Hành động & Hoạt động",
+      "color": "red",
+      "progress": 0,
+      "wordCount": 78,
+      "level": "A2"
+    },
+    {
+      "id": 7,
+      "name": "Tính từ & Trạng thái",
+      "color": "amber",
+      "progress": 0,
+      "wordCount": 97,
+      "level": "A2"
+    },
+    {
+      "id": 8,
+      "name": "Khái niệm & Ý tưởng",
+      "color": "indigo",
+      "progress": 0,
+      "wordCount": 52,
+      "level": "A2"
+    }
+  ],
+  "flashcards": [
+    {
+      "id": 1,
+      "english": "Ability",
+      "vietnamese": "Khả năng",
+      "phonetic": "/əˈbɪləti/",
+      "categoryId": 8,
+      "image": "ability",
+      "level": "A2"
+    },
+    {
+      "id": 2,
+      "english": "Able",
+      "vietnamese": "Có thể",
+      "phonetic": "/ˈeɪbl/",
+      "categoryId": 7,
+      "image": "able",
+      "level": "A2"
+    },
+    {
+      "id": 3,
+      "english": "Accept",
+      "vietnamese": "Chấp nhận",
+      "phonetic": "/əkˈsept/",
+      "categoryId": 6,
+      "image": "accept",
+      "level": "A2"
+    },
+    {
+      "id": 4,
+      "english": "Accident",
+      "vietnamese": "Tai nạn",
+      "phonetic": "/ˈæksɪdənt/",
+      "categoryId": 8,
+      "image": "accident",
+      "level": "A2"
+    },
+    {
+      "id": 5,
+      "english": "According to",
+      "vietnamese": "Theo như",
+      "phonetic": "/əˈkɔːdɪŋ tuː/",
+      "categoryId": 8,
+      "image": "according_to",
+      "level": "A2"
+    },
+    {
+      "id": 6,
+      "english": "Achieve",
+      "vietnamese": "Đạt được",
+      "phonetic": "/əˈtʃiːv/",
+      "categoryId": 6,
+      "image": "achieve",
+      "level": "A2"
+    },
+    {
+      "id": 7,
+      "english": "Act",
+      "vietnamese": "Hành động",
+      "phonetic": "/ækt/",
+      "categoryId": 6,
+      "image": "act",
+      "level": "A2"
+    },
+    {
+      "id": 8,
+      "english": "Active",
+      "vietnamese": "Năng động",
+      "phonetic": "/ˈæktɪv/",
+      "categoryId": 7,
+      "image": "active",
+      "level": "A2"
+    },
+    {
+      "id": 9,
+      "english": "Actually",
+      "vietnamese": "Thực ra",
+      "phonetic": "/ˈæktʃuəli/",
+      "categoryId": 7,
+      "image": "actually",
+      "level": "A2"
+    },
+    {
+      "id": 10,
+      "english": "Adult",
+      "vietnamese": "Người lớn",
+      "phonetic": "/ˈædʌlt/",
+      "categoryId": 7,
+      "image": "adult",
+      "level": "A2"
+    },
+    {
+      "id": 11,
+      "english": "Advantage",
+      "vietnamese": "Lợi thế",
+      "phonetic": "/ədˈvɑːntɪdʒ/",
+      "categoryId": 8,
+      "image": "advantage",
+      "level": "A2"
+    },
+    {
+      "id": 12,
+      "english": "Adventure",
+      "vietnamese": "Cuộc phiêu lưu",
+      "phonetic": "/ədˈventʃər/",
+      "categoryId": 8,
+      "image": "adventure",
+      "level": "A2"
+    },
+    {
+      "id": 13,
+      "english": "Advertise",
+      "vietnamese": "Quảng cáo",
+      "phonetic": "/ˈædvətaɪz/",
+      "categoryId": 6,
+      "image": "advertise",
+      "level": "A2"
+    },
+    {
+      "id": 14,
+      "english": "Advertisement",
+      "vietnamese": "Mẩu quảng cáo",
+      "phonetic": "/ədˈvɜːtɪsmənt/",
+      "categoryId": 3,
+      "image": "advertisement",
+      "level": "A2"
+    },
+    {
+      "id": 15,
+      "english": "Advertising",
+      "vietnamese": "Ngành quảng cáo",
+      "phonetic": "/ˈædvətaɪzɪŋ/",
+      "categoryId": 2,
+      "image": "advertising",
+      "level": "A2"
+    },
+    {
+      "id": 16,
+      "english": "Affect",
+      "vietnamese": "Ảnh hưởng",
+      "phonetic": "/əˈfekt/",
+      "categoryId": 6,
+      "image": "affect",
+      "level": "A2"
+    },
+    {
+      "id": 17,
+      "english": "After",
+      "vietnamese": "Sau khi",
+      "phonetic": "/ˈɑːftər/",
+      "categoryId": 7,
+      "image": "after",
+      "level": "A2"
+    },
+    {
+      "id": 18,
+      "english": "Against",
+      "vietnamese": "Chống lại",
+      "phonetic": "/əˈɡenst/",
+      "categoryId": 8,
+      "image": "against",
+      "level": "A2"
+    },
+    {
+      "id": 19,
+      "english": "Ah",
+      "vietnamese": "A!",
+      "phonetic": "/ɑː/",
+      "categoryId": 8,
+      "image": "ah",
+      "level": "A2"
+    },
+    {
+      "id": 20,
+      "english": "Airline",
+      "vietnamese": "Hãng hàng không",
+      "phonetic": "/ˈeəlaɪn/",
+      "categoryId": 4,
+      "image": "airline",
+      "level": "A2"
+    },
+    {
+      "id": 21,
+      "english": "Alive",
+      "vietnamese": "Còn sống",
+      "phonetic": "/əˈlaɪv/",
+      "categoryId": 7,
+      "image": "alive",
+      "level": "A2"
+    },
+    {
+      "id": 22,
+      "english": "All",
+      "vietnamese": "Tất cả",
+      "phonetic": "/ɔːl/",
+      "categoryId": 7,
+      "image": "all",
+      "level": "A2"
+    },
+    {
+      "id": 23,
+      "english": "All right",
+      "vietnamese": "Được rồi, ổn",
+      "phonetic": "/ɔːl raɪt/",
+      "categoryId": 7,
+      "image": "all_right",
+      "level": "A2"
+    },
+    {
+      "id": 24,
+      "english": "Allow",
+      "vietnamese": "Cho phép",
+      "phonetic": "/əˈlaʊ/",
+      "categoryId": 6,
+      "image": "allow",
+      "level": "A2"
+    },
+    {
+      "id": 25,
+      "english": "Almost",
+      "vietnamese": "Hầu như",
+      "phonetic": "/ˈɔːlməʊst/",
+      "categoryId": 7,
+      "image": "almost",
+      "level": "A2"
+    },
+    {
+      "id": 26,
+      "english": "Alone",
+      "vietnamese": "Một mình",
+      "phonetic": "/əˈləʊn/",
+      "categoryId": 7,
+      "image": "alone",
+      "level": "A2"
+    },
+    {
+      "id": 27,
+      "english": "Along",
+      "vietnamese": "Dọc theo",
+      "phonetic": "/əˈlɒŋ/",
+      "categoryId": 4,
+      "image": "along",
+      "level": "A2"
+    },
+    {
+      "id": 28,
+      "english": "Already",
+      "vietnamese": "Đã rồi",
+      "phonetic": "/ɔːlˈredi/",
+      "categoryId": 7,
+      "image": "already",
+      "level": "A2"
+    },
+    {
+      "id": 29,
+      "english": "Alternative",
+      "vietnamese": "Sự lựa chọn thay thế",
+      "phonetic": "/ɔːlˈtɜːnətɪv/",
+      "categoryId": 8,
+      "image": "alternative",
+      "level": "A2"
+    },
+    {
+      "id": 30,
+      "english": "Although",
+      "vietnamese": "Mặc dù",
+      "phonetic": "/ɔːlˈðəʊ/",
+      "categoryId": 8,
+      "image": "although",
+      "level": "A2"
+    },
+    {
+      "id": 31,
+      "english": "Among",
+      "vietnamese": "Ở giữa",
+      "phonetic": "/əˈmʌŋ/",
+      "categoryId": 8,
+      "image": "among",
+      "level": "A2"
+    },
+    {
+      "id": 32,
+      "english": "Amount",
+      "vietnamese": "Số lượng",
+      "phonetic": "/əˈmaʊnt/",
+      "categoryId": 8,
+      "image": "amount",
+      "level": "A2"
+    },
+    {
+      "id": 33,
+      "english": "Analyze",
+      "vietnamese": "Phân tích",
+      "phonetic": "/ˈænəlaɪz/",
+      "categoryId": 6,
+      "image": "analyze",
+      "level": "A2"
+    },
+    {
+      "id": 34,
+      "english": "Ancient",
+      "vietnamese": "Cổ xưa",
+      "phonetic": "/ˈeɪnʃənt/",
+      "categoryId": 7,
+      "image": "ancient",
+      "level": "A2"
+    },
+    {
+      "id": 35,
+      "english": "Ankle",
+      "vietnamese": "Mắt cá chân",
+      "phonetic": "/ˈæŋkl/",
+      "categoryId": 3,
+      "image": "ankle",
+      "level": "A2"
+    },
+    {
+      "id": 36,
+      "english": "Any",
+      "vietnamese": "Bất kỳ",
+      "phonetic": "/ˈeni/",
+      "categoryId": 7,
+      "image": "any",
+      "level": "A2"
+    },
+    {
+      "id": 37,
+      "english": "Anybody",
+      "vietnamese": "Bất kỳ ai",
+      "phonetic": "/ˈenibɒdi/",
+      "categoryId": 1,
+      "image": "anybody",
+      "level": "A2"
+    },
+    {
+      "id": 38,
+      "english": "Anymore",
+      "vietnamese": "Nữa",
+      "phonetic": "/ˌeniˈmɔːr/",
+      "categoryId": 7,
+      "image": "anymore",
+      "level": "A2"
+    },
+    {
+      "id": 39,
+      "english": "Anyway",
+      "vietnamese": "Dù sao đi nữa",
+      "phonetic": "/ˈeniweɪ/",
+      "categoryId": 7,
+      "image": "anyway",
+      "level": "A2"
+    },
+    {
+      "id": 40,
+      "english": "Anywhere",
+      "vietnamese": "Bất cứ đâu",
+      "phonetic": "/ˈeniweər/",
+      "categoryId": 4,
+      "image": "anywhere",
+      "level": "A2"
+    },
+    {
+      "id": 41,
+      "english": "App",
+      "vietnamese": "Ứng dụng",
+      "phonetic": "/æp/",
+      "categoryId": 3,
+      "image": "app",
+      "level": "A2"
+    },
+    {
+      "id": 42,
+      "english": "Appear",
+      "vietnamese": "Xuất hiện",
+      "phonetic": "/əˈpɪər/",
+      "categoryId": 6,
+      "image": "appear",
+      "level": "A2"
+    },
+    {
+      "id": 43,
+      "english": "Appearance",
+      "vietnamese": "Vẻ bề ngoài",
+      "phonetic": "/əˈpɪərəns/",
+      "categoryId": 8,
+      "image": "appearance",
+      "level": "A2"
+    },
+    {
+      "id": 44,
+      "english": "Apply",
+      "vietnamese": "Nộp đơn, áp dụng",
+      "phonetic": "/əˈplaɪ/",
+      "categoryId": 6,
+      "image": "apply",
+      "level": "A2"
+    },
+    {
+      "id": 45,
+      "english": "Architect",
+      "vietnamese": "Kiến trúc sư",
+      "phonetic": "/ˈɑːkɪtekt/",
+      "categoryId": 1,
+      "image": "architect",
+      "level": "A2"
+    },
+    {
+      "id": 46,
+      "english": "Architecture",
+      "vietnamese": "Kiến trúc",
+      "phonetic": "/ˈɑːkɪtektʃər/",
+      "categoryId": 2,
+      "image": "architecture",
+      "level": "A2"
+    },
+    {
+      "id": 47,
+      "english": "Argue",
+      "vietnamese": "Tranh cãi",
+      "phonetic": "/ˈɑːɡjuː/",
+      "categoryId": 6,
+      "image": "argue",
+      "level": "A2"
+    },
+    {
+      "id": 48,
+      "english": "Argument",
+      "vietnamese": "Sự tranh cãi",
+      "phonetic": "/ˈɑːɡjumənt/",
+      "categoryId": 8,
+      "image": "argument",
+      "level": "A2"
+    },
+    {
+      "id": 49,
+      "english": "Army",
+      "vietnamese": "Quân đội",
+      "phonetic": "/ˈɑːmi/",
+      "categoryId": 4,
+      "image": "army",
+      "level": "A2"
+    },
+    {
+      "id": 50,
+      "english": "Arrange",
+      "vietnamese": "Sắp xếp",
+      "phonetic": "/əˈreɪndʒ/",
+      "categoryId": 6,
+      "image": "arrange",
+      "level": "A2"
+    },
+    {
+      "id": 51,
+      "english": "Arrangement",
+      "vietnamese": "Sự sắp xếp",
+      "phonetic": "/əˈreɪndʒmənt/",
+      "categoryId": 8,
+      "image": "arrangement",
+      "level": "A2"
+    },
+    {
+      "id": 52,
+      "english": "As",
+      "vietnamese": "Như, bởi vì",
+      "phonetic": "/æz/",
+      "categoryId": 7,
+      "image": "as",
+      "level": "A2"
+    },
+    {
+      "id": 53,
+      "english": "Asleep",
+      "vietnamese": "Đang ngủ",
+      "phonetic": "/əˈsliːp/",
+      "categoryId": 7,
+      "image": "asleep",
+      "level": "A2"
+    },
+    {
+      "id": 54,
+      "english": "Assistant",
+      "vietnamese": "Trợ lý",
+      "phonetic": "/əˈsɪstənt/",
+      "categoryId": 1,
+      "image": "assistant",
+      "level": "A2"
+    },
+    {
+      "id": 55,
+      "english": "Athlete",
+      "vietnamese": "Vận động viên",
+      "phonetic": "/ˈæθliːt/",
+      "categoryId": 1,
+      "image": "athlete",
+      "level": "A2"
+    },
+    {
+      "id": 56,
+      "english": "Attack",
+      "vietnamese": "Tấn công",
+      "phonetic": "/əˈtæk/",
+      "categoryId": 6,
+      "image": "attack",
+      "level": "A2"
+    },
+    {
+      "id": 57,
+      "english": "Attend",
+      "vietnamese": "Tham dự",
+      "phonetic": "/əˈtend/",
+      "categoryId": 6,
+      "image": "attend",
+      "level": "A2"
+    },
+    {
+      "id": 58,
+      "english": "Attention",
+      "vietnamese": "Sự chú ý",
+      "phonetic": "/əˈtenʃn/",
+      "categoryId": 8,
+      "image": "attention",
+      "level": "A2"
+    },
+    {
+      "id": 59,
+      "english": "Attractive",
+      "vietnamese": "Hấp dẫn",
+      "phonetic": "/əˈtræktɪv/",
+      "categoryId": 7,
+      "image": "attractive",
+      "level": "A2"
+    },
+    {
+      "id": 60,
+      "english": "Audience",
+      "vietnamese": "Khán giả",
+      "phonetic": "/ˈɔːdiəns/",
+      "categoryId": 1,
+      "image": "audience",
+      "level": "A2"
+    },
+    {
+      "id": 61,
+      "english": "Author",
+      "vietnamese": "Tác giả",
+      "phonetic": "/ˈɔːθər/",
+      "categoryId": 1,
+      "image": "author",
+      "level": "A2"
+    },
+    {
+      "id": 62,
+      "english": "Available",
+      "vietnamese": "Có sẵn",
+      "phonetic": "/əˈveɪləbl/",
+      "categoryId": 7,
+      "image": "available",
+      "level": "A2"
+    },
+    {
+      "id": 63,
+      "english": "Average",
+      "vietnamese": "Trung bình",
+      "phonetic": "/ˈævərɪdʒ/",
+      "categoryId": 7,
+      "image": "average",
+      "level": "A2"
+    },
+    {
+      "id": 64,
+      "english": "Avoid",
+      "vietnamese": "Tránh",
+      "phonetic": "/əˈvɔɪd/",
+      "categoryId": 6,
+      "image": "avoid",
+      "level": "A2"
+    },
+    {
+      "id": 65,
+      "english": "Award",
+      "vietnamese": "Giải thưởng",
+      "phonetic": "/əˈwɔːd/",
+      "categoryId": 8,
+      "image": "award",
+      "level": "A2"
+    },
+    {
+      "id": 66,
+      "english": "Awful",
+      "vietnamese": "Tồi tệ",
+      "phonetic": "/ˈɔːfl/",
+      "categoryId": 7,
+      "image": "awful",
+      "level": "A2"
+    },
+    {
+      "id": 67,
+      "english": "Back",
+      "vietnamese": "Lưng, phía sau",
+      "phonetic": "/bæk/",
+      "categoryId": 7,
+      "image": "back",
+      "level": "A2"
+    },
+    {
+      "id": 68,
+      "english": "Background",
+      "vietnamese": "Lý lịch, nền",
+      "phonetic": "/ˈbækɡraʊnd/",
+      "categoryId": 8,
+      "image": "background",
+      "level": "A2"
+    },
+    {
+      "id": 69,
+      "english": "Badly",
+      "vietnamese": "Tồi tệ",
+      "phonetic": "/ˈbædli/",
+      "categoryId": 7,
+      "image": "badly",
+      "level": "A2"
+    },
+    {
+      "id": 70,
+      "english": "Based",
+      "vietnamese": "Dựa trên",
+      "phonetic": "/beɪst/",
+      "categoryId": 7,
+      "image": "based",
+      "level": "A2"
+    },
+    {
+      "id": 71,
+      "english": "Bean",
+      "vietnamese": "Hạt đậu",
+      "phonetic": "/biːn/",
+      "categoryId": 5,
+      "image": "bean",
+      "level": "A2"
+    },
+    {
+      "id": 72,
+      "english": "Bear",
+      "vietnamese": "Con gấu",
+      "phonetic": "/beər/",
+      "categoryId": 3,
+      "image": "bear",
+      "level": "A2"
+    },
+    {
+      "id": 73,
+      "english": "Beat",
+      "vietnamese": "Đánh bại",
+      "phonetic": "/biːt/",
+      "categoryId": 6,
+      "image": "beat",
+      "level": "A2"
+    },
+    {
+      "id": 74,
+      "english": "Beef",
+      "vietnamese": "Thịt bò",
+      "phonetic": "/biːf/",
+      "categoryId": 5,
+      "image": "beef",
+      "level": "A2"
+    },
+    {
+      "id": 75,
+      "english": "Before",
+      "vietnamese": "Trước khi",
+      "phonetic": "/bɪˈfɔːr/",
+      "categoryId": 7,
+      "image": "before",
+      "level": "A2"
+    },
+    {
+      "id": 76,
+      "english": "Behave",
+      "vietnamese": "Cư xử",
+      "phonetic": "/bɪˈheɪv/",
+      "categoryId": 6,
+      "image": "behave",
+      "level": "A2"
+    },
+    {
+      "id": 77,
+      "english": "Behavior",
+      "vietnamese": "Hành vi",
+      "phonetic": "/bɪˈheɪvjər/",
+      "categoryId": 8,
+      "image": "behavior",
+      "level": "A2"
+    },
+    {
+      "id": 78,
+      "english": "Belong",
+      "vietnamese": "Thuộc về",
+      "phonetic": "/bɪˈlɒŋ/",
+      "categoryId": 6,
+      "image": "belong",
+      "level": "A2"
+    },
+    {
+      "id": 79,
+      "english": "Belt",
+      "vietnamese": "Thắt lưng",
+      "phonetic": "/belt/",
+      "categoryId": 3,
+      "image": "belt",
+      "level": "A2"
+    },
+    {
+      "id": 80,
+      "english": "Benefit",
+      "vietnamese": "Lợi ích",
+      "phonetic": "/ˈbenɪfɪt/",
+      "categoryId": 8,
+      "image": "benefit",
+      "level": "A2"
+    },
+    {
+      "id": 81,
+      "english": "Best",
+      "vietnamese": "Tốt nhất",
+      "phonetic": "/best/",
+      "categoryId": 7,
+      "image": "best",
+      "level": "A2"
+    },
+    {
+      "id": 82,
+      "english": "Better",
+      "vietnamese": "Tốt hơn",
+      "phonetic": "/ˈbetər/",
+      "categoryId": 7,
+      "image": "better",
+      "level": "A2"
+    },
+    {
+      "id": 83,
+      "english": "Between",
+      "vietnamese": "Ở giữa",
+      "phonetic": "/bɪˈtwiːn/",
+      "categoryId": 7,
+      "image": "between",
+      "level": "A2"
+    },
+    {
+      "id": 84,
+      "english": "Billion",
+      "vietnamese": "Một tỷ",
+      "phonetic": "/ˈbɪljən/",
+      "categoryId": 8,
+      "image": "billion",
+      "level": "A2"
+    },
+    {
+      "id": 85,
+      "english": "Biology",
+      "vietnamese": "Sinh học",
+      "phonetic": "/baɪˈɒlədʒi/",
+      "categoryId": 2,
+      "image": "biology",
+      "level": "A2"
+    },
+    {
+      "id": 86,
+      "english": "Birth",
+      "vietnamese": "Sự ra đời",
+      "phonetic": "/bɜːθ/",
+      "categoryId": 8,
+      "image": "birth",
+      "level": "A2"
+    },
+    {
+      "id": 87,
+      "english": "Bit",
+      "vietnamese": "Một chút",
+      "phonetic": "/bɪt/",
+      "categoryId": 8,
+      "image": "bit",
+      "level": "A2"
+    },
+    {
+      "id": 88,
+      "english": "Blank",
+      "vietnamese": "Trống",
+      "phonetic": "/blæŋk/",
+      "categoryId": 7,
+      "image": "blank",
+      "level": "A2"
+    },
+    {
+      "id": 89,
+      "english": "Block",
+      "vietnamese": "Khối, tòa nhà",
+      "phonetic": "/blɒk/",
+      "categoryId": 3,
+      "image": "block",
+      "level": "A2"
+    },
+    {
+      "id": 90,
+      "english": "Blood",
+      "vietnamese": "Máu",
+      "phonetic": "/blʌd/",
+      "categoryId": 8,
+      "image": "blood",
+      "level": "A2"
+    },
+    {
+      "id": 91,
+      "english": "Blow",
+      "vietnamese": "Thổi",
+      "phonetic": "/bləʊ/",
+      "categoryId": 6,
+      "image": "blow",
+      "level": "A2"
+    },
+    {
+      "id": 92,
+      "english": "Board",
+      "vietnamese": "Cái bảng",
+      "phonetic": "/bɔːd/",
+      "categoryId": 3,
+      "image": "board",
+      "level": "A2"
+    },
+    {
+      "id": 93,
+      "english": "Boil",
+      "vietnamese": "Sôi, luộc",
+      "phonetic": "/bɔɪl/",
+      "categoryId": 6,
+      "image": "boil",
+      "level": "A2"
+    },
+    {
+      "id": 94,
+      "english": "Bone",
+      "vietnamese": "Xương",
+      "phonetic": "/bəʊn/",
+      "categoryId": 3,
+      "image": "bone",
+      "level": "A2"
+    },
+    {
+      "id": 95,
+      "english": "Book",
+      "vietnamese": "Đặt chỗ",
+      "phonetic": "/bʊk/",
+      "categoryId": 6,
+      "image": "book",
+      "level": "A2"
+    },
+    {
+      "id": 96,
+      "english": "Borrow",
+      "vietnamese": "Mượn",
+      "phonetic": "/ˈbɒrəʊ/",
+      "categoryId": 6,
+      "image": "borrow",
+      "level": "A2"
+    },
+    {
+      "id": 97,
+      "english": "Boss",
+      "vietnamese": "Ông chủ",
+      "phonetic": "/bɒs/",
+      "categoryId": 1,
+      "image": "boss",
+      "level": "A2"
+    },
+    {
+      "id": 98,
+      "english": "Bottom",
+      "vietnamese": "Đáy",
+      "phonetic": "/ˈbɒtəm/",
+      "categoryId": 3,
+      "image": "bottom",
+      "level": "A2"
+    },
+    {
+      "id": 99,
+      "english": "Bowl",
+      "vietnamese": "Cái bát",
+      "phonetic": "/bəʊl/",
+      "categoryId": 5,
+      "image": "bowl",
+      "level": "A2"
+    },
+    {
+      "id": 100,
+      "english": "Brain",
+      "vietnamese": "Não",
+      "phonetic": "/breɪn/",
+      "categoryId": 3,
+      "image": "brain",
+      "level": "A2"
+    },
+    {
+      "id": 101,
+      "english": "Bridge",
+      "vietnamese": "Cây cầu",
+      "phonetic": "/brɪdʒ/",
+      "categoryId": 4,
+      "image": "bridge",
+      "level": "A2"
+    },
+    {
+      "id": 102,
+      "english": "Bright",
+      "vietnamese": "Sáng",
+      "phonetic": "/braɪt/",
+      "categoryId": 7,
+      "image": "bright",
+      "level": "A2"
+    },
+    {
+      "id": 103,
+      "english": "Brilliant",
+      "vietnamese": "Thông minh, xuất sắc",
+      "phonetic": "/ˈbrɪliənt/",
+      "categoryId": 7,
+      "image": "brilliant",
+      "level": "A2"
+    },
+    {
+      "id": 104,
+      "english": "Broken",
+      "vietnamese": "Bị vỡ",
+      "phonetic": "/ˈbrəʊkən/",
+      "categoryId": 7,
+      "image": "broken",
+      "level": "A2"
+    },
+    {
+      "id": 105,
+      "english": "Brush",
+      "vietnamese": "Bàn chải",
+      "phonetic": "/brʌʃ/",
+      "categoryId": 3,
+      "image": "brush",
+      "level": "A2"
+    },
+    {
+      "id": 106,
+      "english": "Burn",
+      "vietnamese": "Đốt cháy",
+      "phonetic": "/bɜːn/",
+      "categoryId": 6,
+      "image": "burn",
+      "level": "A2"
+    },
+    {
+      "id": 107,
+      "english": "Businessman",
+      "vietnamese": "Doanh nhân",
+      "phonetic": "/ˈbɪznəsmən/",
+      "categoryId": 1,
+      "image": "businessman",
+      "level": "A2"
+    },
+    {
+      "id": 108,
+      "english": "Button",
+      "vietnamese": "Cái nút",
+      "phonetic": "/ˈbʌtn/",
+      "categoryId": 3,
+      "image": "button",
+      "level": "A2"
+    },
+    {
+      "id": 109,
+      "english": "Camp",
+      "vietnamese": "Trại",
+      "phonetic": "/kæmp/",
+      "categoryId": 4,
+      "image": "camp",
+      "level": "A2"
+    },
+    {
+      "id": 110,
+      "english": "Camping",
+      "vietnamese": "Cắm trại",
+      "phonetic": "/ˈkæmpɪŋ/",
+      "categoryId": 6,
+      "image": "camping",
+      "level": "A2"
+    },
+    {
+      "id": 111,
+      "english": "Campus",
+      "vietnamese": "Khuôn viên trường",
+      "phonetic": "/ˈkæmpəs/",
+      "categoryId": 4,
+      "image": "campus",
+      "level": "A2"
+    },
+    {
+      "id": 112,
+      "english": "Can",
+      "vietnamese": "Cái lon",
+      "phonetic": "/kæn/",
+      "categoryId": 3,
+      "image": "can",
+      "level": "A2"
+    },
+    {
+      "id": 113,
+      "english": "Candy",
+      "vietnamese": "Kẹo",
+      "phonetic": "/ˈkændi/",
+      "categoryId": 5,
+      "image": "candy",
+      "level": "A2"
+    },
+    {
+      "id": 114,
+      "english": "Care",
+      "vietnamese": "Sự chăm sóc",
+      "phonetic": "/keər/",
+      "categoryId": 8,
+      "image": "care",
+      "level": "A2"
+    },
+    {
+      "id": 115,
+      "english": "Careful",
+      "vietnamese": "Cẩn thận",
+      "phonetic": "/ˈkeəfl/",
+      "categoryId": 7,
+      "image": "careful",
+      "level": "A2"
+    },
+    {
+      "id": 116,
+      "english": "Carefully",
+      "vietnamese": "Một cách cẩn thận",
+      "phonetic": "/ˈkeəfəli/",
+      "categoryId": 7,
+      "image": "carefully",
+      "level": "A2"
+    },
+    {
+      "id": 117,
+      "english": "Carpet",
+      "vietnamese": "Tấm thảm",
+      "phonetic": "/ˈkɑːpɪt/",
+      "categoryId": 3,
+      "image": "carpet",
+      "level": "A2"
+    },
+    {
+      "id": 118,
+      "english": "Cartoon",
+      "vietnamese": "Phim hoạt hình",
+      "phonetic": "/kɑːˈtuːn/",
+      "categoryId": 3,
+      "image": "cartoon",
+      "level": "A2"
+    },
+    {
+      "id": 119,
+      "english": "Case",
+      "vietnamese": "Trường hợp",
+      "phonetic": "/keɪs/",
+      "categoryId": 8,
+      "image": "case",
+      "level": "A2"
+    },
+    {
+      "id": 120,
+      "english": "Cash",
+      "vietnamese": "Tiền mặt",
+      "phonetic": "/kæʃ/",
+      "categoryId": 8,
+      "image": "cash",
+      "level": "A2"
+    },
+    {
+      "id": 121,
+      "english": "Catch",
+      "vietnamese": "Bắt lấy",
+      "phonetic": "/kætʃ/",
+      "categoryId": 6,
+      "image": "catch",
+      "level": "A2"
+    },
+    {
+      "id": 122,
+      "english": "Cause",
+      "vietnamese": "Nguyên nhân",
+      "phonetic": "/kɔːz/",
+      "categoryId": 8,
+      "image": "cause",
+      "level": "A2"
+    },
+    {
+      "id": 123,
+      "english": "Celebrate",
+      "vietnamese": "Ăn mừng",
+      "phonetic": "/ˈselɪbreɪt/",
+      "categoryId": 6,
+      "image": "celebrate",
+      "level": "A2"
+    },
+    {
+      "id": 124,
+      "english": "Celebrity",
+      "vietnamese": "Người nổi tiếng",
+      "phonetic": "/səˈlebrəti/",
+      "categoryId": 1,
+      "image": "celebrity",
+      "level": "A2"
+    },
+    {
+      "id": 125,
+      "english": "Cell",
+      "vietnamese": "Tế bào",
+      "phonetic": "/sel/",
+      "categoryId": 8,
+      "image": "cell",
+      "level": "A2"
+    },
+    {
+      "id": 126,
+      "english": "Century",
+      "vietnamese": "Thế kỷ",
+      "phonetic": "/ˈsentʃəri/",
+      "categoryId": 8,
+      "image": "century",
+      "level": "A2"
+    },
+    {
+      "id": 127,
+      "english": "Certain",
+      "vietnamese": "Chắc chắn",
+      "phonetic": "/ˈsɜːtn/",
+      "categoryId": 7,
+      "image": "certain",
+      "level": "A2"
+    },
+    {
+      "id": 128,
+      "english": "Certainly",
+      "vietnamese": "Chắc chắn",
+      "phonetic": "/ˈsɜːtnli/",
+      "categoryId": 7,
+      "image": "certainly",
+      "level": "A2"
+    },
+    {
+      "id": 129,
+      "english": "Chance",
+      "vietnamese": "Cơ hội",
+      "phonetic": "/tʃɑːns/",
+      "categoryId": 8,
+      "image": "chance",
+      "level": "A2"
+    },
+    {
+      "id": 130,
+      "english": "Character",
+      "vietnamese": "Tính cách, nhân vật",
+      "phonetic": "/ˈkærəktər/",
+      "categoryId": 1,
+      "image": "character",
+      "level": "A2"
+    },
+    {
+      "id": 131,
+      "english": "Charity",
+      "vietnamese": "Từ thiện",
+      "phonetic": "/ˈtʃærəti/",
+      "categoryId": 8,
+      "image": "charity",
+      "level": "A2"
+    },
+    {
+      "id": 132,
+      "english": "Chat",
+      "vietnamese": "Trò chuyện",
+      "phonetic": "/tʃæt/",
+      "categoryId": 6,
+      "image": "chat",
+      "level": "A2"
+    },
+    {
+      "id": 133,
+      "english": "Check",
+      "vietnamese": "Kiểm tra",
+      "phonetic": "/tʃek/",
+      "categoryId": 6,
+      "image": "check",
+      "level": "A2"
+    },
+    {
+      "id": 134,
+      "english": "Chef",
+      "vietnamese": "Đầu bếp",
+      "phonetic": "/ʃef/",
+      "categoryId": 1,
+      "image": "chef",
+      "level": "A2"
+    },
+    {
+      "id": 135,
+      "english": "Chemistry",
+      "vietnamese": "Hóa học",
+      "phonetic": "/ˈkemɪstri/",
+      "categoryId": 2,
+      "image": "chemistry",
+      "level": "A2"
+    },
+    {
+      "id": 136,
+      "english": "Chip",
+      "vietnamese": "Khoai tây chiên",
+      "phonetic": "/tʃɪp/",
+      "categoryId": 5,
+      "image": "chip",
+      "level": "A2"
+    },
+    {
+      "id": 137,
+      "english": "Choice",
+      "vietnamese": "Sự lựa chọn",
+      "phonetic": "/tʃɔɪs/",
+      "categoryId": 8,
+      "image": "choice",
+      "level": "A2"
+    },
+    {
+      "id": 138,
+      "english": "Church",
+      "vietnamese": "Nhà thờ",
+      "phonetic": "/tʃɜːtʃ/",
+      "categoryId": 4,
+      "image": "church",
+      "level": "A2"
+    },
+    {
+      "id": 139,
+      "english": "Cigarette",
+      "vietnamese": "Điếu thuốc lá",
+      "phonetic": "/ˌsɪɡəˈret/",
+      "categoryId": 3,
+      "image": "cigarette",
+      "level": "A2"
+    },
+    {
+      "id": 140,
+      "english": "Circle",
+      "vietnamese": "Vòng tròn",
+      "phonetic": "/ˈsɜːkl/",
+      "categoryId": 3,
+      "image": "circle",
+      "level": "A2"
+    },
+    {
+      "id": 141,
+      "english": "Classical",
+      "vietnamese": "Cổ điển",
+      "phonetic": "/ˈklæsɪkl/",
+      "categoryId": 7,
+      "image": "classical",
+      "level": "A2"
+    },
+    {
+      "id": 142,
+      "english": "Clear",
+      "vietnamese": "Rõ ràng",
+      "phonetic": "/klɪər/",
+      "categoryId": 7,
+      "image": "clear",
+      "level": "A2"
+    },
+    {
+      "id": 143,
+      "english": "Clearly",
+      "vietnamese": "Một cách rõ ràng",
+      "phonetic": "/ˈklɪəli/",
+      "categoryId": 7,
+      "image": "clearly",
+      "level": "A2"
+    },
+    {
+      "id": 144,
+      "english": "Clerk",
+      "vietnamese": "Nhân viên bán hàng",
+      "phonetic": "/klɑːk/",
+      "categoryId": 1,
+      "image": "clerk",
+      "level": "A2"
+    },
+    {
+      "id": 145,
+      "english": "Climate",
+      "vietnamese": "Khí hậu",
+      "phonetic": "/ˈklaɪmət/",
+      "categoryId": 8,
+      "image": "climate",
+      "level": "A2"
+    },
+    {
+      "id": 146,
+      "english": "Close",
+      "vietnamese": "Gần",
+      "phonetic": "/kləʊs/",
+      "categoryId": 7,
+      "image": "close",
+      "level": "A2"
+    },
+    {
+      "id": 147,
+      "english": "Closed",
+      "vietnamese": "Đóng cửa",
+      "phonetic": "/kləʊzd/",
+      "categoryId": 7,
+      "image": "closed",
+      "level": "A2"
+    },
+    {
+      "id": 148,
+      "english": "Closet",
+      "vietnamese": "Tủ quần áo",
+      "phonetic": "/ˈklɒzɪt/",
+      "categoryId": 3,
+      "image": "closet",
+      "level": "A2"
+    },
+    {
+      "id": 149,
+      "english": "Clothing",
+      "vietnamese": "Quần áo",
+      "phonetic": "/ˈkləʊðɪŋ/",
+      "categoryId": 3,
+      "image": "clothing",
+      "level": "A2"
+    },
+    {
+      "id": 150,
+      "english": "Cloud",
+      "vietnamese": "Đám mây",
+      "phonetic": "/klaʊd/",
+      "categoryId": 3,
+      "image": "cloud",
+      "level": "A2"
+    },
+    {
+      "id": 151,
+      "english": "Coach",
+      "vietnamese": "Huấn luyện viên",
+      "phonetic": "/kəʊtʃ/",
+      "categoryId": 1,
+      "image": "coach",
+      "level": "A2"
+    },
+    {
+      "id": 152,
+      "english": "Coast",
+      "vietnamese": "Bờ biển",
+      "phonetic": "/kəʊst/",
+      "categoryId": 4,
+      "image": "coast",
+      "level": "A2"
+    },
+    {
+      "id": 153,
+      "english": "Code",
+      "vietnamese": "Mã",
+      "phonetic": "/kəʊd/",
+      "categoryId": 8,
+      "image": "code",
+      "level": "A2"
+    },
+    {
+      "id": 154,
+      "english": "Colleague",
+      "vietnamese": "Đồng nghiệp",
+      "phonetic": "/ˈkɒliːɡ/",
+      "categoryId": 1,
+      "image": "colleague",
+      "level": "A2"
+    },
+    {
+      "id": 155,
+      "english": "Collect",
+      "vietnamese": "Sưu tầm",
+      "phonetic": "/kəˈlekt/",
+      "categoryId": 6,
+      "image": "collect",
+      "level": "A2"
+    },
+    {
+      "id": 156,
+      "english": "Column",
+      "vietnamese": "Cột",
+      "phonetic": "/ˈkɒləm/",
+      "categoryId": 3,
+      "image": "column",
+      "level": "A2"
+    },
+    {
+      "id": 157,
+      "english": "Comedy",
+      "vietnamese": "Hài kịch",
+      "phonetic": "/ˈkɒmədi/",
+      "categoryId": 3,
+      "image": "comedy",
+      "level": "A2"
+    },
+    {
+      "id": 158,
+      "english": "Comfortable",
+      "vietnamese": "Thoải mái",
+      "phonetic": "/ˈkʌmfətəbl/",
+      "categoryId": 7,
+      "image": "comfortable",
+      "level": "A2"
+    },
+    {
+      "id": 159,
+      "english": "Comment",
+      "vietnamese": "Bình luận",
+      "phonetic": "/ˈkɒment/",
+      "categoryId": 8,
+      "image": "comment",
+      "level": "A2"
+    },
+    {
+      "id": 160,
+      "english": "Communicate",
+      "vietnamese": "Giao tiếp",
+      "phonetic": "/kəˈmjuːnɪkeɪt/",
+      "categoryId": 6,
+      "image": "communicate",
+      "level": "A2"
+    },
+    {
+      "id": 161,
+      "english": "Community",
+      "vietnamese": "Cộng đồng",
+      "phonetic": "/kəˈmjuːnəti/",
+      "categoryId": 1,
+      "image": "community",
+      "level": "A2"
+    },
+    {
+      "id": 162,
+      "english": "Compete",
+      "vietnamese": "Cạnh tranh",
+      "phonetic": "/kəmˈpiːt/",
+      "categoryId": 6,
+      "image": "compete",
+      "level": "A2"
+    },
+    {
+      "id": 163,
+      "english": "Competition",
+      "vietnamese": "Cuộc thi",
+      "phonetic": "/ˌkɒmpəˈtɪʃn/",
+      "categoryId": 8,
+      "image": "competition",
+      "level": "A2"
+    },
+    {
+      "id": 164,
+      "english": "Complain",
+      "vietnamese": "Phàn nàn",
+      "phonetic": "/kəmˈpleɪn/",
+      "categoryId": 6,
+      "image": "complain",
+      "level": "A2"
+    },
+    {
+      "id": 165,
+      "english": "Completely",
+      "vietnamese": "Hoàn toàn",
+      "phonetic": "/kəmˈpliːtli/",
+      "categoryId": 7,
+      "image": "completely",
+      "level": "A2"
+    },
+    {
+      "id": 166,
+      "english": "Condition",
+      "vietnamese": "Điều kiện",
+      "phonetic": "/kənˈdɪʃn/",
+      "categoryId": 8,
+      "image": "condition",
+      "level": "A2"
+    },
+    {
+      "id": 167,
+      "english": "Conference",
+      "vietnamese": "Hội nghị",
+      "phonetic": "/ˈkɒnfərəns/",
+      "categoryId": 8,
+      "image": "conference",
+      "level": "A2"
+    },
+    {
+      "id": 168,
+      "english": "Connect",
+      "vietnamese": "Kết nối",
+      "phonetic": "/kəˈnekt/",
+      "categoryId": 6,
+      "image": "connect",
+      "level": "A2"
+    },
+    {
+      "id": 169,
+      "english": "Connected",
+      "vietnamese": "Được kết nối",
+      "phonetic": "/kəˈnektɪd/",
+      "categoryId": 7,
+      "image": "connected",
+      "level": "A2"
+    },
+    {
+      "id": 170,
+      "english": "Consider",
+      "vietnamese": "Xem xét",
+      "phonetic": "/kənˈsɪdər/",
+      "categoryId": 6,
+      "image": "consider",
+      "level": "A2"
+    },
+    {
+      "id": 171,
+      "english": "Contain",
+      "vietnamese": "Chứa đựng",
+      "phonetic": "/kənˈteɪn/",
+      "categoryId": 6,
+      "image": "contain",
+      "level": "A2"
+    },
+    {
+      "id": 172,
+      "english": "Context",
+      "vietnamese": "Bối cảnh",
+      "phonetic": "/ˈkɒntekst/",
+      "categoryId": 8,
+      "image": "context",
+      "level": "A2"
+    },
+    {
+      "id": 173,
+      "english": "Continent",
+      "vietnamese": "Lục địa",
+      "phonetic": "/ˈkɒntɪnənt/",
+      "categoryId": 4,
+      "image": "continent",
+      "level": "A2"
+    },
+    {
+      "id": 174,
+      "english": "Continue",
+      "vietnamese": "Tiếp tục",
+      "phonetic": "/kənˈtɪnjuː/",
+      "categoryId": 6,
+      "image": "continue",
+      "level": "A2"
+    },
+    {
+      "id": 175,
+      "english": "Control",
+      "vietnamese": "Kiểm soát",
+      "phonetic": "/kənˈtrəʊl/",
+      "categoryId": 6,
+      "image": "control",
+      "level": "A2"
+    },
+    {
+      "id": 176,
+      "english": "Cook",
+      "vietnamese": "Đầu bếp",
+      "phonetic": "/kʊk/",
+      "categoryId": 1,
+      "image": "cook",
+      "level": "A2"
+    },
+    {
+      "id": 177,
+      "english": "Cookie",
+      "vietnamese": "Bánh quy",
+      "phonetic": "/ˈkʊki/",
+      "categoryId": 5,
+      "image": "cookie",
+      "level": "A2"
+    },
+    {
+      "id": 178,
+      "english": "Copy",
+      "vietnamese": "Bản sao",
+      "phonetic": "/ˈkɒpi/",
+      "categoryId": 3,
+      "image": "copy",
+      "level": "A2"
+    },
+    {
+      "id": 179,
+      "english": "Corner",
+      "vietnamese": "Góc",
+      "phonetic": "/ˈkɔːnər/",
+      "categoryId": 4,
+      "image": "corner",
+      "level": "A2"
+    },
+    {
+      "id": 180,
+      "english": "Correctly",
+      "vietnamese": "Một cách chính xác",
+      "phonetic": "/kəˈrektli/",
+      "categoryId": 7,
+      "image": "correctly",
+      "level": "A2"
+    },
+    {
+      "id": 181,
+      "english": "Count",
+      "vietnamese": "Đếm",
+      "phonetic": "/kaʊnt/",
+      "categoryId": 6,
+      "image": "count",
+      "level": "A2"
+    },
+    {
+      "id": 182,
+      "english": "Couple",
+      "vietnamese": "Cặp đôi",
+      "phonetic": "/ˈkʌpl/",
+      "categoryId": 1,
+      "image": "couple",
+      "level": "A2"
+    },
+    {
+      "id": 183,
+      "english": "Cover",
+      "vietnamese": "Che phủ",
+      "phonetic": "/ˈkʌvər/",
+      "categoryId": 6,
+      "image": "cover",
+      "level": "A2"
+    },
+    {
+      "id": 184,
+      "english": "Crazy",
+      "vietnamese": "Điên rồ",
+      "phonetic": "/ˈkreɪzi/",
+      "categoryId": 7,
+      "image": "crazy",
+      "level": "A2"
+    },
+    {
+      "id": 185,
+      "english": "Creative",
+      "vietnamese": "Sáng tạo",
+      "phonetic": "/kriˈeɪtɪv/",
+      "categoryId": 7,
+      "image": "creative",
+      "level": "A2"
+    },
+    {
+      "id": 186,
+      "english": "Credit",
+      "vietnamese": "Tín dụng",
+      "phonetic": "/ˈkredɪt/",
+      "categoryId": 8,
+      "image": "credit",
+      "level": "A2"
+    },
+    {
+      "id": 187,
+      "english": "Crime",
+      "vietnamese": "Tội ác",
+      "phonetic": "/kraɪm/",
+      "categoryId": 8,
+      "image": "crime",
+      "level": "A2"
+    },
+    {
+      "id": 188,
+      "english": "Criminal",
+      "vietnamese": "Tội phạm",
+      "phonetic": "/ˈkrɪmɪnl/",
+      "categoryId": 1,
+      "image": "criminal",
+      "level": "A2"
+    },
+    {
+      "id": 189,
+      "english": "Cross",
+      "vietnamese": "Băng qua",
+      "phonetic": "/krɒs/",
+      "categoryId": 6,
+      "image": "cross",
+      "level": "A2"
+    },
+    {
+      "id": 190,
+      "english": "Crowd",
+      "vietnamese": "Đám đông",
+      "phonetic": "/kraʊd/",
+      "categoryId": 1,
+      "image": "crowd",
+      "level": "A2"
+    },
+    {
+      "id": 191,
+      "english": "Crowded",
+      "vietnamese": "Đông đúc",
+      "phonetic": "/ˈkraʊdɪd/",
+      "categoryId": 7,
+      "image": "crowded",
+      "level": "A2"
+    },
+    {
+      "id": 192,
+      "english": "Cry",
+      "vietnamese": "Khóc",
+      "phonetic": "/kraɪ/",
+      "categoryId": 6,
+      "image": "cry",
+      "level": "A2"
+    },
+    {
+      "id": 193,
+      "english": "Curly",
+      "vietnamese": "Xoăn",
+      "phonetic": "/ˈkɜːli/",
+      "categoryId": 7,
+      "image": "curly",
+      "level": "A2"
+    },
+    {
+      "id": 194,
+      "english": "Cycle",
+      "vietnamese": "Chu kỳ, đạp xe",
+      "phonetic": "/ˈsaɪkl/",
+      "categoryId": 6,
+      "image": "cycle",
+      "level": "A2"
+    },
+    {
+      "id": 195,
+      "english": "Daily",
+      "vietnamese": "Hàng ngày",
+      "phonetic": "/ˈdeɪli/",
+      "categoryId": 7,
+      "image": "daily",
+      "level": "A2"
+    },
+    {
+      "id": 196,
+      "english": "Dark",
+      "vietnamese": "Tối",
+      "phonetic": "/dɑːk/",
+      "categoryId": 7,
+      "image": "dark",
+      "level": "A2"
+    },
+    {
+      "id": 197,
+      "english": "Data",
+      "vietnamese": "Dữ liệu",
+      "phonetic": "/ˈdeɪtə/",
+      "categoryId": 8,
+      "image": "data",
+      "level": "A2"
+    },
+    {
+      "id": 198,
+      "english": "Dead",
+      "vietnamese": "Đã chết",
+      "phonetic": "/ded/",
+      "categoryId": 7,
+      "image": "dead",
+      "level": "A2"
+    },
+    {
+      "id": 199,
+      "english": "Deal",
+      "vietnamese": "Giải quyết",
+      "phonetic": "/diːl/",
+      "categoryId": 6,
+      "image": "deal",
+      "level": "A2"
+    },
+    {
+      "id": 200,
+      "english": "Death",
+      "vietnamese": "Cái chết",
+      "phonetic": "/deθ/",
+      "categoryId": 8,
+      "image": "death",
+      "level": "A2"
+    },
+    {
+      "id": 201,
+      "english": "Decision",
+      "vietnamese": "Quyết định",
+      "phonetic": "/dɪˈsɪʒn/",
+      "categoryId": 8,
+      "image": "decision",
+      "level": "A2"
+    },
+    {
+      "id": 202,
+      "english": "Deep",
+      "vietnamese": "Sâu",
+      "phonetic": "/diːp/",
+      "categoryId": 7,
+      "image": "deep",
+      "level": "A2"
+    },
+    {
+      "id": 203,
+      "english": "Definitely",
+      "vietnamese": "Chắc chắn",
+      "phonetic": "/ˈdefɪnətli/",
+      "categoryId": 7,
+      "image": "definitely",
+      "level": "A2"
+    },
+    {
+      "id": 204,
+      "english": "Degree",
+      "vietnamese": "Bằng cấp, mức độ",
+      "phonetic": "/dɪˈɡriː/",
+      "categoryId": 2,
+      "image": "degree",
+      "level": "A2"
+    },
+    {
+      "id": 205,
+      "english": "Dentist",
+      "vietnamese": "Nha sĩ",
+      "phonetic": "/ˈdentɪst/",
+      "categoryId": 1,
+      "image": "dentist",
+      "level": "A2"
+    },
+    {
+      "id": 206,
+      "english": "Department",
+      "vietnamese": "Phòng ban",
+      "phonetic": "/dɪˈpɑːtmənt/",
+      "categoryId": 2,
+      "image": "department",
+      "level": "A2"
+    },
+    {
+      "id": 207,
+      "english": "Depend",
+      "vietnamese": "Phụ thuộc",
+      "phonetic": "/dɪˈpend/",
+      "categoryId": 6,
+      "image": "depend",
+      "level": "A2"
+    },
+    {
+      "id": 208,
+      "english": "Desert",
+      "vietnamese": "Sa mạc",
+      "phonetic": "/ˈdezət/",
+      "categoryId": 4,
+      "image": "desert",
+      "level": "A2"
+    },
+    {
+      "id": 209,
+      "english": "Designer",
+      "vietnamese": "Nhà thiết kế",
+      "phonetic": "/dɪˈzaɪnər/",
+      "categoryId": 1,
+      "image": "designer",
+      "level": "A2"
+    },
+    {
+      "id": 210,
+      "english": "Dessert",
+      "vietnamese": "Món tráng miệng",
+      "phonetic": "/dɪˈzɜːt/",
+      "categoryId": 5,
+      "image": "dessert",
+      "level": "A2"
+    },
+    {
+      "id": 211,
+      "english": "Destroy",
+      "vietnamese": "Phá hủy",
+      "phonetic": "/dɪˈstrɔɪ/",
+      "categoryId": 6,
+      "image": "destroy",
+      "level": "A2"
+    },
+    {
+      "id": 212,
+      "english": "Detective",
+      "vietnamese": "Thám tử",
+      "phonetic": "/dɪˈtektɪv/",
+      "categoryId": 1,
+      "image": "detective",
+      "level": "A2"
+    },
+    {
+      "id": 213,
+      "english": "Develop",
+      "vietnamese": "Phát triển",
+      "phonetic": "/dɪˈveləp/",
+      "categoryId": 6,
+      "image": "develop",
+      "level": "A2"
+    },
+    {
+      "id": 214,
+      "english": "Device",
+      "vietnamese": "Thiết bị",
+      "phonetic": "/dɪˈvaɪs/",
+      "categoryId": 3,
+      "image": "device",
+      "level": "A2"
+    },
+    {
+      "id": 215,
+      "english": "Diary",
+      "vietnamese": "Nhật ký",
+      "phonetic": "/ˈdaɪəri/",
+      "categoryId": 3,
+      "image": "diary",
+      "level": "A2"
+    },
+    {
+      "id": 216,
+      "english": "Differently",
+      "vietnamese": "Một cách khác biệt",
+      "phonetic": "/ˈdɪfrəntli/",
+      "categoryId": 7,
+      "image": "differently",
+      "level": "A2"
+    },
+    {
+      "id": 217,
+      "english": "Digital",
+      "vietnamese": "Kỹ thuật số",
+      "phonetic": "/ˈdɪdʒɪtl/",
+      "categoryId": 7,
+      "image": "digital",
+      "level": "A2"
+    },
+    {
+      "id": 218,
+      "english": "Direct",
+      "vietnamese": "Trực tiếp",
+      "phonetic": "/daɪˈrekt/",
+      "categoryId": 7,
+      "image": "direct",
+      "level": "A2"
+    },
+    {
+      "id": 219,
+      "english": "Direction",
+      "vietnamese": "Hướng đi",
+      "phonetic": "/daɪˈrekʃn/",
+      "categoryId": 4,
+      "image": "direction",
+      "level": "A2"
+    },
+    {
+      "id": 220,
+      "english": "Director",
+      "vietnamese": "Giám đốc, đạo diễn",
+      "phonetic": "/daɪˈrektər/",
+      "categoryId": 1,
+      "image": "director",
+      "level": "A2"
+    },
+    {
+      "id": 221,
+      "english": "Disagree",
+      "vietnamese": "Không đồng ý",
+      "phonetic": "/ˌdɪsəˈɡriː/",
+      "categoryId": 6,
+      "image": "disagree",
+      "level": "A2"
+    },
+    {
+      "id": 222,
+      "english": "Disappear",
+      "vietnamese": "Biến mất",
+      "phonetic": "/ˌdɪsəˈpɪər/",
+      "categoryId": 6,
+      "image": "disappear",
+      "level": "A2"
+    },
+    {
+      "id": 223,
+      "english": "Disaster",
+      "vietnamese": "Thảm họa",
+      "phonetic": "/dɪˈzɑːstər/",
+      "categoryId": 8,
+      "image": "disaster",
+      "level": "A2"
+    },
+    {
+      "id": 224,
+      "english": "Discover",
+      "vietnamese": "Khám phá",
+      "phonetic": "/dɪˈskʌvər/",
+      "categoryId": 6,
+      "image": "discover",
+      "level": "A2"
+    },
+    {
+      "id": 225,
+      "english": "Discovery",
+      "vietnamese": "Sự khám phá",
+      "phonetic": "/dɪˈskʌvəri/",
+      "categoryId": 8,
+      "image": "discovery",
+      "level": "A2"
+    },
+    {
+      "id": 226,
+      "english": "Discussion",
+      "vietnamese": "Cuộc thảo luận",
+      "phonetic": "/dɪˈskʌʃn/",
+      "categoryId": 8,
+      "image": "discussion",
+      "level": "A2"
+    },
+    {
+      "id": 227,
+      "english": "Disease",
+      "vietnamese": "Bệnh tật",
+      "phonetic": "/dɪˈziːz/",
+      "categoryId": 8,
+      "image": "disease",
+      "level": "A2"
+    },
+    {
+      "id": 228,
+      "english": "Distance",
+      "vietnamese": "Khoảng cách",
+      "phonetic": "/ˈdɪstəns/",
+      "categoryId": 8,
+      "image": "distance",
+      "level": "A2"
+    },
+    {
+      "id": 229,
+      "english": "Divorced",
+      "vietnamese": "Ly hôn",
+      "phonetic": "/dɪˈvɔːst/",
+      "categoryId": 7,
+      "image": "divorced",
+      "level": "A2"
+    },
+    {
+      "id": 230,
+      "english": "Document",
+      "vietnamese": "Tài liệu",
+      "phonetic": "/ˈdɒkjumənt/",
+      "categoryId": 3,
+      "image": "document",
+      "level": "A2"
+    },
+    {
+      "id": 231,
+      "english": "Double",
+      "vietnamese": "Gấp đôi",
+      "phonetic": "/ˈdʌbl/",
+      "categoryId": 7,
+      "image": "double",
+      "level": "A2"
+    },
+    {
+      "id": 232,
+      "english": "Download",
+      "vietnamese": "Tải xuống",
+      "phonetic": "/ˈdaʊnləʊd/",
+      "categoryId": 6,
+      "image": "download",
+      "level": "A2"
+    },
+    {
+      "id": 233,
+      "english": "Downstairs",
+      "vietnamese": "Tầng dưới",
+      "phonetic": "/ˌdaʊnˈsteəz/",
+      "categoryId": 4,
+      "image": "downstairs",
+      "level": "A2"
+    },
+    {
+      "id": 234,
+      "english": "Downtown",
+      "vietnamese": "Trung tâm thành phố",
+      "phonetic": "/ˈdaʊntaʊn/",
+      "categoryId": 4,
+      "image": "downtown",
+      "level": "A2"
+    },
+    {
+      "id": 235,
+      "english": "Drama",
+      "vietnamese": "Kịch",
+      "phonetic": "/ˈdrɑːmə/",
+      "categoryId": 3,
+      "image": "drama",
+      "level": "A2"
+    },
+    {
+      "id": 236,
+      "english": "Drawing",
+      "vietnamese": "Bản vẽ",
+      "phonetic": "/ˈdrɔːɪŋ/",
+      "categoryId": 3,
+      "image": "drawing",
+      "level": "A2"
+    },
+    {
+      "id": 237,
+      "english": "Dream",
+      "vietnamese": "Giấc mơ",
+      "phonetic": "/driːm/",
+      "categoryId": 8,
+      "image": "dream",
+      "level": "A2"
+    },
+    {
+      "id": 238,
+      "english": "Drive",
+      "vietnamese": "Chuyến đi bằng xe hơi",
+      "phonetic": "/draɪv/",
+      "categoryId": 6,
+      "image": "drive",
+      "level": "A2"
+    },
+    {
+      "id": 239,
+      "english": "Driving",
+      "vietnamese": "Việc lái xe",
+      "phonetic": "/ˈdraɪvɪŋ/",
+      "categoryId": 6,
+      "image": "driving",
+      "level": "A2"
+    },
+    {
+      "id": 240,
+      "english": "Drop",
+      "vietnamese": "Làm rơi",
+      "phonetic": "/drɒp/",
+      "categoryId": 6,
+      "image": "drop",
+      "level": "A2"
+    },
+    {
+      "id": 241,
+      "english": "Drug",
+      "vietnamese": "Thuốc",
+      "phonetic": "/drʌɡ/",
+      "categoryId": 3,
+      "image": "drug",
+      "level": "A2"
+    },
+    {
+      "id": 242,
+      "english": "Dry",
+      "vietnamese": "Khô",
+      "phonetic": "/draɪ/",
+      "categoryId": 7,
+      "image": "dry",
+      "level": "A2"
+    },
+    {
+      "id": 243,
+      "english": "Earn",
+      "vietnamese": "Kiếm tiền",
+      "phonetic": "/ɜːn/",
+      "categoryId": 6,
+      "image": "earn",
+      "level": "A2"
+    },
+    {
+      "id": 244,
+      "english": "Earth",
+      "vietnamese": "Trái đất",
+      "phonetic": "/ɜːθ/",
+      "categoryId": 4,
+      "image": "earth",
+      "level": "A2"
+    },
+    {
+      "id": 245,
+      "english": "Easily",
+      "vietnamese": "Một cách dễ dàng",
+      "phonetic": "/ˈiːzəli/",
+      "categoryId": 7,
+      "image": "easily",
+      "level": "A2"
+    },
+    {
+      "id": 246,
+      "english": "Education",
+      "vietnamese": "Giáo dục",
+      "phonetic": "/ˌedʒuˈkeɪʃn/",
+      "categoryId": 2,
+      "image": "education",
+      "level": "A2"
+    },
+    {
+      "id": 247,
+      "english": "Effect",
+      "vietnamese": "Hiệu ứng",
+      "phonetic": "/ɪˈfekt/",
+      "categoryId": 8,
+      "image": "effect",
+      "level": "A2"
+    },
+    {
+      "id": 248,
+      "english": "Either",
+      "vietnamese": "Một trong hai",
+      "phonetic": "/ˈaɪðər/",
+      "categoryId": 7,
+      "image": "either",
+      "level": "A2"
+    },
+    {
+      "id": 249,
+      "english": "Electric",
+      "vietnamese": "Chạy bằng điện",
+      "phonetic": "/ɪˈlektrɪk/",
+      "categoryId": 7,
+      "image": "electric",
+      "level": "A2"
+    },
+    {
+      "id": 250,
+      "english": "Electrical",
+      "vietnamese": "Thuộc về điện",
+      "phonetic": "/ɪˈlektrɪkl/",
+      "categoryId": 7,
+      "image": "electrical",
+      "level": "A2"
+    },
+    {
+      "id": 251,
+      "english": "Electricity",
+      "vietnamese": "Điện",
+      "phonetic": "/ɪˌlekˈtrɪsəti/",
+      "categoryId": 8,
+      "image": "electricity",
+      "level": "A2"
+    },
+    {
+      "id": 252,
+      "english": "Electronic",
+      "vietnamese": "Điện tử",
+      "phonetic": "/ɪˌlekˈtrɒnɪk/",
+      "categoryId": 7,
+      "image": "electronic",
+      "level": "A2"
+    },
+    {
+      "id": 253,
+      "english": "Elevator",
+      "vietnamese": "Thang máy",
+      "phonetic": "/ˈelɪveɪtər/",
+      "categoryId": 3,
+      "image": "elevator",
+      "level": "A2"
+    },
+    {
+      "id": 254,
+      "english": "Employ",
+      "vietnamese": "Thuê",
+      "phonetic": "/ɪmˈplɔɪ/",
+      "categoryId": 6,
+      "image": "employ",
+      "level": "A2"
+    },
+    {
+      "id": 255,
+      "english": "Employee",
+      "vietnamese": "Nhân viên",
+      "phonetic": "/ɪmˈplɔɪiː/",
+      "categoryId": 1,
+      "image": "employee",
+      "level": "A2"
+    },
+    {
+      "id": 256,
+      "english": "Employer",
+      "vietnamese": "Người sử dụng lao động",
+      "phonetic": "/ɪmˈplɔɪər/",
+      "categoryId": 1,
+      "image": "employer",
+      "level": "A2"
+    },
+    {
+      "id": 257,
+      "english": "Empty",
+      "vietnamese": "Trống rỗng",
+      "phonetic": "/ˈempti/",
+      "categoryId": 7,
+      "image": "empty",
+      "level": "A2"
+    },
+    {
+      "id": 258,
+      "english": "Ending",
+      "vietnamese": "Sự kết thúc",
+      "phonetic": "/ˈendɪŋ/",
+      "categoryId": 8,
+      "image": "ending",
+      "level": "A2"
+    },
+    {
+      "id": 259,
+      "english": "Energy",
+      "vietnamese": "Năng lượng",
+      "phonetic": "/ˈenədʒi/",
+      "categoryId": 8,
+      "image": "energy",
+      "level": "A2"
+    },
+    {
+      "id": 260,
+      "english": "Engine",
+      "vietnamese": "Động cơ",
+      "phonetic": "/ˈendʒɪn/",
+      "categoryId": 3,
+      "image": "engine",
+      "level": "A2"
+    },
+    {
+      "id": 261,
+      "english": "Engineer",
+      "vietnamese": "Kỹ sư",
+      "phonetic": "/ˌendʒɪˈnɪər/",
+      "categoryId": 1,
+      "image": "engineer",
+      "level": "A2"
+    },
+    {
+      "id": 262,
+      "english": "Enormous",
+      "vietnamese": "To lớn",
+      "phonetic": "/ɪˈnɔːməs/",
+      "categoryId": 7,
+      "image": "enormous",
+      "level": "A2"
+    },
+    {
+      "id": 263,
+      "english": "Enter",
+      "vietnamese": "Đi vào",
+      "phonetic": "/ˈentər/",
+      "categoryId": 6,
+      "image": "enter",
+      "level": "A2"
+    },
+    {
+      "id": 264,
+      "english": "Environment",
+      "vietnamese": "Môi trường",
+      "phonetic": "/ɪnˈvaɪrənmənt/",
+      "categoryId": 8,
+      "image": "environment",
+      "level": "A2"
+    },
+    {
+      "id": 265,
+      "english": "Equipment",
+      "vietnamese": "Thiết bị",
+      "phonetic": "/ɪˈkwɪpmənt/",
+      "categoryId": 3,
+      "image": "equipment",
+      "level": "A2"
+    },
+    {
+      "id": 266,
+      "english": "Error",
+      "vietnamese": "Lỗi",
+      "phonetic": "/ˈerər/",
+      "categoryId": 8,
+      "image": "error",
+      "level": "A2"
+    },
+    {
+      "id": 267,
+      "english": "Especially",
+      "vietnamese": "Đặc biệt",
+      "phonetic": "/ɪˈspeʃəli/",
+      "categoryId": 7,
+      "image": "especially",
+      "level": "A2"
+    },
+    {
+      "id": 268,
+      "english": "Essay",
+      "vietnamese": "Bài luận",
+      "phonetic": "/ˈeseɪ/",
+      "categoryId": 2,
+      "image": "essay",
+      "level": "A2"
+    },
+    {
+      "id": 269,
+      "english": "Everyday",
+      "vietnamese": "Hàng ngày",
+      "phonetic": "/ˈevrideɪ/",
+      "categoryId": 7,
+      "image": "everyday",
+      "level": "A2"
+    },
+    {
+      "id": 270,
+      "english": "Everywhere",
+      "vietnamese": "Mọi nơi",
+      "phonetic": "/ˈevriweər/",
+      "categoryId": 4,
+      "image": "everywhere",
+      "level": "A2"
+    },
+    {
+      "id": 271,
+      "english": "Evidence",
+      "vietnamese": "Bằng chứng",
+      "phonetic": "/ˈevɪdəns/",
+      "categoryId": 8,
+      "image": "evidence",
+      "level": "A2"
+    },
+    {
+      "id": 272,
+      "english": "Exact",
+      "vietnamese": "Chính xác",
+      "phonetic": "/ɪɡˈzækt/",
+      "categoryId": 7,
+      "image": "exact",
+      "level": "A2"
+    },
+    {
+      "id": 273,
+      "english": "Exactly",
+      "vietnamese": "Một cách chính xác",
+      "phonetic": "/ɪɡˈzæktli/",
+      "categoryId": 7,
+      "image": "exactly",
+      "level": "A2"
+    },
+    {
+      "id": 274,
+      "english": "Excellent",
+      "vietnamese": "Xuất sắc",
+      "phonetic": "/ˈeksələnt/",
+      "categoryId": 7,
+      "image": "excellent",
+      "level": "A2"
+    },
+    {
+      "id": 275,
+      "english": "Except",
+      "vietnamese": "Ngoại trừ",
+      "phonetic": "/ɪkˈsept/",
+      "categoryId": 8,
+      "image": "except",
+      "level": "A2"
+    },
+    {
+      "id": 276,
+      "english": "Exist",
+      "vietnamese": "Tồn tại",
+      "phonetic": "/ɪɡˈzɪst/",
+      "categoryId": 6,
+      "image": "exist",
+      "level": "A2"
+    },
+    {
+      "id": 277,
+      "english": "Expect",
+      "vietnamese": "Mong đợi",
+      "phonetic": "/ɪkˈspekt/",
+      "categoryId": 6,
+      "image": "expect",
+      "level": "A2"
+    },
+    {
+      "id": 278,
+      "english": "Experience",
+      "vietnamese": "Kinh nghiệm",
+      "phonetic": "/ɪkˈspɪəriəns/",
+      "categoryId": 8,
+      "image": "experience",
+      "level": "A2"
+    },
+    {
+      "id": 279,
+      "english": "Experiment",
+      "vietnamese": "Thí nghiệm",
+      "phonetic": "/ɪkˈsperɪmənt/",
+      "categoryId": 2,
+      "image": "experiment",
+      "level": "A2"
+    },
+    {
+      "id": 280,
+      "english": "Expert",
+      "vietnamese": "Chuyên gia",
+      "phonetic": "/ˈekspɜːt/",
+      "categoryId": 1,
+      "image": "expert",
+      "level": "A2"
+    },
+    {
+      "id": 281,
+      "english": "Explanation",
+      "vietnamese": "Sự giải thích",
+      "phonetic": "/ˌekspləˈneɪʃn/",
+      "categoryId": 8,
+      "image": "explanation",
+      "level": "A2"
+    },
+    {
+      "id": 282,
+      "english": "Express",
+      "vietnamese": "Bày tỏ",
+      "phonetic": "/ɪkˈspres/",
+      "categoryId": 6,
+      "image": "express",
+      "level": "A2"
+    },
+    {
+      "id": 283,
+      "english": "Expression",
+      "vietnamese": "Sự biểu lộ",
+      "phonetic": "/ɪkˈspreʃn/",
+      "categoryId": 8,
+      "image": "expression",
+      "level": "A2"
+    },
+    {
+      "id": 284,
+      "english": "Extreme",
+      "vietnamese": "Cực đoan",
+      "phonetic": "/ɪkˈstriːm/",
+      "categoryId": 7,
+      "image": "extreme",
+      "level": "A2"
+    },
+    {
+      "id": 285,
+      "english": "Extremely",
+      "vietnamese": "Cực kỳ",
+      "phonetic": "/ɪkˈstriːmli/",
+      "categoryId": 7,
+      "image": "extremely",
+      "level": "A2"
+    },
+    {
+      "id": 286,
+      "english": "Factor",
+      "vietnamese": "Yếu tố",
+      "phonetic": "/ˈfæktər/",
+      "categoryId": 8,
+      "image": "factor",
+      "level": "A2"
+    },
+    {
+      "id": 287,
+      "english": "Factory",
+      "vietnamese": "Nhà máy",
+      "phonetic": "/ˈfæktri/",
+      "categoryId": 4,
+      "image": "factory",
+      "level": "A2"
+    },
+    {
+      "id": 288,
+      "english": "Fail",
+      "vietnamese": "Thất bại",
+      "phonetic": "/feɪl/",
+      "categoryId": 6,
+      "image": "fail",
+      "level": "A2"
+    },
+    {
+      "id": 289,
+      "english": "Fair",
+      "vietnamese": "Công bằng",
+      "phonetic": "/feər/",
+      "categoryId": 7,
+      "image": "fair",
+      "level": "A2"
+    },
+    {
+      "id": 290,
+      "english": "Fall",
+      "vietnamese": "Mùa thu",
+      "phonetic": "/fɔːl/",
+      "categoryId": 8,
+      "image": "fall",
+      "level": "A2"
+    },
+    {
+      "id": 291,
+      "english": "Fan",
+      "vietnamese": "Người hâm mộ",
+      "phonetic": "/fæn/",
+      "categoryId": 1,
+      "image": "fan",
+      "level": "A2"
+    },
+    {
+      "id": 292,
+      "english": "Farm",
+      "vietnamese": "Làm nông",
+      "phonetic": "/fɑːm/",
+      "categoryId": 6,
+      "image": "farm",
+      "level": "A2"
+    },
+    {
+      "id": 293,
+      "english": "Farming",
+      "vietnamese": "Nông nghiệp",
+      "phonetic": "/ˈfɑːmɪŋ/",
+      "categoryId": 2,
+      "image": "farming",
+      "level": "A2"
+    },
+    {
+      "id": 294,
+      "english": "Fashion",
+      "vietnamese": "Thời trang",
+      "phonetic": "/ˈfæʃn/",
+      "categoryId": 3,
+      "image": "fashion",
+      "level": "A2"
+    },
+    {
+      "id": 295,
+      "english": "Fat",
+      "vietnamese": "Mỡ, chất béo",
+      "phonetic": "/fæt/",
+      "categoryId": 5,
+      "image": "fat",
+      "level": "A2"
+    },
+    {
+      "id": 296,
+      "english": "Fear",
+      "vietnamese": "Nỗi sợ",
+      "phonetic": "/fɪər/",
+      "categoryId": 8,
+      "image": "fear",
+      "level": "A2"
+    },
+    {
+      "id": 297,
+      "english": "Feature",
+      "vietnamese": "Đặc điểm",
+      "phonetic": "/ˈfiːtʃər/",
+      "categoryId": 8,
+      "image": "feature",
+      "level": "A2"
+    },
+    {
+      "id": 298,
+      "english": "Feed",
+      "vietnamese": "Cho ăn",
+      "phonetic": "/fiːd/",
+      "categoryId": 6,
+      "image": "feed",
+      "level": "A2"
+    },
+    {
+      "id": 299,
+      "english": "Female",
+      "vietnamese": "Nữ",
+      "phonetic": "/ˈfiːmeɪl/",
+      "categoryId": 7,
+      "image": "female",
+      "level": "A2"
+    },
+    {
+      "id": 300,
+      "english": "Fever",
+      "vietnamese": "Cơn sốt",
+      "phonetic": "/ˈfiːvər/",
+      "categoryId": 8,
+      "image": "fever",
+      "level": "A2"
+    },
+    {
+      "id": 301,
+      "english": "Fiction",
+      "vietnamese": "Tiểu thuyết viễn tưởng",
+      "phonetic": "/ˈfɪkʃn/",
+      "categoryId": 2,
+      "image": "fiction",
+      "level": "A2"
+    },
+    {
+      "id": 302,
+      "english": "Field",
+      "vietnamese": "Cánh đồng",
+      "phonetic": "/fiːld/",
+      "categoryId": 4,
+      "image": "field",
+      "level": "A2"
+    },
+    {
+      "id": 303,
+      "english": "Fight",
+      "vietnamese": "Đánh nhau",
+      "phonetic": "/faɪt/",
+      "categoryId": 6,
+      "image": "fight",
+      "level": "A2"
+    },
+    {
+      "id": 304,
+      "english": "Figure",
+      "vietnamese": "Hình dáng, con số",
+      "phonetic": "/ˈfɪɡər/",
+      "categoryId": 8,
+      "image": "figure",
+      "level": "A2"
+    },
+    {
+      "id": 305,
+      "english": "Film",
+      "vietnamese": "Bộ phim",
+      "phonetic": "/fɪlm/",
+      "categoryId": 3,
+      "image": "film",
+      "level": "A2"
+    },
+    {
+      "id": 306,
+      "english": "Final",
+      "vietnamese": "Chung kết",
+      "phonetic": "/ˈfaɪnl/",
+      "categoryId": 8,
+      "image": "final",
+      "level": "A2"
+    },
+    {
+      "id": 307,
+      "english": "Finally",
+      "vietnamese": "Cuối cùng",
+      "phonetic": "/ˈfaɪnəli/",
+      "categoryId": 7,
+      "image": "finally",
+      "level": "A2"
+    },
+    {
+      "id": 308,
+      "english": "Finger",
+      "vietnamese": "Ngón tay",
+      "phonetic": "/ˈfɪŋɡər/",
+      "categoryId": 3,
+      "image": "finger",
+      "level": "A2"
+    },
+    {
+      "id": 309,
+      "english": "Finish",
+      "vietnamese": "Kết thúc",
+      "phonetic": "/ˈfɪnɪʃ/",
+      "categoryId": 6,
+      "image": "finish",
+      "level": "A2"
+    },
+    {
+      "id": 310,
+      "english": "Fire",
+      "vietnamese": "Sa thải",
+      "phonetic": "/ˈfaɪər/",
+      "categoryId": 6,
+      "image": "fire",
+      "level": "A2"
+    },
+    {
+      "id": 311,
+      "english": "First",
+      "vietnamese": "Đầu tiên",
+      "phonetic": "/fɜːst/",
+      "categoryId": 7,
+      "image": "first",
+      "level": "A2"
+    },
+    {
+      "id": 312,
+      "english": "Fish",
+      "vietnamese": "Câu cá",
+      "phonetic": "/fɪʃ/",
+      "categoryId": 6,
+      "image": "fish",
+      "level": "A2"
+    },
+    {
+      "id": 313,
+      "english": "Fishing",
+      "vietnamese": "Sự câu cá",
+      "phonetic": "/ˈfɪʃɪŋ/",
+      "categoryId": 6,
+      "image": "fishing",
+      "level": "A2"
+    },
+    {
+      "id": 314,
+      "english": "Fit",
+      "vietnamese": "Vừa vặn",
+      "phonetic": "/fɪt/",
+      "categoryId": 6,
+      "image": "fit",
+      "level": "A2"
+    },
+    {
+      "id": 315,
+      "english": "Fix",
+      "vietnamese": "Sửa chữa",
+      "phonetic": "/fɪks/",
+      "categoryId": 6,
+      "image": "fix",
+      "level": "A2"
+    },
+    {
+      "id": 316,
+      "english": "Flat",
+      "vietnamese": "Căn hộ",
+      "phonetic": "/flæt/",
+      "categoryId": 4,
+      "image": "flat",
+      "level": "A2"
+    },
+    {
+      "id": 317,
+      "english": "Flu",
+      "vietnamese": "Bệnh cúm",
+      "phonetic": "/fluː/",
+      "categoryId": 8,
+      "image": "flu",
+      "level": "A2"
+    },
+    {
+      "id": 318,
+      "english": "Fly",
+      "vietnamese": "Con ruồi",
+      "phonetic": "/flaɪ/",
+      "categoryId": 3,
+      "image": "fly",
+      "level": "A2"
+    },
+    {
+      "id": 319,
+      "english": "Flying",
+      "vietnamese": "Sự bay",
+      "phonetic": "/ˈflaɪɪŋ/",
+      "categoryId": 6,
+      "image": "flying",
+      "level": "A2"
+    },
+    {
+      "id": 320,
+      "english": "Focus",
+      "vietnamese": "Tập trung",
+      "phonetic": "/ˈfəʊkəs/",
+      "categoryId": 6,
+      "image": "focus",
+      "level": "A2"
+    },
+    {
+      "id": 321,
+      "english": "Following",
+      "vietnamese": "Sau đây",
+      "phonetic": "/ˈfɒləʊɪŋ/",
+      "categoryId": 7,
+      "image": "following",
+      "level": "A2"
+    },
+    {
+      "id": 322,
+      "english": "Foreign",
+      "vietnamese": "Nước ngoài",
+      "phonetic": "/ˈfɒrən/",
+      "categoryId": 7,
+      "image": "foreign",
+      "level": "A2"
+    },
+    {
+      "id": 323,
+      "english": "Forest",
+      "vietnamese": "Rừng",
+      "phonetic": "/ˈfɒrɪst/",
+      "categoryId": 4,
+      "image": "forest",
+      "level": "A2"
+    },
+    {
+      "id": 324,
+      "english": "Fork",
+      "vietnamese": "Cái nĩa",
+      "phonetic": "/fɔːk/",
+      "categoryId": 5,
+      "image": "fork",
+      "level": "A2"
+    },
+    {
+      "id": 325,
+      "english": "Formal",
+      "vietnamese": "Trang trọng",
+      "phonetic": "/ˈfɔːml/",
+      "categoryId": 7,
+      "image": "formal",
+      "level": "A2"
+    },
+    {
+      "id": 326,
+      "english": "Fortunately",
+      "vietnamese": "May mắn thay",
+      "phonetic": "/ˈfɔːtʃənətli/",
+      "categoryId": 7,
+      "image": "fortunately",
+      "level": "A2"
+    },
+    {
+      "id": 327,
+      "english": "Forward",
+      "vietnamese": "Về phía trước",
+      "phonetic": "/ˈfɔːwəd/",
+      "categoryId": 7,
+      "image": "forward",
+      "level": "A2"
+    },
+    {
+      "id": 328,
+      "english": "Free",
+      "vietnamese": "Tự do",
+      "phonetic": "/friː/",
+      "categoryId": 7,
+      "image": "free",
+      "level": "A2"
+    },
+    {
+      "id": 329,
+      "english": "Fresh",
+      "vietnamese": "Tươi",
+      "phonetic": "/freʃ/",
+      "categoryId": 7,
+      "image": "fresh",
+      "level": "A2"
+    },
+    {
+      "id": 330,
+      "english": "Frog",
+      "vietnamese": "Con ếch",
+      "phonetic": "/frɒɡ/",
+      "categoryId": 3,
+      "image": "frog",
+      "level": "A2"
+    },
+    {
+      "id": 331,
+      "english": "Fun",
+      "vietnamese": "Vui vẻ",
+      "phonetic": "/fʌn/",
+      "categoryId": 7,
+      "image": "fun",
+      "level": "A2"
+    },
+    {
+      "id": 332,
+      "english": "Furniture",
+      "vietnamese": "Đồ nội thất",
+      "phonetic": "/ˈfɜːnɪtʃər/",
+      "categoryId": 3,
+      "image": "furniture",
+      "level": "A2"
+    },
+    {
+      "id": 333,
+      "english": "Further",
+      "vietnamese": "Xa hơn",
+      "phonetic": "/ˈfɜːðər/",
+      "categoryId": 7,
+      "image": "further",
+      "level": "A2"
+    },
+    {
+      "id": 334,
+      "english": "Future",
+      "vietnamese": "Tương lai",
+      "phonetic": "/ˈfjuːtʃər/",
+      "categoryId": 7,
+      "image": "future",
+      "level": "A2"
+    },
+    {
+      "id": 335,
+      "english": "Gallery",
+      "vietnamese": "Phòng trưng bày",
+      "phonetic": "/ˈɡæləri/",
+      "categoryId": 4,
+      "image": "gallery",
+      "level": "A2"
+    },
+    {
+      "id": 336,
+      "english": "Gap",
+      "vietnamese": "Khoảng trống",
+      "phonetic": "/ɡæp/",
+      "categoryId": 8,
+      "image": "gap",
+      "level": "A2"
+    },
+    {
+      "id": 337,
+      "english": "Garbage",
+      "vietnamese": "Rác",
+      "phonetic": "/ˈɡɑːbɪdʒ/",
+      "categoryId": 3,
+      "image": "garbage",
+      "level": "A2"
+    },
+    {
+      "id": 338,
+      "english": "Gas",
+      "vietnamese": "Khí, xăng",
+      "phonetic": "/ɡæs/",
+      "categoryId": 3,
+      "image": "gas",
+      "level": "A2"
+    },
+    {
+      "id": 339,
+      "english": "Gate",
+      "vietnamese": "Cổng",
+      "phonetic": "/ɡeɪt/",
+      "categoryId": 3,
+      "image": "gate",
+      "level": "A2"
+    },
+    {
+      "id": 340,
+      "english": "General",
+      "vietnamese": "Chung",
+      "phonetic": "/ˈdʒenrəl/",
+      "categoryId": 7,
+      "image": "general",
+      "level": "A2"
+    },
+    {
+      "id": 341,
+      "english": "Gift",
+      "vietnamese": "Món quà",
+      "phonetic": "/ɡɪft/",
+      "categoryId": 3,
+      "image": "gift",
+      "level": "A2"
+    },
+    {
+      "id": 342,
+      "english": "Goal",
+      "vietnamese": "Mục tiêu",
+      "phonetic": "/ɡəʊl/",
+      "categoryId": 8,
+      "image": "goal",
+      "level": "A2"
+    },
+    {
+      "id": 343,
+      "english": "God",
+      "vietnamese": "Chúa",
+      "phonetic": "/ɡɒd/",
+      "categoryId": 1,
+      "image": "god",
+      "level": "A2"
+    },
+    {
+      "id": 344,
+      "english": "Gold",
+      "vietnamese": "Vàng",
+      "phonetic": "/ɡəʊld/",
+      "categoryId": 3,
+      "image": "gold",
+      "level": "A2"
+    },
+    {
+      "id": 345,
+      "english": "Golf",
+      "vietnamese": "Môn đánh gôn",
+      "phonetic": "/ɡɒlf/",
+      "categoryId": 6,
+      "image": "golf",
+      "level": "A2"
+    },
+    {
+      "id": 346,
+      "english": "Good",
+      "vietnamese": "Tốt",
+      "phonetic": "/ɡʊd/",
+      "categoryId": 7,
+      "image": "good",
+      "level": "A2"
+    },
+    {
+      "id": 347,
+      "english": "Government",
+      "vietnamese": "Chính phủ",
+      "phonetic": "/ˈɡʌvənmənt/",
+      "categoryId": 4,
+      "image": "government",
+      "level": "A2"
+    },
+    {
+      "id": 348,
+      "english": "Grass",
+      "vietnamese": "Cỏ",
+      "phonetic": "/ɡrɑːs/",
+      "categoryId": 3,
+      "image": "grass",
+      "level": "A2"
+    },
+    {
+      "id": 349,
+      "english": "Greet",
+      "vietnamese": "Chào hỏi",
+      "phonetic": "/ɡriːt/",
+      "categoryId": 6,
+      "image": "greet",
+      "level": "A2"
+    },
+    {
+      "id": 350,
+      "english": "Grocery",
+      "vietnamese": "Cửa hàng tạp hóa",
+      "phonetic": "/ˈɡrəʊsəri/",
+      "categoryId": 4,
+      "image": "grocery",
+      "level": "A2"
+    },
+    {
+      "id": 351,
+      "english": "Ground",
+      "vietnamese": "Mặt đất",
+      "phonetic": "/ɡraʊnd/",
+      "categoryId": 4,
+      "image": "ground",
+      "level": "A2"
+    },
+    {
+      "id": 352,
+      "english": "Guest",
+      "vietnamese": "Khách",
+      "phonetic": "/ɡest/",
+      "categoryId": 1,
+      "image": "guest",
+      "level": "A2"
+    },
+    {
+      "id": 353,
+      "english": "Guide",
+      "vietnamese": "Hướng dẫn",
+      "phonetic": "/ɡaɪd/",
+      "categoryId": 1,
+      "image": "guide",
+      "level": "A2"
+    },
+    {
+      "id": 354,
+      "english": "Gun",
+      "vietnamese": "Súng",
+      "phonetic": "/ɡʌn/",
+      "categoryId": 3,
+      "image": "gun",
+      "level": "A2"
+    },
+    {
+      "id": 355,
+      "english": "Guy",
+      "vietnamese": "Chàng trai",
+      "phonetic": "/ɡaɪ/",
+      "categoryId": 1,
+      "image": "guy",
+      "level": "A2"
+    },
+    {
+      "id": 356,
+      "english": "Habit",
+      "vietnamese": "Thói quen",
+      "phonetic": "/ˈhæbɪt/",
+      "categoryId": 8,
+      "image": "habit",
+      "level": "A2"
+    },
+    {
+      "id": 357,
+      "english": "Half",
+      "vietnamese": "Một nửa",
+      "phonetic": "/hɑːf/",
+      "categoryId": 7,
+      "image": "half",
+      "level": "A2"
+    },
+    {
+      "id": 358,
+      "english": "Hall",
+      "vietnamese": "Hội trường",
+      "phonetic": "/hɔːl/",
+      "categoryId": 4,
+      "image": "hall",
+      "level": "A2"
+    },
+    {
+      "id": 359,
+      "english": "Happily",
+      "vietnamese": "Một cách hạnh phúc",
+      "phonetic": "/ˈhæpɪli/",
+      "categoryId": 7,
+      "image": "happily",
+      "level": "A2"
+    },
+    {
+      "id": 360,
+      "english": "Have to",
+      "vietnamese": "Phải",
+      "phonetic": "/hæv tuː/",
+      "categoryId": 6,
+      "image": "have_to",
+      "level": "A2"
+    },
+    {
+      "id": 361,
+      "english": "Headache",
+      "vietnamese": "Đau đầu",
+      "phonetic": "/ˈhedeɪk/",
+      "categoryId": 8,
+      "image": "headache",
+      "level": "A2"
+    },
+    {
+      "id": 362,
+      "english": "Heart",
+      "vietnamese": "Trái tim",
+      "phonetic": "/hɑːt/",
+      "categoryId": 3,
+      "image": "heart",
+      "level": "A2"
+    },
+    {
+      "id": 363,
+      "english": "Heat",
+      "vietnamese": "Nhiệt độ",
+      "phonetic": "/hiːt/",
+      "categoryId": 8,
+      "image": "heat",
+      "level": "A2"
+    },
+    {
+      "id": 364,
+      "english": "Heavy",
+      "vietnamese": "Nặng",
+      "phonetic": "/ˈhevi/",
+      "categoryId": 7,
+      "image": "heavy",
+      "level": "A2"
+    },
+    {
+      "id": 365,
+      "english": "Height",
+      "vietnamese": "Chiều cao",
+      "phonetic": "/haɪt/",
+      "categoryId": 8,
+      "image": "height",
+      "level": "A2"
+    },
+    {
+      "id": 366,
+      "english": "Helpful",
+      "vietnamese": "Hữu ích",
+      "phonetic": "/ˈhelpfl/",
+      "categoryId": 7,
+      "image": "helpful",
+      "level": "A2"
+    },
+    {
+      "id": 367,
+      "english": "Hero",
+      "vietnamese": "Anh hùng",
+      "phonetic": "/ˈhɪərəʊ/",
+      "categoryId": 1,
+      "image": "hero",
+      "level": "A2"
+    },
+    {
+      "id": 368,
+      "english": "Hers",
+      "vietnamese": "Của cô ấy",
+      "phonetic": "/hɜːz/",
+      "categoryId": 8,
+      "image": "hers",
+      "level": "A2"
+    },
+    {
+      "id": 369,
+      "english": "Herself",
+      "vietnamese": "Chính cô ấy",
+      "phonetic": "/hɜːˈself/",
+      "categoryId": 1,
+      "image": "herself",
+      "level": "A2"
+    },
+    {
+      "id": 370,
+      "english": "Hide",
+      "vietnamese": "Trốn",
+      "phonetic": "/haɪd/",
+      "categoryId": 6,
+      "image": "hide",
+      "level": "A2"
+    },
+    {
+      "id": 371,
+      "english": "High",
+      "vietnamese": "Cao",
+      "phonetic": "/haɪ/",
+      "categoryId": 7,
+      "image": "high",
+      "level": "A2"
+    },
+    {
+      "id": 372,
+      "english": "Hill",
+      "vietnamese": "Đồi",
+      "phonetic": "/hɪl/",
+      "categoryId": 4,
+      "image": "hill",
+      "level": "A2"
+    },
+    {
+      "id": 373,
+      "english": "Himself",
+      "vietnamese": "Chính anh ấy",
+      "phonetic": "/hɪmˈself/",
+      "categoryId": 1,
+      "image": "himself",
+      "level": "A2"
+    },
+    {
+      "id": 374,
+      "english": "His",
+      "vietnamese": "Của anh ấy",
+      "phonetic": "/hɪz/",
+      "categoryId": 8,
+      "image": "his",
+      "level": "A2"
+    },
+    {
+      "id": 375,
+      "english": "Hit",
+      "vietnamese": "Đánh",
+      "phonetic": "/hɪt/",
+      "categoryId": 6,
+      "image": "hit",
+      "level": "A2"
+    },
+    {
+      "id": 376,
+      "english": "Hockey",
+      "vietnamese": "Khúc côn cầu",
+      "phonetic": "/ˈhɒki/",
+      "categoryId": 6,
+      "image": "hockey",
+      "level": "A2"
+    },
+    {
+      "id": 377,
+      "english": "Hold",
+      "vietnamese": "Cầm, giữ",
+      "phonetic": "/həʊld/",
+      "categoryId": 6,
+      "image": "hold",
+      "level": "A2"
+    },
+    {
+      "id": 378,
+      "english": "Hole",
+      "vietnamese": "Lỗ",
+      "phonetic": "/həʊl/",
+      "categoryId": 3,
+      "image": "hole",
+      "level": "A2"
+    },
+    {
+      "id": 379,
+      "english": "Holiday",
+      "vietnamese": "Kỳ nghỉ",
+      "phonetic": "/ˈhɒlədeɪ/",
+      "categoryId": 8,
+      "image": "holiday",
+      "level": "A2"
+    },
+    {
+      "id": 380,
+      "english": "Home",
+      "vietnamese": "Nhà",
+      "phonetic": "/həʊm/",
+      "categoryId": 4,
+      "image": "home",
+      "level": "A2"
+    },
+    {
+      "id": 381,
+      "english": "Hope",
+      "vietnamese": "Hy vọng",
+      "phonetic": "/həʊp/",
+      "categoryId": 8,
+      "image": "hope",
+      "level": "A2"
+    },
+    {
+      "id": 382,
+      "english": "Horse",
+      "vietnamese": "Con ngựa",
+      "phonetic": "/hɔːs/",
+      "categoryId": 3,
+      "image": "horse",
+      "level": "A2"
+    },
+    {
+      "id": 383,
+      "english": "Hospital",
+      "vietnamese": "Bệnh viện",
+      "phonetic": "/ˈhɒspɪtl/",
+      "categoryId": 4,
+      "image": "hospital",
+      "level": "A2"
+    },
+    {
+      "id": 384,
+      "english": "Hot",
+      "vietnamese": "Nóng",
+      "phonetic": "/hɒt/",
+      "categoryId": 7,
+      "image": "hot",
+      "level": "A2"
+    },
+    {
+      "id": 385,
+      "english": "Hotel",
+      "vietnamese": "Khách sạn",
+      "phonetic": "/həʊˈtel/",
+      "categoryId": 4,
+      "image": "hotel",
+      "level": "A2"
+    },
+    {
+      "id": 386,
+      "english": "Hour",
+      "vietnamese": "Giờ",
+      "phonetic": "/ˈaʊər/",
+      "categoryId": 8,
+      "image": "hour",
+      "level": "A2"
+    },
+    {
+      "id": 387,
+      "english": "House",
+      "vietnamese": "Ngôi nhà",
+      "phonetic": "/haʊs/",
+      "categoryId": 4,
+      "image": "house",
+      "level": "A2"
+    },
+    {
+      "id": 388,
+      "english": "However",
+      "vietnamese": "Tuy nhiên",
+      "phonetic": "/haʊˈevər/",
+      "categoryId": 7,
+      "image": "however",
+      "level": "A2"
+    },
+    {
+      "id": 389,
+      "english": "Huge",
+      "vietnamese": "To lớn",
+      "phonetic": "/hjuːdʒ/",
+      "categoryId": 7,
+      "image": "huge",
+      "level": "A2"
+    },
+    {
+      "id": 390,
+      "english": "Human",
+      "vietnamese": "Con người",
+      "phonetic": "/ˈhjuːmən/",
+      "categoryId": 1,
+      "image": "human",
+      "level": "A2"
+    },
+    {
+      "id": 391,
+      "english": "Hurt",
+      "vietnamese": "Làm đau",
+      "phonetic": "/hɜːt/",
+      "categoryId": 6,
+      "image": "hurt",
+      "level": "A2"
+    },
+    {
+      "id": 392,
+      "english": "Ideal",
+      "vietnamese": "Lý tưởng",
+      "phonetic": "/aɪˈdɪəl/",
+      "categoryId": 7,
+      "image": "ideal",
+      "level": "A2"
+    },
+    {
+      "id": 393,
+      "english": "Identify",
+      "vietnamese": "Nhận dạng",
+      "phonetic": "/aɪˈdentɪfaɪ/",
+      "categoryId": 6,
+      "image": "identify",
+      "level": "A2"
+    },
+    {
+      "id": 394,
+      "english": "Ill",
+      "vietnamese": "Ốm",
+      "phonetic": "/ɪl/",
+      "categoryId": 7,
+      "image": "ill",
+      "level": "A2"
+    },
+    {
+      "id": 395,
+      "english": "Illness",
+      "vietnamese": "Bệnh tật",
+      "phonetic": "/ˈɪlnəs/",
+      "categoryId": 8,
+      "image": "illness",
+      "level": "A2"
+    },
+    {
+      "id": 396,
+      "english": "Image",
+      "vietnamese": "Hình ảnh",
+      "phonetic": "/ˈɪmɪdʒ/",
+      "categoryId": 3,
+      "image": "image",
+      "level": "A2"
+    },
+    {
+      "id": 397,
+      "english": "Immediately",
+      "vietnamese": "Ngay lập tức",
+      "phonetic": "/ɪˈmiːdiətli/",
+      "categoryId": 7,
+      "image": "immediately",
+      "level": "A2"
+    },
+    {
+      "id": 398,
+      "english": "Impossible",
+      "vietnamese": "Không thể",
+      "phonetic": "/ɪmˈpɒsəbl/",
+      "categoryId": 7,
+      "image": "impossible",
+      "level": "A2"
+    },
+    {
+      "id": 399,
+      "english": "Included",
+      "vietnamese": "Bao gồm",
+      "phonetic": "/ɪnˈkluːdɪd/",
+      "categoryId": 7,
+      "image": "included",
+      "level": "A2"
+    },
+    {
+      "id": 400,
+      "english": "Including",
+      "vietnamese": "Bao gồm",
+      "phonetic": "/ɪnˈkluːdɪŋ/",
+      "categoryId": 8,
+      "image": "including",
+      "level": "A2"
+    },
+    {
+      "id": 401,
+      "english": "Increase",
+      "vietnamese": "Tăng lên",
+      "phonetic": "/ɪnˈkriːs/",
+      "categoryId": 6,
+      "image": "increase",
+      "level": "A2"
+    },
+    {
+      "id": 402,
+      "english": "Incredible",
+      "vietnamese": "Không thể tin được",
+      "phonetic": "/ɪnˈkredəbl/",
+      "categoryId": 7,
+      "image": "incredible",
+      "level": "A2"
+    },
+    {
+      "id": 403,
+      "english": "Independent",
+      "vietnamese": "Độc lập",
+      "phonetic": "/ˌɪndɪˈpendənt/",
+      "categoryId": 7,
+      "image": "independent",
+      "level": "A2"
+    },
+    {
+      "id": 404,
+      "english": "Individual",
+      "vietnamese": "Cá nhân",
+      "phonetic": "/ˌɪndɪˈvɪdʒuəl/",
+      "categoryId": 1,
+      "image": "individual",
+      "level": "A2"
+    },
+    {
+      "id": 405,
+      "english": "Industry",
+      "vietnamese": "Ngành công nghiệp",
+      "phonetic": "/ˈɪndəstri/",
+      "categoryId": 2,
+      "image": "industry",
+      "level": "A2"
+    },
+    {
+      "id": 406,
+      "english": "Informal",
+      "vietnamese": "Không trang trọng",
+      "phonetic": "/ɪnˈfɔːml/",
+      "categoryId": 7,
+      "image": "informal",
+      "level": "A2"
+    },
+    {
+      "id": 407,
+      "english": "Injury",
+      "vietnamese": "Vết thương",
+      "phonetic": "/ˈɪndʒəri/",
+      "categoryId": 8,
+      "image": "injury",
+      "level": "A2"
+    },
+    {
+      "id": 408,
+      "english": "Insect",
+      "vietnamese": "Côn trùng",
+      "phonetic": "/ˈɪnsekt/",
+      "categoryId": 3,
+      "image": "insect",
+      "level": "A2"
+    },
+    {
+      "id": 409,
+      "english": "Inside",
+      "vietnamese": "Bên trong",
+      "phonetic": "/ɪnˈsaɪd/",
+      "categoryId": 4,
+      "image": "inside",
+      "level": "A2"
+    },
+    {
+      "id": 410,
+      "english": "Instead",
+      "vietnamese": "Thay vì",
+      "phonetic": "/ɪnˈsted/",
+      "categoryId": 7,
+      "image": "instead",
+      "level": "A2"
+    },
+    {
+      "id": 411,
+      "english": "Instruction",
+      "vietnamese": "Sự hướng dẫn",
+      "phonetic": "/ɪnˈstrʌkʃn/",
+      "categoryId": 2,
+      "image": "instruction",
+      "level": "A2"
+    },
+    {
+      "id": 412,
+      "english": "Instructor",
+      "vietnamese": "Người hướng dẫn",
+      "phonetic": "/ɪnˈstrʌktər/",
+      "categoryId": 1,
+      "image": "instructor",
+      "level": "A2"
+    },
+    {
+      "id": 413,
+      "english": "Instrument",
+      "vietnamese": "Nhạc cụ",
+      "phonetic": "/ˈɪnstrəmənt/",
+      "categoryId": 3,
+      "image": "instrument",
+      "level": "A2"
+    },
+    {
+      "id": 414,
+      "english": "Intelligent",
+      "vietnamese": "Thông minh",
+      "phonetic": "/ɪnˈtelɪdʒənt/",
+      "categoryId": 7,
+      "image": "intelligent",
+      "level": "A2"
+    },
+    {
+      "id": 415,
+      "english": "International",
+      "vietnamese": "Quốc tế",
+      "phonetic": "/ˌɪntəˈnæʃnəl/",
+      "categoryId": 7,
+      "image": "international",
+      "level": "A2"
+    },
+    {
+      "id": 416,
+      "english": "Introduction",
+      "vietnamese": "Lời giới thiệu",
+      "phonetic": "/ˌɪntrəˈdʌkʃn/",
+      "categoryId": 8,
+      "image": "introduction",
+      "level": "A2"
+    },
+    {
+      "id": 417,
+      "english": "Invent",
+      "vietnamese": "Phát minh",
+      "phonetic": "/ɪnˈvent/",
+      "categoryId": 6,
+      "image": "invent",
+      "level": "A2"
+    },
+    {
+      "id": 418,
+      "english": "Invention",
+      "vietnamese": "Sự phát minh",
+      "phonetic": "/ɪnˈvenʃn/",
+      "categoryId": 8,
+      "image": "invention",
+      "level": "A2"
+    },
+    {
+      "id": 419,
+      "english": "Invitation",
+      "vietnamese": "Lời mời",
+      "phonetic": "/ˌɪnvɪˈteɪʃn/",
+      "categoryId": 8,
+      "image": "invitation",
+      "level": "A2"
+    },
+    {
+      "id": 420,
+      "english": "Invite",
+      "vietnamese": "Mời",
+      "phonetic": "/ɪnˈvaɪt/",
+      "categoryId": 6,
+      "image": "invite",
+      "level": "A2"
+    },
+    {
+      "id": 421,
+      "english": "Involve",
+      "vietnamese": "Bao gồm",
+      "phonetic": "/ɪnˈvɒlv/",
+      "categoryId": 6,
+      "image": "involve",
+      "level": "A2"
+    },
+    {
+      "id": 422,
+      "english": "Item",
+      "vietnamese": "Món đồ",
+      "phonetic": "/ˈaɪtəm/",
+      "categoryId": 3,
+      "image": "item",
+      "level": "A2"
+    },
+    {
+      "id": 423,
+      "english": "Itself",
+      "vietnamese": "Chính nó",
+      "phonetic": "/ɪtˈself/",
+      "categoryId": 8,
+      "image": "itself",
+      "level": "A2"
+    },
+    {
+      "id": 424,
+      "english": "Jam",
+      "vietnamese": "Mứt",
+      "phonetic": "/dʒæm/",
+      "categoryId": 5,
+      "image": "jam",
+      "level": "A2"
+    },
+    {
+      "id": 425,
+      "english": "Jazz",
+      "vietnamese": "Nhạc jazz",
+      "phonetic": "/dʒæz/",
+      "categoryId": 3,
+      "image": "jazz",
+      "level": "A2"
+    },
+    {
+      "id": 426,
+      "english": "Jewelry",
+      "vietnamese": "Trang sức",
+      "phonetic": "/ˈdʒuːəlri/",
+      "categoryId": 3,
+      "image": "jewelry",
+      "level": "A2"
+    },
+    {
+      "id": 427,
+      "english": "Joke",
+      "vietnamese": "Trò đùa",
+      "phonetic": "/dʒəʊk/",
+      "categoryId": 8,
+      "image": "joke",
+      "level": "A2"
+    },
+    {
+      "id": 428,
+      "english": "Journalist",
+      "vietnamese": "Nhà báo",
+      "phonetic": "/ˈdʒɜːnəlɪst/",
+      "categoryId": 1,
+      "image": "journalist",
+      "level": "A2"
+    },
+    {
+      "id": 429,
+      "english": "Jump",
+      "vietnamese": "Nhảy",
+      "phonetic": "/dʒʌmp/",
+      "categoryId": 6,
+      "image": "jump",
+      "level": "A2"
+    },
+    {
+      "id": 430,
+      "english": "Kid",
+      "vietnamese": "Đứa trẻ",
+      "phonetic": "/kɪd/",
+      "categoryId": 1,
+      "image": "kid",
+      "level": "A2"
+    },
+    {
+      "id": 431,
+      "english": "Kill",
+      "vietnamese": "Giết",
+      "phonetic": "/kɪl/",
+      "categoryId": 6,
+      "image": "kill",
+      "level": "A2"
+    },
+    {
+      "id": 432,
+      "english": "Kilometer",
+      "vietnamese": "Kilomet",
+      "phonetic": "/ˈkɪləmiːtər/",
+      "categoryId": 8,
+      "image": "kilometer",
+      "level": "A2"
+    },
+    {
+      "id": 433,
+      "english": "King",
+      "vietnamese": "Vua",
+      "phonetic": "/kɪŋ/",
+      "categoryId": 1,
+      "image": "king",
+      "level": "A2"
+    },
+    {
+      "id": 434,
+      "english": "Knee",
+      "vietnamese": "Đầu gối",
+      "phonetic": "/niː/",
+      "categoryId": 3,
+      "image": "knee",
+      "level": "A2"
+    },
+    {
+      "id": 435,
+      "english": "Knife",
+      "vietnamese": "Dao",
+      "phonetic": "/naɪf/",
+      "categoryId": 3,
+      "image": "knife",
+      "level": "A2"
+    },
+    {
+      "id": 436,
+      "english": "Knock",
+      "vietnamese": "Gõ cửa",
+      "phonetic": "/nɒk/",
+      "categoryId": 6,
+      "image": "knock",
+      "level": "A2"
+    },
+    {
+      "id": 437,
+      "english": "Knowledge",
+      "vietnamese": "Kiến thức",
+      "phonetic": "/ˈnɒlɪdʒ/",
+      "categoryId": 2,
+      "image": "knowledge",
+      "level": "A2"
+    },
+    {
+      "id": 438,
+      "english": "Lab",
+      "vietnamese": "Phòng thí nghiệm",
+      "phonetic": "/læb/",
+      "categoryId": 2,
+      "image": "lab",
+      "level": "A2"
+    },
+    {
+      "id": 439,
+      "english": "Lady",
+      "vietnamese": "Quý bà",
+      "phonetic": "/ˈleɪdi/",
+      "categoryId": 1,
+      "image": "lady",
+      "level": "A2"
+    },
+    {
+      "id": 440,
+      "english": "Lake",
+      "vietnamese": "Hồ",
+      "phonetic": "/leɪk/",
+      "categoryId": 4,
+      "image": "lake",
+      "level": "A2"
+    },
+    {
+      "id": 441,
+      "english": "Lamp",
+      "vietnamese": "Đèn",
+      "phonetic": "/læmp/",
+      "categoryId": 3,
+      "image": "lamp",
+      "level": "A2"
+    },
+    {
+      "id": 442,
+      "english": "Land",
+      "vietnamese": "Đất liền, hạ cánh",
+      "phonetic": "/lænd/",
+      "categoryId": 6,
+      "image": "land",
+      "level": "A2"
+    },
+    {
+      "id": 443,
+      "english": "Laptop",
+      "vietnamese": "Máy tính xách tay",
+      "phonetic": "/ˈlæptɒp/",
+      "categoryId": 3,
+      "image": "laptop",
+      "level": "A2"
+    },
+    {
+      "id": 444,
+      "english": "Last",
+      "vietnamese": "Kéo dài",
+      "phonetic": "/lɑːst/",
+      "categoryId": 6,
+      "image": "last",
+      "level": "A2"
+    },
+    {
+      "id": 445,
+      "english": "Later",
+      "vietnamese": "Sau đó",
+      "phonetic": "/ˈleɪtər/",
+      "categoryId": 7,
+      "image": "later",
+      "level": "A2"
+    },
+    {
+      "id": 446,
+      "english": "Laughter",
+      "vietnamese": "Tiếng cười",
+      "phonetic": "/ˈlɑːftər/",
+      "categoryId": 8,
+      "image": "laughter",
+      "level": "A2"
+    },
+    {
+      "id": 447,
+      "english": "Law",
+      "vietnamese": "Luật",
+      "phonetic": "/lɔː/",
+      "categoryId": 2,
+      "image": "law",
+      "level": "A2"
+    },
+    {
+      "id": 448,
+      "english": "Lawyer",
+      "vietnamese": "Luật sư",
+      "phonetic": "/ˈlɔːjər/",
+      "categoryId": 1,
+      "image": "lawyer",
+      "level": "A2"
+    },
+    {
+      "id": 449,
+      "english": "Lazy",
+      "vietnamese": "Lười biếng",
+      "phonetic": "/ˈleɪzi/",
+      "categoryId": 7,
+      "image": "lazy",
+      "level": "A2"
+    },
+    {
+      "id": 450,
+      "english": "Lead",
+      "vietnamese": "Lãnh đạo",
+      "phonetic": "/liːd/",
+      "categoryId": 6,
+      "image": "lead",
+      "level": "A2"
+    },
+    {
+      "id": 451,
+      "english": "Leader",
+      "vietnamese": "Người lãnh đạo",
+      "phonetic": "/ˈliːdər/",
+      "categoryId": 1,
+      "image": "leader",
+      "level": "A2"
+    },
+    {
+      "id": 452,
+      "english": "Learning",
+      "vietnamese": "Việc học",
+      "phonetic": "/ˈlɜːnɪŋ/",
+      "categoryId": 2,
+      "image": "learning",
+      "level": "A2"
+    },
+    {
+      "id": 453,
+      "english": "Least",
+      "vietnamese": "Ít nhất",
+      "phonetic": "/liːst/",
+      "categoryId": 7,
+      "image": "least",
+      "level": "A2"
+    },
+    {
+      "id": 454,
+      "english": "Lecture",
+      "vietnamese": "Bài giảng",
+      "phonetic": "/ˈlektʃər/",
+      "categoryId": 2,
+      "image": "lecture",
+      "level": "A2"
+    },
+    {
+      "id": 455,
+      "english": "Lemon",
+      "vietnamese": "Quả chanh",
+      "phonetic": "/ˈlemən/",
+      "categoryId": 5,
+      "image": "lemon",
+      "level": "A2"
+    },
+    {
+      "id": 456,
+      "english": "Lend",
+      "vietnamese": "Cho mượn",
+      "phonetic": "/lend/",
+      "categoryId": 6,
+      "image": "lend",
+      "level": "A2"
+    },
+    {
+      "id": 457,
+      "english": "Less",
+      "vietnamese": "Ít hơn",
+      "phonetic": "/les/",
+      "categoryId": 7,
+      "image": "less",
+      "level": "A2"
+    },
+    {
+      "id": 458,
+      "english": "Level",
+      "vietnamese": "Cấp độ",
+      "phonetic": "/ˈlevl/",
+      "categoryId": 8,
+      "image": "level",
+      "level": "A2"
+    },
+    {
+      "id": 459,
+      "english": "Lifestyle",
+      "vietnamese": "Lối sống",
+      "phonetic": "/ˈlaɪfstaɪl/",
+      "categoryId": 8,
+      "image": "lifestyle",
+      "level": "A2"
+    },
+    {
+      "id": 460,
+      "english": "Lift",
+      "vietnamese": "Nâng lên",
+      "phonetic": "/lɪft/",
+      "categoryId": 6,
+      "image": "lift",
+      "level": "A2"
+    },
+    {
+      "id": 461,
+      "english": "Light",
+      "vietnamese": "Ánh sáng, nhẹ",
+      "phonetic": "/laɪt/",
+      "categoryId": 3,
+      "image": "light",
+      "level": "A2"
+    },
+    {
+      "id": 462,
+      "english": "Likely",
+      "vietnamese": "Có khả năng",
+      "phonetic": "/ˈlaɪkli/",
+      "categoryId": 7,
+      "image": "likely",
+      "level": "A2"
+    },
+    {
+      "id": 463,
+      "english": "Link",
+      "vietnamese": "Liên kết",
+      "phonetic": "/lɪŋk/",
+      "categoryId": 3,
+      "image": "link",
+      "level": "A2"
+    },
+    {
+      "id": 464,
+      "english": "Listener",
+      "vietnamese": "Người nghe",
+      "phonetic": "/ˈlɪsnər/",
+      "categoryId": 1,
+      "image": "listener",
+      "level": "A2"
+    },
+    {
+      "id": 465,
+      "english": "Lock",
+      "vietnamese": "Khóa",
+      "phonetic": "/lɒk/",
+      "categoryId": 6,
+      "image": "lock",
+      "level": "A2"
+    },
+    {
+      "id": 466,
+      "english": "Look",
+      "vietnamese": "Cái nhìn",
+      "phonetic": "/lʊk/",
+      "categoryId": 8,
+      "image": "look",
+      "level": "A2"
+    },
+    {
+      "id": 467,
+      "english": "Lost",
+      "vietnamese": "Bị lạc",
+      "phonetic": "/lɒst/",
+      "categoryId": 7,
+      "image": "lost",
+      "level": "A2"
+    },
+    {
+      "id": 468,
+      "english": "Loud",
+      "vietnamese": "To, ồn ào",
+      "phonetic": "/laʊd/",
+      "categoryId": 7,
+      "image": "loud",
+      "level": "A2"
+    },
+    {
+      "id": 469,
+      "english": "Loudly",
+      "vietnamese": "Một cách ồn ào",
+      "phonetic": "/ˈlaʊdli/",
+      "categoryId": 7,
+      "image": "loudly",
+      "level": "A2"
+    },
+    {
+      "id": 470,
+      "english": "Low",
+      "vietnamese": "Thấp",
+      "phonetic": "/ləʊ/",
+      "categoryId": 7,
+      "image": "low",
+      "level": "A2"
+    },
+    {
+      "id": 471,
+      "english": "Luck",
+      "vietnamese": "May mắn",
+      "phonetic": "/lʌk/",
+      "categoryId": 8,
+      "image": "luck",
+      "level": "A2"
+    },
+    {
+      "id": 472,
+      "english": "Lucky",
+      "vietnamese": "May mắn",
+      "phonetic": "/ˈlʌki/",
+      "categoryId": 7,
+      "image": "lucky",
+      "level": "A2"
+    }
+  ]
+}
