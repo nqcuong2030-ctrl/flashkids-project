@@ -609,21 +609,6 @@
             }
         }
 		
-		//Hàm này dùng để bật/tắt các nút điều khiển thẻ
-		function disableCardControls() {
-			document.getElementById('prev-card').disabled = true;
-			document.getElementById('next-card').disabled = true;
-			// Vô hiệu hóa việc lật thẻ bằng cách chặn sự kiện click
-			document.getElementById('current-flashcard').style.pointerEvents = 'none';
-		}
-
-		function enableCardControls() {
-			document.getElementById('prev-card').disabled = false;
-			document.getElementById('next-card').disabled = false;
-			// Kích hoạt lại việc lật thẻ
-			document.getElementById('current-flashcard').style.pointerEvents = 'auto';
-		}
-		
 		// THAY THẾ CẢ 2 HÀM speakWord VÀ speakWordDefault BẰNG KHỐI MÃ NÀY:
 		// Hàm dự phòng, dùng giọng đọc của trình duyệt
 		function speakWordDefault(word, lang) {
