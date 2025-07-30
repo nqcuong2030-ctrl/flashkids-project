@@ -1,9 +1,8 @@
 [build]
-  # Thư mục chứa các file public như index.html
   publish = "public"
-  # Thư mục chứa các serverless functions
   functions = "functions"
 
 [functions]
-  # Đảm bảo các dependencies của function được cài đặt
   node_bundler = "esbuild"
+  # Thêm dòng này để Netlify mang theo thư mục 'data'
+  included_files = ["data/**"]
