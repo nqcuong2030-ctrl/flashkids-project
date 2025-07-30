@@ -2,43 +2,73 @@
 const fetch = require('node-fetch');
 
 exports.handler = async (event) => {
-    // Lấy API key từ biến môi trường đã lưu trên Netlify
-    const API_KEY = process.env.GOOOGLE_TTS_APl_KEY;
+    // Lấy Key và Region từ biến môi trường của Netlify
+    const SPEECH_KEY = process.env.AZURE_SPEECH_KEY;
+    const SPEECH_REGION = process.env.AZURE_SPEECH_REGION;
 
-    // Lấy text và lang từ query params
+    // Lấy văn bản và ngôn ngữ từ yêu cầu của client
     const { text, lang } = event.queryStringParameters;
 
+    // Kiểm tra đầu vào
+    if (!SPEECH_KEY || !SPEECH_REGION) {
+        return { statusCode: 500, body: JSON.stringify({ error: 'Chưa cấu hình API Key hoặc Region trên Netlify.' }) };
+    }
     if (!text || !lang) {
-        return { statusCode: 400, body: JSON.stringify({ error: 'Thiếu text hoặc lang.' }) };
+        return { statusCode: 400, body: JSON.stringify({ error: 'Thiếu tham số text hoặc lang.' }) };
     }
 
-    const url = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${API_KEY}`;
+    // URL của Azure API sẽ thay đổi tùy theo khu vực
+    const endpoint = `https://${SPEECH_REGION}.tts.speech.microsoft.com/cognitiveservices/v1`;
 
+    // Chọn giọng đọc cho từng ngôn ngữ
     let voiceName = '';
     if (lang === 'en-US') {
-        voiceName = 'en-US-Wavenet-D';
+        voiceName = 'en-US-JennyNeural'; // Giọng nữ US chất lượng cao
     } else if (lang === 'vi-VN') {
-        voiceName = 'vi-VN-Wavenet-A';
+        voiceName = 'vi-VN-HoaiMyNeural'; // Giọng nữ VN chất lượng cao
     }
 
-    const payload = {
-        input: { text },
-        voice: { languageCode: lang, name: voiceName },
-        audioConfig: { audioEncoding: 'MP3' },
-    };
+    // Azure sử dụng định dạng SSML (Speech Synthesis Markup Language)
+    const ssml = `
+        <speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='${lang}'>
+            <voice name='${voiceName}'>
+                ${text}
+            </voice>
+        </speak>
+    `;
 
     try {
-        const response = await fetch(url, {
+        const response = await fetch(endpoint, {
             method: 'POST',
-            body: JSON.stringify(payload),
+            headers: {
+                'Ocp-Apim-Subscription-Key': SPEECH_KEY,
+                'Content-Type': 'application/ssml+xml',
+                'X-Microsoft-OutputFormat': 'audio-24khz-48kbitrate-mono-mp3', // Định dạng âm thanh đầu ra
+            },
+            body: ssml,
         });
-        const data = await response.json();
 
+        if (!response.ok) {
+            // Nếu có lỗi từ Azure, trả về thông báo lỗi
+            const errorBody = await response.text();
+            console.error('Azure API Error:', errorBody);
+            return { statusCode: response.status, body: JSON.stringify({ error: errorBody }) };
+        }
+
+        // Azure trả về dữ liệu âm thanh thô (binary), không phải JSON
+        const audioBuffer = await response.buffer();
+        // Chuyển nó thành chuỗi base64 để gửi về client
+        const base64Audio = audioBuffer.toString('base64');
+
+        // Trả về một đối tượng JSON có cấu trúc giống hệt Google API
+        // để client không cần thay đổi code
         return {
             statusCode: 200,
-            body: JSON.stringify(data),
+            body: JSON.stringify({ audioContent: base64Audio }),
         };
+
     } catch (error) {
-        return { statusCode: 500, body: JSON.stringify({ error: 'Lỗi khi gọi Google API.' }) };
+        console.error('Netlify Function Error:', error);
+        return { statusCode: 500, body: JSON.stringify({ error: 'Lỗi trong Netlify Function.' }) };
     }
 };
