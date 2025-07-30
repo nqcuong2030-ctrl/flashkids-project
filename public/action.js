@@ -165,7 +165,7 @@
                         else {
                             speakCurrentWord('english');
                         }
-                    }, 100); // Small delay to let the flip animation complete - tốc độ lật thẻ
+                    }, 100); // Small delay to let the flip animation complete - tốc độ đọc
                 }
             });
 
@@ -610,61 +610,50 @@
         }
 		
 		// THAY THẾ CẢ 2 HÀM speakWord VÀ speakWordDefault BẰNG KHỐI MÃ NÀY:
+
 		// Hàm dự phòng, dùng giọng đọc của trình duyệt
 		function speakWordDefault(word, lang) {
 			if ('speechSynthesis' in window && soundEnabled) {
 				const utterance = new SpeechSynthesisUtterance(word);
 				utterance.lang = lang;
-
-				// Vô hiệu hóa điều khiển trước khi đọc
-				disableCardControls();
-
-				// Kích hoạt lại điều khiển khi đọc xong
-				utterance.onend = function() {
-					enableCardControls();
-				};
-
-				// Cũng kích hoạt lại nếu có lỗi
-				utterance.onerror = function(event) {
-					console.error('SpeechSynthesis Error:', event.error);
-					enableCardControls();
-				};
-
 				window.speechSynthesis.speak(utterance);
 			}
 		}
 
-		// Hàm mới gọi đến Netlify Function (Azure)
+		// Hàm mới gọi đến Netlify Function
 		function speakWord(word, lang) {
+			// Gọi đến function text-to-speech với các tham số
 			fetch(`/.netlify/functions/text-to-speech?text=${encodeURIComponent(word)}&lang=${lang}`)
 				.then(response => response.json())
 				.then(data => {
 					if (data.audioContent) {
 						const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
-						
-						// Vô hiệu hóa điều khiển trước khi phát
-						disableCardControls();
-
-						// Kích hoạt lại điều khiển khi phát xong
-						audio.addEventListener('ended', enableCardControls);
-
-						// Cũng kích hoạt lại nếu có lỗi
-						audio.addEventListener('error', (e) => {
-							console.error("Lỗi phát âm thanh:", e);
-							enableCardControls();
-						});
-
 						audio.play();
 					} else {
 						console.error('Lỗi từ Netlify Function:', data);
-						speakWordDefault(word, lang);
+						speakWordDefault(word, lang); // Dùng giọng đọc mặc định nếu có lỗi
 					}
 				})
 				.catch(error => {
 					console.error('Lỗi khi gọi Netlify Function:', error);
 					speakWordDefault(word, lang);
 				});
-		}		
+		}
+		
+		//Hàm này dùng để bật/tắt các nút điều khiển thẻ
+		function disableCardControls() {
+			document.getElementById('prev-card').disabled = true;
+			document.getElementById('next-card').disabled = true;
+			// Vô hiệu hóa việc lật thẻ bằng cách chặn sự kiện click
+			document.getElementById('current-flashcard').style.pointerEvents = 'none';
+		}
+
+		function enableCardControls() {
+			document.getElementById('prev-card').disabled = false;
+			document.getElementById('next-card').disabled = false;
+			// Kích hoạt lại việc lật thẻ
+			document.getElementById('current-flashcard').style.pointerEvents = 'auto';
+		}
 
         // Modal functions
         function openModal(modalId) {
@@ -836,11 +825,11 @@
 			// Cập nhật bộ đếm thẻ
 			updateCardCounter();
 			
-			// Tự động đọc từ tiếng Anh khi hiển thị thẻ mới - tốc độ đọc
+			// Tự động đọc từ tiếng Anh khi hiển thị thẻ mới - tốc độ lật thẻ
 			if (isFlashcardsTabActive && soundEnabled) {
 				setTimeout(() => {
 					speakWord(card.english, 'en-US');
-				}, 100); 
+				}, 100);
 			}
 		}
 		
