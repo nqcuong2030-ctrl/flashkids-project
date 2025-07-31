@@ -1020,31 +1020,34 @@
         }
 
         function loadGames() {
-            const container = document.getElementById('games-container');
-            container.innerHTML = '';
-            
-            games.forEach(game => {
-                const colorClass = getGameColorClass(game.color);
-                
-                const gameElement = document.createElement('div');
-                gameElement.className = `game-card bg-gradient-to-br ${colorClass} rounded-2xl p-5 text-white shadow-lg`;
-                gameElement.innerHTML = `
-                    <div class="flex justify-between items-start mb-4">
-                        <h4 class="text-lg font-bold">${game.name}</h4>
-                        <span class="bg-white text-${game.color}-600 text-xs font-bold px-2 py-1 rounded-full">${game.difficulty}</span>
-                    </div>
-                    <p class="text-sm text-white text-opacity-90 mb-4">${game.description}</p>
-                    <div class="flex justify-between items-end">
-                        <button class="bg-white text-${game.color}-600 font-bold py-2 px-4 rounded-lg shadow-md hover:shadow-lg transition duration-300" onclick="startGame(${game.id})">Chơi ngay</button>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-white opacity-80" viewBox="0 0 20 20" fill="currentColor">
-                            ${getGameIcon(game.icon)}
-                        </svg>
-                    </div>
-                `;
-                
-                container.appendChild(gameElement);
-            });
-        }
+			const container = document.getElementById('games-container');
+			container.innerHTML = '';
+			
+			games.forEach(game => {
+				const colorClass = getGameColorClass(game.color);
+				
+				const gameElement = document.createElement('div');
+				// Gán sự kiện onclick cho toàn bộ thẻ
+				gameElement.setAttribute('onclick', `startGame(${game.id})`);
+				
+				gameElement.className = `game-card bg-gradient-to-br ${colorClass} rounded-2xl p-5 text-white shadow-lg cursor-pointer`;
+				gameElement.innerHTML = `
+					<div class="flex justify-between items-start mb-4">
+						<h4 class="text-lg font-bold">${game.name}</h4>
+						<span class="bg-white text-${game.color}-600 text-xs font-bold px-2 py-1 rounded-full">${game.difficulty}</span>
+					</div>
+					<p class="text-sm text-white text-opacity-90 mb-4">${game.description}</p>
+					<div class="flex justify-between items-end">
+						<div class="bg-white text-${game.color}-600 font-bold py-2 px-4 rounded-lg shadow-md">Chơi ngay</div>
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-white opacity-80" viewBox="0 0 20 20" fill="currentColor">
+							${getGameIcon(game.icon)}
+						</svg>
+					</div>
+				`;
+				
+				container.appendChild(gameElement);
+			});
+		}
 
         function loadQuizTypes() {
             const container = document.getElementById('quiz-types');

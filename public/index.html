@@ -160,6 +160,8 @@
         .modal.show {
             visibility: visible;
             opacity: 1;
+			-webkit-backdrop-filter: blur(8px); /* Hỗ trợ trình duyệt Safari */
+			backdrop-filter: blur(8px); /* Hiệu ứng làm mờ nền */
         }
 
         .modal.show .modal-content {
