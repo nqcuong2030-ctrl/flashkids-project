@@ -132,10 +132,10 @@
 		
 		// === HỆ THỐNG ÂM THANH ===
 		const soundEffects = {
-			click: new Audio('https://cdn.pixabay.com/audio/2022/03/15/audio_28200361b1.mp3'),
-			success: new Audio('https://cdn.pixabay.com/audio/2022/03/10/audio_c359247271.mp3'),
-			error: new Audio('https://cdn.pixabay.com/audio/2021/08/04/audio_a7db0f2a79.mp3'),
-			tada: new Audio('https://www.myinstants.com/media/sounds/tada-fanfare-a-6312.mp3')
+			click: new Audio('https://cdn.pixabay.com/download/audio/2025/01/20/audio_9afb73ceb5.mp3?filename=mouse-click-290204.mp3'),
+			success: new Audio('https://cdn.pixabay.com/download/audio/2022/03/15/audio_e8b2fa25cf.mp3?filename=goodresult-82807.mp3'),
+			error: new Audio('https://cdn.pixabay.com/download/audio/2024/05/03/audio_6130b029fd.mp3?filename=error-08-206492.mp3'),
+			tada: new Audio('https://cdn.pixabay.com/download/audio/2021/08/04/audio_473a42432c.mp3?filename=tada-fanfare-a-6313.mp3')
 		};
 
 		function playSound(soundName) {
@@ -1367,6 +1367,7 @@
 
 		function selectVietnameseWord(element, wordId) {
 			playSound('click'); // Âm thanh khi nhấn
+			speakWord(element.textContent, 'vi-VN'); // Đọc to từ tiếng Việt
 
 			if (element.classList.contains('matched')) return;
 
@@ -1435,6 +1436,8 @@
 		}
 
         function checkMatchingAnswers(gameId, categoryId) {
+			playSound('click'); // <-- Thêm âm thanh khi nhấn nút
+
 			const totalPairs = document.querySelectorAll('#english-words .word-card').length;
 			const score = Math.round((matchedPairs.length / totalPairs) * 100);
 			const successIcon = document.getElementById('matching-success-feedback');
@@ -1446,7 +1449,7 @@
 			if (matchedPairs.length === totalPairs && totalPairs > 0) {
 				successIcon.classList.remove('hidden');
 				successIcon.classList.add('success-shake');
-				playSound('tada'); // Âm thanh chúc mừng khi đạt điểm tuyệt đối
+				playSound('tada');
 			}
 
 			setTimeout(() => {
@@ -1459,11 +1462,15 @@
 		}
 		
 		function restartMatchingGame() {
+			playSound('click'); // <-- Thêm âm thanh khi nhấn nút
+
 			const gameId = currentActivity.id;
 			const categoryId = currentActivity.categoryId;
 
 			if (gameId && categoryId) {
+				// Đóng modal ngay lập tức để không bị gián đoạn
 				closeModal('matchingGameModal'); 
+				
 				setTimeout(() => {
 					playGame(gameId, categoryId);
 				}, 300); // Đợi một chút để modal đóng hoàn toàn
