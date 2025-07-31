@@ -238,22 +238,20 @@
         }
 
         function markWordAsLearned(wordId) {
-            const progress = getUserProgress();
-            progress.completedWords[wordId] = true;
-            
-            // Update category progress
-            updateCategoryProgress();
-            
-            // Update daily activities
-            updateDailyActivity();
-            
-            // Save progress
-            saveUserProgress(progress);
-            
-            // Update UI
-            updateUserStats();
-            updateDailyProgress();
-        }
+			const progress = getUserProgress(); // Đọc 1 lần
+			let isNewWord = !progress.completedWords[wordId];
+			
+			progress.completedWords[wordId] = true; // Cập nhật từ đã học
+			
+			updateCategoryProgress(progress); // Truyền progress để tính toán
+			
+			if (isNewWord) {
+				updateDailyActivity(); // Chỉ cập nhật hoạt động nếu là từ mới
+			}
+			
+			saveUserProgress(progress); // Lưu tất cả 1 lần
+			updateUserStats();
+		}
 
         function markCurrentWordAsLearned() {
             const filteredCards = getFilteredCards();
@@ -328,32 +326,29 @@
             updateDailyProgress();
         }
 
-        function updateCategoryProgress() {
-			const progress = getUserProgress();
+        function updateCategoryProgress(progress) { // <-- Nhận 'progress' làm tham số
+			if (!progress) return; // Thoát nếu không có progress
 
+			// Chỉ tính toán cho các chủ đề của level hiện tại
 			categories.forEach(category => {
-				// Lấy tất cả các từ thuộc về category này từ danh sách tổng
-				const allCategoryWords = allFlashcards.filter(card => card.categoryId === category.id);
+				const wordsInCatForLevel = flashcards.filter(card => card.categoryId === category.id);
+				const totalWordsInCatForLevel = wordsInCatForLevel.length;
 
-				// Đếm số từ đã học trong category này
+				if (totalWordsInCatForLevel === 0) return;
+
 				let learnedCount = 0;
-				allCategoryWords.forEach(word => {
+				wordsInCatForLevel.forEach(word => {
 					if (progress.completedWords[word.id]) {
 						learnedCount++;
 					}
 				});
-
-				// Dùng category.wordCount để đảm bảo mẫu số luôn đúng
-				const totalWordsInCat = category.wordCount || allCategoryWords.length;
-				if (totalWordsInCat === 0) {
-					progress.categories[category.id] = 0;
-				} else {
-					const percentComplete = Math.round((learnedCount / totalWordsInCat) * 100);
-					progress.categories[category.id] = percentComplete;
-				}
+				
+				const percentComplete = Math.round((learnedCount / totalWordsInCatForLevel) * 100);
+				
+				// Cập nhật trực tiếp vào đối tượng progress được truyền vào
+				progress.categories[`${currentLevel}_${category.id}`] = percentComplete;
 			});
-
-			saveUserProgress(progress);
+			// Không còn saveUserProgress(progress) ở đây nữa
 		}
 		
 		// === LOGIC CHO TRÒ CHƠI XẾP CHỮ ===
@@ -478,9 +473,10 @@
 		}
 
         function getCategoryProgress(categoryId) {
-            const progress = getUserProgress();
-            return progress.categories[categoryId] || 0;
-        }
+			const progress = getUserProgress();
+			// Dữ liệu tiến độ vẫn được đọc từ localStorage
+			return progress.categories[`${currentLevel}_${categoryId}`] || 0;
+		}
 
         function updateDailyActivity() {
             const progress = getUserProgress();
@@ -606,25 +602,25 @@
             });
         }
 
-        // Hàm changeLevel giờ sẽ là hàm chính điều khiển việc tải và hiển thị
+        // Hàm changeLevel giờ chỉ cần gọi các hàm khác sau khi có dữ liệu
 		async function changeLevel(level) {
 			currentLevel = level;
 
-			// Cập nhật giao diện ngay lập tức
 			document.getElementById('current-level-display').textContent = `Level ${level.toUpperCase()}`;
 			localStorage.setItem('flashkids_currentLevel', level);
 			updateLevelBadges(level);
 
 			try {
 				const data = await loadLevelData(level);
+				// Gán dữ liệu đã được lọc sẵn cho level này
 				categories = data.categories || [];
 				flashcards = data.flashcards || [];
 
-				// Cập nhật giao diện với dữ liệu mới
+				// Cập nhật giao diện
 				currentCategoryId = null;
 				currentCardIndex = 0;
-				loadCategories();
-				loadCategoryFilters();
+				loadCategories(); // Không cần truyền tham số
+				loadCategoryFilters(); // Không cần truyền tham số
 				updateFlashcard();
 				updateCardCounter();
 			} catch (error) {
@@ -632,6 +628,7 @@
 				alert(error.message);
 			}
 		}
+
 
         // Update level badges
         function updateLevelBadges(activeLevel) {
@@ -825,29 +822,19 @@
             document.getElementById('loading-indicator').classList.add('hidden');
         }
 
-        // Load data functions
-        function loadCategories() {
+        // Hàm loadCategories giờ đơn giản hơn rất nhiều
+		function loadCategories() {
 			const container = document.getElementById('categories-container');
 			container.innerHTML = '';
-			
-			// --- PHẦN LOGIC MỚI ---
-			// 1. Lấy tất cả từ vựng thuộc level hiện tại (không phân biệt chữ hoa/thường)
-			const wordsForCurrentLevel = allFlashcards.filter(card => card.level && card.level.toLowerCase() === currentLevel.toLowerCase());
-			
-			// 2. Lấy danh sách ID của các chủ đề duy nhất từ các từ vựng đó
-			const relevantCategoryIds = [...new Set(wordsForCurrentLevel.map(card => card.categoryId))];
-			
-			// 3. Lọc ra các chủ đề có ID nằm trong danh sách trên
-			const relevantCategories = categories.filter(cat => relevantCategoryIds.includes(cat.id));
-			// --- KẾT THÚC PHẦN LOGIC MỚI ---
 
-			if (relevantCategories.length === 0) {
+			// Với kiến trúc mới, biến "categories" toàn cục đã là danh sách được lọc sẵn cho level hiện tại.
+			// Chúng ta chỉ cần hiển thị nó ra.
+			if (categories.length === 0) {
 				container.innerHTML = '<p class="text-gray-500 text-center col-span-3">Không có chủ đề nào cho cấp độ này.</p>';
 				return;
 			}
 			
-			// Bây giờ, chúng ta sẽ hiển thị các chủ đề đã được lọc
-			relevantCategories.forEach(category => {
+			categories.forEach(category => {
 				const colorClass = category.colorClass || getCategoryColorClass(category.color);
 				const progress = getCategoryProgress(category.id);
 				
@@ -865,7 +852,7 @@
 								<div class="bg-white h-2 rounded-full" style="width: ${progress}%"></div>
 							</div>
 						</div>
-						<svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-white opacity-80 hidden" viewBox="0 0 20 20" fill="currentColor">
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-white opacity-80" viewBox="0 0 20 20" fill="currentColor">
 							${getCategoryIcon(category.name)}
 						</svg>
 					</div>
@@ -875,28 +862,26 @@
 					currentCategoryId = category.id;
 					currentCardIndex = 0;
 					changeTab('flashcards');
-					updateFlashcard();
-					updateCategoryFilters();
 				});
 				
 				container.appendChild(categoryElement);
 			});
 		}
 
-        function loadCategoryFilters() {
-            const container = document.getElementById('category-filters');
-            container.innerHTML = `
-                <button class="bg-blue-500 text-white py-2 px-4 rounded-full shadow-md flex-shrink-0" onclick="filterByCategory(null)">Tất cả</button>
-            `;
-            
-            categories.forEach(category => {
-                const button = document.createElement('button');
-                button.className = 'bg-white text-gray-700 py-2 px-4 rounded-full shadow-md flex-shrink-0';
-                button.textContent = category.name;
-                button.onclick = () => filterByCategory(category.id);
-                container.appendChild(button);
-            });
-        }
+        // Hàm loadCategoryFilters cũng được đơn giản hóa
+		function loadCategoryFilters() {
+			const container = document.getElementById('category-filters');
+			container.innerHTML = `<button class="bg-blue-500 text-white py-2 px-4 rounded-full shadow-md flex-shrink-0" onclick="filterByCategory(null)">Tất cả</button>`;
+			
+			// Chỉ cần lặp qua danh sách categories đã được lọc sẵn
+			categories.forEach(category => {
+				const button = document.createElement('button');
+				button.className = 'bg-white text-gray-700 py-2 px-4 rounded-full shadow-md flex-shrink-0';
+				button.textContent = category.name;
+				button.onclick = () => filterByCategory(category.id);
+				container.appendChild(button);
+			});
+		}
 
         function updateCategoryFilters() {
             const buttons = document.querySelectorAll('#category-filters button');
@@ -1715,11 +1700,10 @@
 			let totalCount = questions.length;
 			let correctlyAnsweredWordIds = [];
 
-			// Bước 1: Vẫn kiểm tra và thu thập ID của các câu trả lời đúng
 			questions.forEach(question => {
+				// ... (phần code kiểm tra đáp án đúng/sai giữ nguyên) ...
 				const correctAnswer = question.getAttribute('data-correct');
 				const selectedOption = question.querySelector('.quiz-option.selected');
-				
 				if (selectedOption) {
 					const selectedValue = selectedOption.getAttribute('data-value');
 					if (selectedValue === correctAnswer) {
@@ -1736,43 +1720,32 @@
 				}
 			});
 
-			// --- PHẦN SỬA LỖI QUAN TRỌNG ---
-			// Bước 2: Cập nhật tất cả các từ đã học trong một lần duy nhất
 			if (correctlyAnsweredWordIds.length > 0) {
-				const progress = getUserProgress(); // Đọc từ localStorage 1 lần
-				let newWordsLearnedCount = 0;
+				const progress = getUserProgress(); // 1. Đọc 1 lần
 
 				correctlyAnsweredWordIds.forEach(wordId => {
-					// Chỉ tính là hoạt động mới nếu từ này chưa được học trước đó
 					if (!progress.completedWords[wordId]) {
-						newWordsLearnedCount++;
+						updateDailyActivity(); // Cập nhật hoạt động hằng ngày
 					}
-					progress.completedWords[wordId] = true; // Đánh dấu đã học
+					progress.completedWords[wordId] = true; // 2. Cập nhật từ đã học
 				});
 
-				// Cập nhật số hoạt động trong ngày
-				for (let i = 0; i < newWordsLearnedCount; i++) {
-					updateDailyActivity();
-				}
-
-				updateCategoryProgress(); // Cập nhật tiến độ chủ đề
-				saveUserProgress(progress); // Ghi xuống localStorage 1 lần
-				updateUserStats(); // Cập nhật giao diện thống kê
+				updateCategoryProgress(progress); // 3. Truyền progress đã cập nhật để tính toán
+				saveUserProgress(progress);      // 4. Lưu tất cả thay đổi 1 lần
+				updateUserStats();
 			}
-			// --- KẾT THÚC PHẦN SỬA LỖI ---
 
+			// ... (phần code hiệu ứng và tải vòng mới giữ nguyên) ...
 			const submitButton = document.getElementById('submit-quiz');
 			submitButton.textContent = `Đúng ${correctCount}/${totalCount}`;
 			submitButton.disabled = true;
 
-			// Hiệu ứng chúc mừng nếu đạt điểm tuyệt đối
 			if (correctCount === totalCount && totalCount > 0) {
 				createConfetti();
 				const tadaSound = new Audio('https://www.myinstants.com/media/sounds/tada-fanfare-a-6312.mp3');
 				if (soundEnabled) tadaSound.play();
 			}
 
-			// Tự động bắt đầu vòng mới sau 2 giây
 			setTimeout(() => {
 				const categoryWords = flashcards.filter(card => card.categoryId === categoryId);
 				startMultipleChoiceQuiz(categoryWords, quizId, categoryId);

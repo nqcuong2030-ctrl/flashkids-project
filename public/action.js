@@ -129,6 +129,22 @@
             { id: 3, name: 'Học sinh giỏi', description: 'Hoàn thành 5 bài kiểm tra', achieved: true, icon: 'book', color: 'blue' },
             { id: 4, name: 'Chuyên gia', description: 'Hoàn thành 10 bài kiểm tra', achieved: false, progress: '5/10', icon: 'play', color: 'gray' }
         ];
+		
+		// === HỆ THỐNG ÂM THANH ===
+		const soundEffects = {
+			click: new Audio('https://cdn.pixabay.com/audio/2022/03/15/audio_28200361b1.mp3'),
+			success: new Audio('https://cdn.pixabay.com/audio/2022/03/10/audio_c359247271.mp3'),
+			error: new Audio('https://cdn.pixabay.com/audio/2021/08/04/audio_a7db0f2a79.mp3'),
+			tada: new Audio('https://www.myinstants.com/media/sounds/tada-fanfare-a-6312.mp3')
+		};
+
+		function playSound(soundName) {
+			if (soundEnabled && soundEffects[soundName]) {
+				soundEffects[soundName].currentTime = 0; // Tua về đầu để có thể phát lại ngay
+				soundEffects[soundName].play();
+			}
+		}
+		// ==========================
 
         // User data
         const userData = {
@@ -1331,40 +1347,37 @@
 		}
 
         function selectEnglishWord(element, wordId) {
-			// Không cho chọn lại từ đã ghép đúng
+			playSound('click'); // Âm thanh khi nhấn
+			speakWord(element.textContent, 'en-US'); // Đọc to từ tiếng Anh
+
 			if (element.classList.contains('matched')) return;
 
-			// Bỏ chọn từ tiếng Anh đang được chọn trước đó (nếu có)
 			const currentlySelected = document.querySelector('#english-words .word-card.selected');
 			if (currentlySelected) {
 				currentlySelected.classList.remove('selected');
 			}
 
-			// Chọn từ mới
 			element.classList.add('selected');
 			selectedEnglishWord = wordId;
 
-			// Nếu đã có một từ tiếng Việt được chọn, hãy kiểm tra ngay lập tức
 			if (selectedVietnameseWord) {
 				checkWordMatch();
 			}
 		}
 
 		function selectVietnameseWord(element, wordId) {
-			// Không cho chọn lại từ đã ghép đúng
+			playSound('click'); // Âm thanh khi nhấn
+
 			if (element.classList.contains('matched')) return;
 
-			// Bỏ chọn từ tiếng Việt đang được chọn trước đó (nếu có)
 			const currentlySelected = document.querySelector('#vietnamese-words .word-card.selected');
 			if (currentlySelected) {
 				currentlySelected.classList.remove('selected');
 			}
 
-			// Chọn từ mới
 			element.classList.add('selected');
 			selectedVietnameseWord = wordId;
 
-			// Nếu đã có một từ tiếng Anh được chọn, hãy kiểm tra ngay lập tức
 			if (selectedEnglishWord) {
 				checkWordMatch();
 			}
@@ -1426,27 +1439,23 @@
 			const score = Math.round((matchedPairs.length / totalPairs) * 100);
 			const successIcon = document.getElementById('matching-success-feedback');
 
-			// 1. Vô hiệu hóa và cập nhật văn bản nút bấm để báo kết quả
 			const checkButton = document.getElementById('check-answers');
 			checkButton.textContent = `Đúng ${matchedPairs.length}/${totalPairs}`;
 			checkButton.disabled = true;
 
-			// 2. Nếu đạt điểm tuyệt đối (5/5), hiển thị icon chúc mừng
 			if (matchedPairs.length === totalPairs && totalPairs > 0) {
 				successIcon.classList.remove('hidden');
 				successIcon.classList.add('success-shake');
+				playSound('tada'); // Âm thanh chúc mừng khi đạt điểm tuyệt đối
 			}
 
-			// 3. Sau 2 giây, tự động bắt đầu một lượt chơi mới
 			setTimeout(() => {
-				// Ẩn icon đi để chuẩn bị cho lượt sau
 				if (!successIcon.classList.contains('hidden')) {
 					successIcon.classList.add('hidden');
 					successIcon.classList.remove('success-shake');
 				}
-				// Gọi hàm để tải 5 từ mới
 				restartMatchingGame();
-			}, 2000); // Chờ 2 giây
+			}, 2000);
 		}
 		
 		function restartMatchingGame() {
