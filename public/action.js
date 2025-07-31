@@ -447,7 +447,7 @@
 			});
 
 			if (userAnswer === unscrambleTargetWord) {
-				playSound('success'); // Âm thanh thành công
+				playSound('tada'); // Âm thanh thành công
 				speakWord(unscrambleTargetWord, 'en-US'); // Đọc to từ vừa xếp đúng
 				const successIcon = document.getElementById('unscramble-success-feedback');
 
@@ -1235,68 +1235,71 @@
         }
 
         function showCategorySelectionModal() {
-            const container = document.getElementById('category-selection-container');
-            container.innerHTML = '';
-            
-            categories.forEach(category => {
-                const progress = getCategoryProgress(category.id);
-                const colorClass = category.colorClass || getCategoryColorClass(category.color);
-                
-                const categoryElement = document.createElement('div');
-                categoryElement.className = `bg-gradient-to-br ${colorClass} rounded-xl p-4 text-white cursor-pointer hover:shadow-lg transition duration-300`;
-                categoryElement.innerHTML = `
-                    <div class="flex justify-between items-start mb-2">
-                        <h4 class="font-bold">${category.name}</h4>
-                        <span class="bg-white text-gray-700 text-xs font-bold px-2 py-1 rounded-full">${category.wordCount} từ</span>
-                    </div>
-                    <div class="mt-2">
-                        <div class="text-sm mb-1">Tiến độ: ${progress}%</div>
-                        <div class="w-full bg-white bg-opacity-30 rounded-full h-2">
-                            <div class="bg-white h-2 rounded-full" style="width: ${progress}%"></div>
-                        </div>
-                    </div>
-                `;
-                
-                categoryElement.addEventListener('click', () => {
-					playSound('click'); // <-- Thêm âm thanh khi nhấn
-                    closeModal('categorySelectionModal');
-                    
-                    if (currentActivity.type === 'game') {
-                        playGame(currentActivity.id, category.id);
-                    } else if (currentActivity.type === 'quiz') {
-                        startQuizWithCategory(currentActivity.id, category.id);
-                    }
-                });
-                
-                container.appendChild(categoryElement);
-            });
-            
-            openModal('categorySelectionModal');
-        }
+			const container = document.getElementById('category-selection-container');
+			container.innerHTML = '';
+			
+			categories.forEach(category => {
+				const progress = getCategoryProgress(category.id);
+				const colorClass = category.colorClass || getCategoryColorClass(category.color);
+				
+				const categoryElement = document.createElement('div');
+				// ... (phần code className và innerHTML giữ nguyên) ...
+				categoryElement.className = `bg-gradient-to-br ${colorClass} rounded-xl p-4 text-white cursor-pointer hover:shadow-lg transition duration-300`;
+				categoryElement.innerHTML = `
+					<div class="flex justify-between items-start mb-2">
+						<h4 class="font-bold">${category.name}</h4>
+						<span class="bg-white text-gray-700 text-xs font-bold px-2 py-1 rounded-full">${category.wordCount} từ</span>
+					</div>
+					<div class="mt-2">
+						<div class="text-sm mb-1">Tiến độ: ${progress}%</div>
+						<div class="w-full bg-white bg-opacity-30 rounded-full h-2">
+							<div class="bg-white h-2 rounded-full" style="width: ${progress}%"></div>
+						</div>
+					</div>
+				`;
+				
+				// Sự kiện click giờ sẽ đơn giản hơn
+				categoryElement.addEventListener('click', () => {
+					playSound('click');
+					closeModal('categorySelectionModal');
+					
+					if (currentActivity.type === 'game') {
+						playGame(currentActivity.id, category.id);
+					} else if (currentActivity.type === 'quiz') {
+						startQuizWithCategory(currentActivity.id, category.id);
+					}
+				});
+				
+				container.appendChild(categoryElement);
+			});
+			
+			openModal('categorySelectionModal');
+		}
 
 		function playGame(gameId, categoryId) {
 			const categoryWords = flashcards.filter(card => card.categoryId === categoryId);
-
-			if (gameId === 1) {
+			
+			if (gameId === 1) { // Ghép từ
 				if (categoryWords.length < 5) {
 					alert('Cần ít nhất 5 từ vựng để chơi trò chơi này.');
 					return;
 				}
 				startMatchingGame(categoryWords, gameId, categoryId);
-			} else if (gameId === 2) {
-				const wordsWithImages = categoryWords.filter(card => card.image && card.image.startsWith('http'));
-				if (wordsWithImages.length < 4) {
-					alert('Cần ít nhất 4 từ vựng có hình ảnh hợp lệ để chơi trò chơi này.');
+			} else if (gameId === 2) { // Chọn từ
+				// Chỉ cần ít nhất 4 từ trong chủ đề là có thể chơi
+				if (categoryWords.length < 4) {
+					alert('Cần ít nhất 4 từ vựng trong chủ đề này để chơi.');
 					return;
 				}
-				startImageQuiz(wordsWithImages, gameId, categoryId);
-			} else if (gameId === 3) {
+				// Truyền toàn bộ danh sách từ của chủ đề vào game
+				startImageQuiz(categoryWords, gameId, categoryId);
+			} else if (gameId === 3) { // Xếp từ
 				const suitableWords = categoryWords.filter(w => w.english.length > 3 && w.english.length < 8);
 				if (suitableWords.length < 1) {
 					alert('Không có từ vựng phù hợp cho trò chơi này trong chủ đề đã chọn.');
 					return;
 				}
-				startUnscrambleGame(suitableWords); // <-- Chỉ cần truyền danh sách từ
+				startUnscrambleGame(suitableWords);
 			} else {
 				alert('Trò chơi này đang được phát triển.');
 			}
@@ -1532,13 +1535,23 @@
 			}
 
 			const question = imageQuizQuestions[currentImageQuizQuestionIndex];
+			const imageContainer = document.getElementById('image-quiz-image-container');
 			
 			// Cập nhật tiến trình
 			document.getElementById('image-quiz-progress').textContent = `Câu ${currentImageQuizQuestionIndex + 1} / ${imageQuizQuestions.length}`;
 			
-			// Hiển thị hình ảnh
-			document.getElementById('image-quiz-img').src = question.correctAnswer.image;
-			
+			// --- PHẦN LOGIC MỚI ---
+			// Kiểm tra xem từ có hình ảnh hợp lệ không
+			if (question.correctAnswer.image && question.correctAnswer.image.startsWith('http')) {
+				// Nếu CÓ HÌNH: Hiển thị hình ảnh
+				imageContainer.innerHTML = `<img id="image-quiz-img" src="${question.correctAnswer.image}" alt="Quiz image" class="max-w-full max-h-full object-contain">`;
+			} else {
+				// Nếu KHÔNG CÓ HÌNH: Hiển thị từ tiếng Việt và đọc to nó lên
+				imageContainer.innerHTML = `<div class="text-4xl md:text-5xl font-bold text-center text-blue-800 p-4">${question.correctAnswer.vietnamese}</div>`;
+				speakWord(question.correctAnswer.vietnamese, 'vi-VN');
+			}
+			// --- KẾT THÚC PHẦN LOGIC MỚI ---
+
 			// Hiển thị các đáp án
 			const optionsContainer = document.getElementById('image-quiz-options');
 			optionsContainer.innerHTML = '';
@@ -1617,55 +1630,55 @@
         }
 
         function startQuizWithCategory(quizId, categoryId) {
-			startDailyTimer(); // Bắt đầu đếm ngược
-		
-            // Get words for the selected category
-            const categoryWords = flashcards.filter(card => card.categoryId === categoryId);
-            
-            if (categoryWords.length < 5) {
-                alert('Cần ít nhất 5 từ vựng để làm bài kiểm tra này. Vui lòng chọn chủ đề khác.');
-                return;
-            }
-            
-            // Start the appropriate quiz
-            if (quizId === 1) {
-                startMultipleChoiceQuiz(categoryWords, quizId, categoryId);
-            } else if (quizId === 2) {
-                // Other quiz types
-                alert('Bài kiểm tra này đang được phát triển. Vui lòng thử lại sau.');
-            } else {
-                alert('Bài kiểm tra này đang được phát triển. Vui lòng thử lại sau.');
-            }
-        }
+			startDailyTimer();
+			const categoryWords = flashcards.filter(card => card.categoryId === categoryId);
+
+			if (categoryWords.length < 4) {
+				alert('Cần ít nhất 4 từ vựng để làm bài kiểm tra này.');
+				return;
+			}
+			
+			if (quizId === 1) {
+				// Không cần truyền isReview nữa
+				startMultipleChoiceQuiz(categoryWords, quizId, categoryId);
+			} else {
+				alert('Bài kiểm tra này đang được phát triển.');
+			}
+		}
 
 		function startMultipleChoiceQuiz(words, quizId, categoryId) {
-			const progress = getUserProgress();
-			// Lọc ra những từ chưa được đánh dấu là "đã học"
-			const unlearnedWords = words.filter(word => !progress.completedWords[word.id]);
+			let wordsForQuiz;
+			const progressPercent = getCategoryProgress(categoryId);
 
-			// Nếu không còn từ nào chưa học trong chủ đề này
-			if (unlearnedWords.length === 0) {
+			// --- LOGIC TỰ ĐỘNG CHỌN CHẾ ĐỘ ---
+			if (progressPercent === 100) {
+				// Nếu đã học 100%, vào chế độ ÔN TẬP (dùng tất cả các từ)
+				wordsForQuiz = words;
+				console.log(`Chủ đề ${categoryId} đã hoàn thành. Bắt đầu chế độ ôn tập.`);
+			} else {
+				// Nếu chưa, vào chế độ HỌC MỚI (chỉ dùng các từ chưa học)
+				const progress = getUserProgress();
+				wordsForQuiz = words.filter(word => !progress.completedWords[word.id]);
+				console.log(`Chủ đề ${categoryId} chưa hoàn thành. Bắt đầu chế độ học mới.`);
+			}
+			// --- KẾT THÚC LOGIC MỚI ---
+
+			// Kiểm tra xem có từ nào để học/ôn tập không
+			if (wordsForQuiz.length < 4) {
+				// Thông báo này giờ chỉ hiện khi thực sự không còn từ nào hoặc không đủ để chơi
 				alert("🎉 Chúc mừng! Bạn đã học hết tất cả các từ trong chủ đề này.");
 				closeModal('multipleChoiceQuizModal');
 				return;
 			}
 
-			// Nếu không đủ từ để tạo câu hỏi (cần ít nhất 4 lựa chọn)
-			if (unlearnedWords.length < 4) {
-				alert(`Chỉ còn ${unlearnedWords.length} từ chưa học. Không đủ để tạo bài kiểm tra.`);
-				closeModal('multipleChoiceQuizModal');
-				return;
-			}
-
-			// --- Phần còn lại của hàm giữ nguyên, nhưng sử dụng 'unlearnedWords' ---
-			const quizWords = unlearnedWords.sort(() => 0.5 - Math.random()).slice(0, Math.min(10, unlearnedWords.length));
-			
+			const quizWords = wordsForQuiz.sort(() => 0.5 - Math.random()).slice(0, 10);
 			const questionsContainer = document.getElementById('quiz-questions');
 			questionsContainer.innerHTML = '';
 			
 			quizWords.forEach((word, index) => {
 				const options = [word.vietnamese];
-				const distractors = unlearnedWords.filter(w => w.id !== word.id);
+				// Lấy các đáp án sai từ chính danh sách từ sẽ dùng cho bài quiz
+				const distractors = wordsForQuiz.filter(w => w.id !== word.id);
 
 				while (options.length < 4 && distractors.length > 0) {
 					const randomDistractor = distractors.splice(Math.floor(Math.random() * distractors.length), 1)[0];
@@ -1673,28 +1686,15 @@
 				}
 				
 				const shuffledOptions = options.sort(() => 0.5 - Math.random());
-				
 				const questionElement = document.createElement('div');
 				questionElement.className = 'bg-white p-4 rounded-lg shadow';
 				questionElement.setAttribute('data-word-id', word.id);
 				questionElement.setAttribute('data-correct', word.vietnamese);
 				
-				let questionHTML = `
-					<h4 class="font-bold text-gray-800 mb-3">${index + 1}. ${word.english}</h4>
-					<div class="grid grid-cols-2 gap-3">
-				`;
-				
+				let questionHTML = `<h4 class="font-bold text-gray-800 mb-3">${index + 1}. ${word.english}</h4><div class="grid grid-cols-2 gap-3">`;
 				shuffledOptions.forEach((option) => {
-					questionHTML += `
-						<div class="quiz-option p-2 border rounded-lg" data-value="${option}" onclick="selectQuizOption(this)">
-							<label class="flex items-center cursor-pointer">
-								<input type="radio" name="q${index}" value="${option}" class="mr-2 hidden">
-								<span class="text-gray-700">${option}</span>
-							</label>
-						</div>
-					`;
+					questionHTML += `<div class="quiz-option p-2 border rounded-lg" data-value="${option}" onclick="selectQuizOption(this)"><label class="flex items-center cursor-pointer"><input type="radio" name="q${index}" value="${option}" class="mr-2 hidden"><span class="text-gray-700">${option}</span></label></div>`;
 				});
-				
 				questionHTML += `</div>`;
 				questionElement.innerHTML = questionHTML;
 				questionsContainer.appendChild(questionElement);
