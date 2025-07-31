@@ -132,9 +132,9 @@
 		
 		// === HỆ THỐNG ÂM THANH ===
 		const soundEffects = {
-			click: new Audio('https://cdn.pixabay.com/download/audio/2025/01/20/audio_9afb73ceb5.mp3?filename=mouse-click-290204.mp3'),
+			click: new Audio('https://cdn.pixabay.com/download/audio/2025/07/31/audio_ebc800c9bc.mp3?filename=button-press-click-tap-video-game-main-menu-select-382948.mp3'),
 			success: new Audio('https://cdn.pixabay.com/download/audio/2022/03/15/audio_e8b2fa25cf.mp3?filename=goodresult-82807.mp3'),
-			error: new Audio('https://cdn.pixabay.com/download/audio/2024/05/03/audio_6130b029fd.mp3?filename=error-08-206492.mp3'),
+			error: new Audio('https://cdn.pixabay.com/download/audio/2024/08/23/audio_703f9da0e1.mp3?filename=fail-234710.mp3'),			
 			tada: new Audio('https://cdn.pixabay.com/download/audio/2021/08/04/audio_473a42432c.mp3?filename=tada-fanfare-a-6313.mp3')
 		};
 
