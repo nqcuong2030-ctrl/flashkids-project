@@ -625,6 +625,7 @@
 			updateFlashcard();
 			updateCardCounter();
 			loadCategoryFilters();
+			loadCategories();
 		}
 
         // Update level badges
@@ -821,49 +822,61 @@
 
         // Load data functions
         function loadCategories() {
-            const container = document.getElementById('categories-container');
-            container.innerHTML = '';
-            
-            if (categories.length === 0) {
-                container.innerHTML = '<p class="text-gray-500 text-center col-span-3">Không có chủ đề từ vựng.</p>';
-                return;
-            }
-            
-            categories.forEach(category => {
-                const colorClass = category.colorClass || getCategoryColorClass(category.color);
-                const progress = getCategoryProgress(category.id);
-                
-                const categoryElement = document.createElement('div');
-                categoryElement.className = `category-card bg-gradient-to-br ${colorClass} rounded-2xl p-5 text-white shadow-lg`;
-                categoryElement.innerHTML = `
-                    <div class="flex justify-between items-start mb-4">
-                        <h4 class="text-lg font-bold">${category.name}</h4>
-                        <span class="bg-white text-gray-700 text-xs font-bold px-2 py-1 rounded-full">${category.wordCount} từ</span>
-                    </div>
-                    <div class="flex justify-between items-end">
-                        <div>
-                            <div class="text-sm mb-1">Tiến độ: ${progress}%</div>
-                            <div class="w-32 bg-white bg-opacity-30 rounded-full h-2">
-                                <div class="bg-white h-2 rounded-full" style="width: ${progress}%"></div>
-                            </div>
-                        </div>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-white opacity-80 hidden" viewBox="0 0 20 20" fill="currentColor">
-                            ${getCategoryIcon(category.name)}
-                        </svg>
-                    </div>
-                `;
-                
-                categoryElement.addEventListener('click', () => {
-                    currentCategoryId = category.id;
-                    currentCardIndex = 0;
-                    changeTab('flashcards');
-                    updateFlashcard();
-                    updateCategoryFilters();
-                });
-                
-                container.appendChild(categoryElement);
-            });
-        }
+			const container = document.getElementById('categories-container');
+			container.innerHTML = '';
+			
+			// --- PHẦN LOGIC MỚI ---
+			// 1. Lấy tất cả từ vựng thuộc level hiện tại
+			const wordsForCurrentLevel = allFlashcards.filter(card => card.level === currentLevel);
+			
+			// 2. Lấy danh sách ID của các chủ đề duy nhất từ các từ vựng đó
+			const relevantCategoryIds = [...new Set(wordsForCurrentLevel.map(card => card.categoryId))];
+			
+			// 3. Lọc ra các chủ đề có ID nằm trong danh sách trên
+			const relevantCategories = categories.filter(cat => relevantCategoryIds.includes(cat.id));
+			// --- KẾT THÚC PHẦN LOGIC MỚI ---
+
+			if (relevantCategories.length === 0) {
+				container.innerHTML = '<p class="text-gray-500 text-center col-span-3">Không có chủ đề nào cho cấp độ này.</p>';
+				return;
+			}
+			
+			// Bây giờ, chúng ta sẽ hiển thị các chủ đề đã được lọc
+			relevantCategories.forEach(category => {
+				const colorClass = category.colorClass || getCategoryColorClass(category.color);
+				const progress = getCategoryProgress(category.id);
+				
+				const categoryElement = document.createElement('div');
+				categoryElement.className = `category-card bg-gradient-to-br ${colorClass} rounded-2xl p-5 text-white shadow-lg`;
+				categoryElement.innerHTML = `
+					<div class="flex justify-between items-start mb-4">
+						<h4 class="text-lg font-bold">${category.name}</h4>
+						<span class="bg-white text-gray-700 text-xs font-bold px-2 py-1 rounded-full">${category.wordCount} từ</span>
+					</div>
+					<div class="flex justify-between items-end">
+						<div>
+							<div class="text-sm mb-1">Tiến độ: ${progress}%</div>
+							<div class="w-32 bg-white bg-opacity-30 rounded-full h-2">
+								<div class="bg-white h-2 rounded-full" style="width: ${progress}%"></div>
+							</div>
+						</div>
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-white opacity-80 hidden" viewBox="0 0 20 20" fill="currentColor">
+							${getCategoryIcon(category.name)}
+						</svg>
+					</div>
+				`;
+				
+				categoryElement.addEventListener('click', () => {
+					currentCategoryId = category.id;
+					currentCardIndex = 0;
+					changeTab('flashcards');
+					updateFlashcard();
+					updateCategoryFilters();
+				});
+				
+				container.appendChild(categoryElement);
+			});
+		}
 
         function loadCategoryFilters() {
             const container = document.getElementById('category-filters');
