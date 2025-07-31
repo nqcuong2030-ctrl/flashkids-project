@@ -603,7 +603,7 @@
 			currentLevel = level;
 
 			// Lọc danh sách từ vựng cho level hiện tại từ danh sách tổng
-			flashcards = allFlashcards.filter(card => card.level === level);
+			flashcards = allFlashcards.filter(card => card.level && card.level.toLowerCase() === level.toLowerCase());
 
 			currentCategoryId = null;
 			currentCardIndex = 0;
