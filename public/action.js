@@ -2,7 +2,6 @@
         let categories = [];
         let flashcards = [];
 		let allFlashcards = [];
-		let allFlashcards = [];
         let currentCategoryId = null;
         let currentCardIndex = 0;
         let soundEnabled = true;
