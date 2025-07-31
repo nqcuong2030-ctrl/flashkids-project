@@ -9,9 +9,7 @@
 	{ "id": "no7", "name": "Trường học & Công việc", "color": "purple", "wordCount": 40},    
     { "id": "no8", "name": "Mô tả (Tính từ & Trạng từ)", "color": "amber", "wordCount": 72},
 	{ "id": "no9", "name": "Hành động (Động từ)", "color": "red", "wordCount": 94},
-    { "id": "no10", "name": "Từ vựng cơ bản", "color": "grey", "wordCount": 178}
-	
-    
+    { "id": "no10", "name": "Từ vựng cơ bản", "color": "grey", "wordCount": 178}	    
   ],
   "flashcards": [
     { "id": 1,  "english": "A", "vietnamese": "Một (trước phụ âm)", "phonetic": "/ə/", "categoryId": "no10", "image": "a", "level": "A1"},
@@ -614,5 +612,5 @@
     { "id": 598, "english": "Popular", "vietnamese": "Phổ biến", "phonetic": "/ˈpɒpjələr/", "categoryId": "no8", "image": "popular", "level": "A1"},
     { "id": 599, "english": "Positive", "vietnamese": "Tích cực", "phonetic": "/ˈpɒzətɪv/", "categoryId": "no8", "image": "positive", "level": "A1"},
     { "id": 600, "english": "Possible", "vietnamese": "Có thể", "phonetic": "/ˈpɒsəbl/", "categoryId": "no8", "image": "possible", "level": "A1"}
-  ],
+  ]
 }
