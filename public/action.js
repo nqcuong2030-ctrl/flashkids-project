@@ -611,6 +611,8 @@
 
         // Hàm changeLevel giờ chỉ cần gọi các hàm khác sau khi có dữ liệu
 		async function changeLevel(level) {
+			playSound('click'); // <-- Thêm âm thanh khi nhấn
+			
 			currentLevel = level;
 
 			document.getElementById('current-level-display').textContent = `Level ${level.toUpperCase()}`;
@@ -693,6 +695,8 @@
 
         // Tab navigation
         function changeTab(tabId) {
+			playSound('click'); // <-- Thêm âm thanh khi nhấn
+			
 			// Ẩn tất cả nội dung tab
 			document.querySelectorAll('.tab-content').forEach(tab => {
 				tab.classList.add('hidden');
@@ -866,6 +870,7 @@
 				`;
 				
 				categoryElement.addEventListener('click', () => {
+					playSound('click'); // <-- Thêm âm thanh khi nhấn
 					currentCategoryId = category.id;
 					currentCardIndex = 0;
 					changeTab('flashcards');
@@ -1169,6 +1174,8 @@
 
         // Navigation functions
         function filterByCategory(categoryId) {
+			playSound('click'); // <-- Thêm âm thanh khi nhấn
+			
             currentCategoryId = categoryId;
             currentCardIndex = 0;
             updateFlashcard();
@@ -1212,6 +1219,7 @@
 
         // Game functions
         function startGame(gameId) {
+			playSound('click'); // <-- Thêm âm thanh khi nhấn
             currentActivity = {
                 type: 'game',
                 id: gameId
@@ -1245,6 +1253,7 @@
                 `;
                 
                 categoryElement.addEventListener('click', () => {
+					playSound('click'); // <-- Thêm âm thanh khi nhấn
                     closeModal('categorySelectionModal');
                     
                     if (currentActivity.type === 'game') {
@@ -1592,6 +1601,7 @@
 
         // Quiz functions
         function startQuiz(quizId) {
+			playSound('click'); // <-- Thêm âm thanh khi nhấn
             currentActivity = {
                 type: 'quiz',
                 id: quizId
