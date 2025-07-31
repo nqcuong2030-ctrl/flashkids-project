@@ -467,9 +467,9 @@
                     <button class="py-2 px-1 whitespace-nowrap" onclick="changeTab('flashcards')">Thẻ từ vựng</button>
                     <button class="py-2 px-1 whitespace-nowrap" onclick="changeTab('games')">Trò chơi</button>
                     <button class="py-2 px-1 whitespace-nowrap" onclick="changeTab('quiz')">Kiểm tra</button>
-                    <button class="py-2 px-1 whitespace-nowrap" onclick="changeTab('rewards')">Phần thưởng</button>
+                    <button class="py-2 px-1 whitespace-nowrap hidden" onclick="changeTab('rewards')">Phần thưởng</button>
                     <button class="py-2 px-1 whitespace-nowrap" onclick="changeTab('stats')">Thống kê</button>
-                    <button class="py-2 px-1 whitespace-nowrap" onclick="changeTab('settings')">Cài đặt</button>
+                    <button class="py-2 px-1 whitespace-nowrap hidden" onclick="changeTab('settings')">Cài đặt</button>
                 </div>
             </div>
         </nav>
@@ -756,7 +756,7 @@
                 </div>
                 
                 <!-- Data Management -->
-                <div class="bg-white rounded-2xl p-6 shadow-md">
+                <div class="bg-white rounded-2xl p-6 shadow-md hidden">
                     <h3 class="text-lg font-bold text-gray-800 mb-4">Quản lý dữ liệu</h3>
                     
                     <div class="flex space-x-4 mb-4">
@@ -906,8 +906,8 @@
 			<div id="letter-tiles" class="flex justify-center flex-wrap gap-2 my-6 min-h-[4rem]">
 				</div>
 			<div class="flex justify-center gap-4 mt-4">
-				<button id="check-unscramble-btn" class="btn-primary text-white py-2 px-6 rounded-lg shadow-md">Kiểm tra</button>
 				<button id="change-word-btn" class="btn-warning text-white py-2 px-6 rounded-lg shadow-md">Đổi từ</button>
+				<button id="check-unscramble-btn" class="btn-primary text-white py-2 px-6 rounded-lg shadow-md">Kiểm tra đáp án</button>				
 			</div>
 		</div>
 	</div>
