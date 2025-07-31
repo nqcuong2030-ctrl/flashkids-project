@@ -143,6 +143,12 @@
 
         // Initialize the app
         document.addEventListener('DOMContentLoaded', function() {
+			// Tải cấp độ đã được lưu lần trước từ localStorage
+			const savedLevel = localStorage.getItem('flashkids_currentLevel');
+			if (savedLevel) {
+				currentLevel = savedLevel;
+			}
+			
             // Initialize user progress from localStorage
             initUserProgress();
             loadAllData();
@@ -183,7 +189,6 @@
 			document.getElementById('toggle-timer-btn').addEventListener('click', toggleTimer);
             updateTimerDisplay(); // Hiển thị thời gian ban đầu
 			
-			// Thêm đoạn mã này vào cuối hàm DOMContentLoaded
 			document.querySelectorAll('.modal').forEach(modal => {
 				modal.addEventListener('click', function(event) {
 					// Kiểm tra xem phần tử được bấm có phải là chính lớp nền modal hay không
@@ -601,13 +606,21 @@
         function changeLevel(level) {
 			if (!dataLoaded) return;
 			currentLevel = level;
+			
+			// === PHẦN THÊM MỚI ===
+			// 1. Cập nhật dòng chữ hiển thị level trên header
+			document.getElementById('current-level-display').textContent = `Level ${level.toUpperCase()}`;
+			
+			// 2. Lưu level vừa chọn vào localStorage
+			localStorage.setItem('flashkids_currentLevel', level);
+			// ======================
 
 			// Lọc danh sách từ vựng cho level hiện tại từ danh sách tổng
 			flashcards = allFlashcards.filter(card => card.level && card.level.toLowerCase() === level.toLowerCase());
-
+			
 			currentCategoryId = null;
 			currentCardIndex = 0;
-
+			
 			updateLevelBadges(level);
 			updateFlashcard();
 			updateCardCounter();
