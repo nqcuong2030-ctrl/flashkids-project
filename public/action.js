@@ -238,22 +238,20 @@
         }
 
         function markWordAsLearned(wordId) {
-            const progress = getUserProgress();
-            progress.completedWords[wordId] = true;
-            
-            // Update category progress
-            updateCategoryProgress();
-            
-            // Update daily activities
-            updateDailyActivity();
-            
-            // Save progress
-            saveUserProgress(progress);
-            
-            // Update UI
-            updateUserStats();
-            updateDailyProgress();
-        }
+			const progress = getUserProgress(); // Đọc 1 lần
+			let isNewWord = !progress.completedWords[wordId];
+			
+			progress.completedWords[wordId] = true; // Cập nhật từ đã học
+			
+			updateCategoryProgress(progress); // Truyền progress để tính toán
+			
+			if (isNewWord) {
+				updateDailyActivity(); // Chỉ cập nhật hoạt động nếu là từ mới
+			}
+			
+			saveUserProgress(progress); // Lưu tất cả 1 lần
+			updateUserStats();
+		}
 
         function markCurrentWordAsLearned() {
             const filteredCards = getFilteredCards();
@@ -328,18 +326,16 @@
             updateDailyProgress();
         }
 
-        function updateCategoryProgress() {
-			const progress = getUserProgress();
+        function updateCategoryProgress(progress) { // <-- Nhận 'progress' làm tham số
+			if (!progress) return; // Thoát nếu không có progress
 
 			// Chỉ tính toán cho các chủ đề của level hiện tại
 			categories.forEach(category => {
-				// Lấy tất cả các từ thuộc về category này TRONG LEVEL HIỆN TẠI
 				const wordsInCatForLevel = flashcards.filter(card => card.categoryId === category.id);
 				const totalWordsInCatForLevel = wordsInCatForLevel.length;
 
 				if (totalWordsInCatForLevel === 0) return;
 
-				// Đếm số từ đã học trong số đó
 				let learnedCount = 0;
 				wordsInCatForLevel.forEach(word => {
 					if (progress.completedWords[word.id]) {
@@ -349,11 +345,10 @@
 				
 				const percentComplete = Math.round((learnedCount / totalWordsInCatForLevel) * 100);
 				
-				// Lưu tiến độ theo một key duy nhất kết hợp cả level và categoryId
+				// Cập nhật trực tiếp vào đối tượng progress được truyền vào
 				progress.categories[`${currentLevel}_${category.id}`] = percentComplete;
 			});
-
-			saveUserProgress(progress);
+			// Không còn saveUserProgress(progress) ở đây nữa
 		}
 		
 		// === LOGIC CHO TRÒ CHƠI XẾP CHỮ ===
@@ -1705,11 +1700,10 @@
 			let totalCount = questions.length;
 			let correctlyAnsweredWordIds = [];
 
-			// Bước 1: Vẫn kiểm tra và thu thập ID của các câu trả lời đúng
 			questions.forEach(question => {
+				// ... (phần code kiểm tra đáp án đúng/sai giữ nguyên) ...
 				const correctAnswer = question.getAttribute('data-correct');
 				const selectedOption = question.querySelector('.quiz-option.selected');
-				
 				if (selectedOption) {
 					const selectedValue = selectedOption.getAttribute('data-value');
 					if (selectedValue === correctAnswer) {
@@ -1726,43 +1720,32 @@
 				}
 			});
 
-			// --- PHẦN SỬA LỖI QUAN TRỌNG ---
-			// Bước 2: Cập nhật tất cả các từ đã học trong một lần duy nhất
 			if (correctlyAnsweredWordIds.length > 0) {
-				const progress = getUserProgress(); // Đọc từ localStorage 1 lần
-				let newWordsLearnedCount = 0;
+				const progress = getUserProgress(); // 1. Đọc 1 lần
 
 				correctlyAnsweredWordIds.forEach(wordId => {
-					// Chỉ tính là hoạt động mới nếu từ này chưa được học trước đó
 					if (!progress.completedWords[wordId]) {
-						newWordsLearnedCount++;
+						updateDailyActivity(); // Cập nhật hoạt động hằng ngày
 					}
-					progress.completedWords[wordId] = true; // Đánh dấu đã học
+					progress.completedWords[wordId] = true; // 2. Cập nhật từ đã học
 				});
 
-				// Cập nhật số hoạt động trong ngày
-				for (let i = 0; i < newWordsLearnedCount; i++) {
-					updateDailyActivity();
-				}
-
-				updateCategoryProgress(); // Cập nhật tiến độ chủ đề
-				saveUserProgress(progress); // Ghi xuống localStorage 1 lần
-				updateUserStats(); // Cập nhật giao diện thống kê
+				updateCategoryProgress(progress); // 3. Truyền progress đã cập nhật để tính toán
+				saveUserProgress(progress);      // 4. Lưu tất cả thay đổi 1 lần
+				updateUserStats();
 			}
-			// --- KẾT THÚC PHẦN SỬA LỖI ---
 
+			// ... (phần code hiệu ứng và tải vòng mới giữ nguyên) ...
 			const submitButton = document.getElementById('submit-quiz');
 			submitButton.textContent = `Đúng ${correctCount}/${totalCount}`;
 			submitButton.disabled = true;
 
-			// Hiệu ứng chúc mừng nếu đạt điểm tuyệt đối
 			if (correctCount === totalCount && totalCount > 0) {
 				createConfetti();
 				const tadaSound = new Audio('https://www.myinstants.com/media/sounds/tada-fanfare-a-6312.mp3');
 				if (soundEnabled) tadaSound.play();
 			}
 
-			// Tự động bắt đầu vòng mới sau 2 giây
 			setTimeout(() => {
 				const categoryWords = flashcards.filter(card => card.categoryId === categoryId);
 				startMultipleChoiceQuiz(categoryWords, quizId, categoryId);
