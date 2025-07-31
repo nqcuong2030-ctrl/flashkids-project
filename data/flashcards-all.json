@@ -614,5 +614,5 @@
     { "id": 598, "english": "Popular", "vietnamese": "Phổ biến", "phonetic": "/ˈpɒpjələr/", "categoryId": "no8", "image": "popular", "level": "A1"},
     { "id": 599, "english": "Positive", "vietnamese": "Tích cực", "phonetic": "/ˈpɒzətɪv/", "categoryId": "no8", "image": "positive", "level": "A1"},
     { "id": 600, "english": "Possible", "vietnamese": "Có thể", "phonetic": "/ˈpɒsəbl/", "categoryId": "no8", "image": "possible", "level": "A1"}
-  ]
+  ],
 }
