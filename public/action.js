@@ -832,7 +832,8 @@
 			const container = document.getElementById('categories-container');
 			container.innerHTML = '';
 
-			// Biến 'categories' toàn cục đã được lọc sẵn cho level hiện tại
+			// Với kiến trúc mới, biến "categories" toàn cục đã là danh sách được lọc sẵn cho level hiện tại.
+			// Chúng ta chỉ cần hiển thị nó ra.
 			if (categories.length === 0) {
 				container.innerHTML = '<p class="text-gray-500 text-center col-span-3">Không có chủ đề nào cho cấp độ này.</p>';
 				return;
@@ -840,7 +841,7 @@
 			
 			categories.forEach(category => {
 				const colorClass = category.colorClass || getCategoryColorClass(category.color);
-				const progress = getCategoryProgress(category.id); // Vẫn lấy tiến độ như cũ
+				const progress = getCategoryProgress(category.id);
 				
 				const categoryElement = document.createElement('div');
 				categoryElement.className = `category-card bg-gradient-to-br ${colorClass} rounded-2xl p-5 text-white shadow-lg`;
