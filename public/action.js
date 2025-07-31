@@ -566,6 +566,7 @@
 				.then(data => {
 					categories = data.categories || [];
 					allFlashcards = data.flashcards || []; // Lưu tất cả từ vựng vào đây
+					console.log("Dữ liệu flashcards đã tải:", allFlashcards);
 					dataLoaded = true;
 
 					assignRandomColorsToCategories();
