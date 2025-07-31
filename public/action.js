@@ -15,6 +15,8 @@
         let selectedVietnameseWord = null;
         let matchedPairs = [];
 		
+		let unscrambleTargetWord = '';
+		
 		// Countdown
 		let dailyTimerInterval = null;
 		let timeRemaining = 600; // 10 phút = 600 giây
@@ -112,13 +114,12 @@
         // Sample data for games, quizzes, badges
         const games = [
             { id: 1, name: 'Ghép từ', description: 'Ghép từ tiếng Anh với nghĩa tiếng Việt tương ứng', difficulty: 'Dễ', color: 'blue', icon: 'puzzle' },
-            { id: 2, name: 'Chọn từ với hình', description: 'Chọn từ vựng tương ứng với hình ảnh minh họa', difficulty: 'Trung bình', color: 'purple', icon: 'image' },
-            { id: 3, name: 'Điền từ', description: 'Điền từ thích hợp vào chỗ trống trong câu', difficulty: 'Khó', color: 'pink', icon: 'question' }
+            { id: 2, name: 'Chọn từ', description: 'Chọn từ vựng tương ứng với hình ảnh minh họa', difficulty: 'Trung bình', color: 'purple', icon: 'image' },
+            { id: 3, name: 'Xếp từ', description: 'Xếp thành từ hoàn chỉnh', difficulty: 'Khó', color: 'pink', icon: 'question' }
         ];
 
         const quizTypes = [
-            { id: 1, name: 'Trắc nghiệm', description: 'Chọn đáp án đúng cho từng câu hỏi', time: 10, difficulty: 3, icon: 'document' },
-            { id: 2, name: 'Điền từ', description: 'Điền từ thích hợp vào chỗ trống trong câu', time: 15, difficulty: 4, icon: 'question' }
+            { id: 1, name: 'Trắc nghiệm', description: 'Chọn đáp án đúng cho từng câu hỏi', time: 10, difficulty: 3, icon: 'document' }
         ];
 
         const badges = [
@@ -346,6 +347,91 @@
             // Save progress
             saveUserProgress(progress);
         }
+		
+		// === LOGIC CHO TRÒ CHƠI XẾP CHỮ ===
+		function startUnscrambleGame(words, gameId, categoryId) {
+			// Chọn một từ ngẫu nhiên từ danh sách
+			const randomWord = words[Math.floor(Math.random() * words.length)];
+			unscrambleTargetWord = randomWord.english.toUpperCase();
+
+			const scrambledLetters = unscrambleTargetWord.split('').sort(() => Math.random() - 0.5);
+
+			const answerArea = document.getElementById('answer-area');
+			const letterTilesArea = document.getElementById('letter-tiles');
+			answerArea.innerHTML = '';
+			letterTilesArea.innerHTML = '';
+
+			// Tạo các ô trả lời trống
+			unscrambleTargetWord.split('').forEach(() => {
+				const slot = document.createElement('div');
+				slot.className = 'answer-slot';
+				slot.addEventListener('click', (event) => {
+					// Cho phép trả chữ về bằng cách click vào ô trống
+					if (event.currentTarget.firstChild) {
+						moveLetter(event.currentTarget.firstChild);
+					}
+				});
+				answerArea.appendChild(slot);
+			});
+
+			// Tạo các ô chữ cái
+			scrambledLetters.forEach(letter => {
+				const tile = document.createElement('div');
+				tile.className = 'letter-tile';
+				tile.textContent = letter;
+				tile.addEventListener('click', (event) => moveLetter(event.currentTarget));
+				letterTilesArea.appendChild(tile);
+			});
+
+			// Gán sự kiện cho các nút
+			document.getElementById('check-unscramble-btn').onclick = checkUnscrambleAnswer;
+			document.getElementById('shuffle-letters-btn').onclick = () => {
+				Array.from(letterTilesArea.children)
+					.sort(() => Math.random() - 0.5)
+					.forEach(node => letterTilesArea.appendChild(node));
+			};
+
+			openModal('unscrambleGameModal');
+		}
+
+		function moveLetter(tile) {
+			if (!tile) return;
+
+			const answerArea = document.getElementById('answer-area');
+			const letterTilesArea = document.getElementById('letter-tiles');
+
+			// Nếu chữ đang ở khay chờ, chuyển nó lên ô trả lời trống đầu tiên
+			if (tile.parentElement === letterTilesArea) {
+				const emptySlot = Array.from(answerArea.children).find(slot => !slot.firstChild);
+				if (emptySlot) {
+					emptySlot.appendChild(tile);
+				}
+			} 
+			// Nếu chữ đang ở ô trả lời, chuyển nó về lại khay chờ
+			else {
+				letterTilesArea.appendChild(tile);
+			}
+		}
+
+		function checkUnscrambleAnswer() {
+			const answerArea = document.getElementById('answer-area');
+			let userAnswer = '';
+			Array.from(answerArea.children).forEach(slot => {
+				if (slot.firstChild) {
+					userAnswer += slot.firstChild.textContent;
+				}
+			});
+
+			if (userAnswer === unscrambleTargetWord) {
+				alert('Chính xác! Bạn giỏi quá!');
+				closeModal('unscrambleGameModal');
+				// Logic tính điểm hoặc chuyển từ mới có thể thêm ở đây
+			} else {
+				alert('Chưa đúng rồi, thử lại nhé!');
+				answerArea.classList.add('error');
+				setTimeout(() => answerArea.classList.remove('error'), 500);
+			}
+		}
 
         function getCategoryProgress(categoryId) {
             const progress = getUserProgress();
@@ -1107,25 +1193,30 @@
         }
 
         function playGame(gameId, categoryId) {
-			// Lấy các từ cho chủ đề đã chọn
 			const categoryWords = flashcards.filter(card => card.categoryId === categoryId);
-			
-			if (gameId === 1) { // Trò chơi Ghép từ
+
+			if (gameId === 1) {
 				if (categoryWords.length < 5) {
-					alert('Cần ít nhất 5 từ vựng để chơi trò chơi này. Vui lòng chọn chủ đề khác.');
+					alert('Cần ít nhất 5 từ vựng để chơi trò chơi này.');
 					return;
 				}
 				startMatchingGame(categoryWords, gameId, categoryId);
-			} else if (gameId === 2) { // Trò chơi Nhìn hình đoán chữ
-				// Lọc các từ có hình ảnh hợp lệ
+			} else if (gameId === 2) {
 				const wordsWithImages = categoryWords.filter(card => card.image && card.image.startsWith('http'));
 				if (wordsWithImages.length < 4) {
-					alert('Cần ít nhất 4 từ vựng có hình ảnh hợp lệ để chơi trò chơi này. Vui lòng chọn chủ đề khác.');
+					alert('Cần ít nhất 4 từ vựng có hình ảnh hợp lệ để chơi trò chơi này.');
 					return;
 				}
 				startImageQuiz(wordsWithImages, gameId, categoryId);
+			} else if (gameId === 3) {
+				const suitableWords = categoryWords.filter(w => w.english.length > 3 && w.english.length < 8);
+				if (suitableWords.length < 1) {
+					alert('Không có từ vựng phù hợp cho trò chơi này trong chủ đề đã chọn.');
+					return;
+				}
+				startUnscrambleGame(suitableWords, gameId, categoryId);
 			} else {
-				alert('Trò chơi này đang được phát triển. Vui lòng thử lại sau.');
+				alert('Trò chơi này đang được phát triển.');
 			}
 		}
 
@@ -1134,7 +1225,7 @@
 			selectedEnglishWord = null;
 			selectedVietnameseWord = null;
 			matchedPairs = [];
-			currentActivity.categoryId = categoryId; // Lưu categoryId để dùng cho nút "Làm lại"
+			currentActivity.categoryId = categoryId; // Lưu categoryId để dùng cho nút "Đổi câu"
 
 			// Chọn 5 từ ngẫu nhiên
 			const gameWords = words.sort(() => 0.5 - Math.random()).slice(0, 5);
@@ -1489,9 +1580,9 @@
                 questionElement.setAttribute('data-correct', word.vietnamese);
                 
                 let questionHTML = `
-                    <h4 class="font-bold text-gray-800 mb-3">${index + 1}. ${word.english}</h4>
-                    <div class="space-y-2">
-                `;
+					<h4 class="font-bold text-gray-800 mb-3">${index + 1}. ${word.english}</h4>
+					<div class="grid grid-cols-2 gap-3">
+				`;
                 
                 shuffledOptions.forEach((option, optionIndex) => {
                     questionHTML += `
