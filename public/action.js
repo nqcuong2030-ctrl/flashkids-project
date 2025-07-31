@@ -1,6 +1,8 @@
 // Data storage
         let categories = [];
         let flashcards = [];
+		let allFlashcards = [];
+		let allFlashcards = [];
         let currentCategoryId = null;
         let currentCardIndex = 0;
         let soundEnabled = true;
@@ -16,6 +18,7 @@
         let matchedPairs = [];
 		
 		let unscrambleTargetWord = '';
+		let unscrambleWordPool = []; 
 		
 		// Countdown
 		let dailyTimerInterval = null;
@@ -143,9 +146,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Initialize user progress from localStorage
             initUserProgress();
-            
-            // Load data for default level (A1)
-            loadDataForLevel(currentLevel);
+            loadAllData();
             
             // Set up flashcard click event
             document.getElementById('current-flashcard').addEventListener('click', function() {
@@ -198,7 +199,6 @@
             loadQuizTypes();
             loadBadges();
             updateUserStats();
-            updateDailyProgress();
         });
 
         // User Progress Management
@@ -326,32 +326,48 @@
         }
 
         function updateCategoryProgress() {
-            const progress = getUserProgress();
-            
-            // Calculate progress for each category
-            categories.forEach(category => {
-                const categoryWords = flashcards.filter(card => card.categoryId === category.id);
-                if (categoryWords.length === 0) return;
-                
-                let learnedCount = 0;
-                categoryWords.forEach(word => {
-                    if (progress.completedWords[word.id]) {
-                        learnedCount++;
-                    }
-                });
-                
-                const percentComplete = Math.round((learnedCount / categoryWords.length) * 100);
-                progress.categories[category.id] = percentComplete;
-            });
-            
-            // Save progress
-            saveUserProgress(progress);
-        }
+			const progress = getUserProgress();
+
+			categories.forEach(category => {
+				// Lấy tất cả các từ thuộc về category này từ danh sách tổng
+				const allCategoryWords = allFlashcards.filter(card => card.categoryId === category.id);
+
+				// Đếm số từ đã học trong category này
+				let learnedCount = 0;
+				allCategoryWords.forEach(word => {
+					if (progress.completedWords[word.id]) {
+						learnedCount++;
+					}
+				});
+
+				// Dùng category.wordCount để đảm bảo mẫu số luôn đúng
+				const totalWordsInCat = category.wordCount || allCategoryWords.length;
+				if (totalWordsInCat === 0) {
+					progress.categories[category.id] = 0;
+				} else {
+					const percentComplete = Math.round((learnedCount / totalWordsInCat) * 100);
+					progress.categories[category.id] = percentComplete;
+				}
+			});
+
+			saveUserProgress(progress);
+		}
 		
 		// === LOGIC CHO TRÒ CHƠI XẾP CHỮ ===
-		function startUnscrambleGame(words, gameId, categoryId) {
-			// Chọn một từ ngẫu nhiên từ danh sách
-			const randomWord = words[Math.floor(Math.random() * words.length)];
+		function startUnscrambleGame(words) {
+			// Nếu một danh sách từ mới được cung cấp (khi bắt đầu game), hãy lưu nó lại
+			if (words) {
+				unscrambleWordPool = words;
+			}
+
+			// Nếu không còn từ nào, báo lỗi
+			if (!unscrambleWordPool || unscrambleWordPool.length === 0) {
+				alert("Không có từ nào phù hợp để chơi!");
+				return;
+			}
+
+			// Chọn một từ ngẫu nhiên từ danh sách đã lưu
+			const randomWord = unscrambleWordPool[Math.floor(Math.random() * unscrambleWordPool.length)];
 			unscrambleTargetWord = randomWord.english.toUpperCase();
 
 			const scrambledLetters = unscrambleTargetWord.split('').sort(() => Math.random() - 0.5);
@@ -366,7 +382,6 @@
 				const slot = document.createElement('div');
 				slot.className = 'answer-slot';
 				slot.addEventListener('click', (event) => {
-					// Cho phép trả chữ về bằng cách click vào ô trống
 					if (event.currentTarget.firstChild) {
 						moveLetter(event.currentTarget.firstChild);
 					}
@@ -385,11 +400,8 @@
 
 			// Gán sự kiện cho các nút
 			document.getElementById('check-unscramble-btn').onclick = checkUnscrambleAnswer;
-			document.getElementById('shuffle-letters-btn').onclick = () => {
-				Array.from(letterTilesArea.children)
-					.sort(() => Math.random() - 0.5)
-					.forEach(node => letterTilesArea.appendChild(node));
-			};
+			// Nút "Đổi từ" sẽ gọi lại chính hàm này để bắt đầu một lượt mới
+			document.getElementById('change-word-btn').onclick = () => startUnscrambleGame(); 
 
 			openModal('unscrambleGameModal');
 		}
@@ -415,21 +427,50 @@
 
 		function checkUnscrambleAnswer() {
 			const answerArea = document.getElementById('answer-area');
+			const letterTilesArea = document.getElementById('letter-tiles');
 			let userAnswer = '';
-			Array.from(answerArea.children).forEach(slot => {
+			const answerSlots = Array.from(answerArea.children);
+
+			answerSlots.forEach(slot => {
 				if (slot.firstChild) {
 					userAnswer += slot.firstChild.textContent;
 				}
 			});
 
 			if (userAnswer === unscrambleTargetWord) {
-				alert('Chính xác! Bạn giỏi quá!');
-				closeModal('unscrambleGameModal');
-				// Logic tính điểm hoặc chuyển từ mới có thể thêm ở đây
+				// --- XỬ LÝ KHI TRẢ LỜI ĐÚNG ---
+				const successIcon = document.getElementById('unscramble-success-feedback');
+
+				// 1. Chuyển các ô chữ thành màu xanh lá
+				answerSlots.forEach(slot => {
+					if (slot.firstChild) {
+						slot.firstChild.classList.add('bg-green-200', 'border-green-400');
+					}
+				});
+
+				// 2. Hiện và rung lắc icon 👍
+				successIcon.classList.remove('hidden');
+				successIcon.classList.add('success-shake');
+
+				// 3. Sau 1.5 giây, tải từ mới và ẩn icon đi
+				setTimeout(() => {
+					successIcon.classList.add('hidden');
+					successIcon.classList.remove('success-shake');
+					startUnscrambleGame();
+				}, 1500);
+
 			} else {
-				alert('Chưa đúng rồi, thử lại nhé!');
+				// --- XỬ LÝ KHI TRẢ LỜI SAI ---
 				answerArea.classList.add('error');
 				setTimeout(() => answerArea.classList.remove('error'), 500);
+
+				setTimeout(() => {
+					answerSlots.forEach(slot => {
+						if (slot.firstChild) {
+							letterTilesArea.appendChild(slot.firstChild);
+						}
+					});
+				}, 500);
 			}
 		}
 
@@ -515,40 +556,34 @@
         }
 
         // Load data for a specific level
-        function loadDataForLevel(level) {
+        function loadAllData() {
 			showLoading();
-			updateLevelBadges(level);
-			document.getElementById('current-level-display').textContent = `Level ${level.toUpperCase()}`;
-			
-			// Gọi đến Netlify Function thay vì file tĩnh
-			fetch(`/.netlify/functions/get-words?level=${level}`)
+			// Gọi đến Netlify Function (giờ không cần tham số level)
+			fetch(`/.netlify/functions/get-words`)
 				.then(response => {
-					if (!response.ok) {
-						throw new Error(`Không thể tải dữ liệu cho level ${level.toUpperCase()}`);
-					}
+					if (!response.ok) throw new Error('Không thể tải dữ liệu.');
 					return response.json();
 				})
 				.then(data => {
-					// ... (phần code xử lý data sau khi fetch vẫn giữ nguyên)
 					categories = data.categories || [];
-					flashcards = data.flashcards || [];
+					allFlashcards = data.flashcards || []; // Lưu tất cả từ vựng vào đây
 					dataLoaded = true;
+
 					assignRandomColorsToCategories();
-					currentCategoryId = null;
-					currentCardIndex = 0;
-					updateCategoryProgress();
+
+					// Tải dữ liệu cho level mặc định (a1)
+					changeLevel('a1'); 
+
+					// Tải các thành phần giao diện khác
 					loadCategories();
 					loadCategoryFilters();
-					updateFlashcard();
 					updateCardCounter();
 					updateCategoryProgressDisplay();
 					hideLoading();
 				})
 				.catch(error => {
-					// ... (phần code .catch() vẫn giữ nguyên)
 					console.error('Error loading data:', error);
 					alert(`Lỗi khi tải dữ liệu: ${error.message}`);
-					loadSampleData();
 					hideLoading();
 				});
 		}
@@ -564,11 +599,20 @@
 
         // Change level
         function changeLevel(level) {
-            if (level === currentLevel) return;
-            
-            currentLevel = level;
-            loadDataForLevel(level);
-        }
+			if (!dataLoaded) return;
+			currentLevel = level;
+
+			// Lọc danh sách từ vựng cho level hiện tại từ danh sách tổng
+			flashcards = allFlashcards.filter(card => card.level === level);
+
+			currentCategoryId = null;
+			currentCardIndex = 0;
+
+			updateLevelBadges(level);
+			updateFlashcard();
+			updateCardCounter();
+			loadCategoryFilters();
+		}
 
         // Update level badges
         function updateLevelBadges(activeLevel) {
@@ -748,9 +792,10 @@
         }
 
         function closeModal(modalId) {
-            const modal = document.getElementById(modalId);
-            modal.classList.remove('show');
-        }
+			const modal = document.getElementById(modalId);
+			modal.classList.remove('show');
+			loadCategories(); // <-- THÊM DÒNG NÀY
+		}
 
         // Loading indicator functions
         function showLoading() {
@@ -1192,7 +1237,7 @@
             openModal('categorySelectionModal');
         }
 
-        function playGame(gameId, categoryId) {
+		function playGame(gameId, categoryId) {
 			const categoryWords = flashcards.filter(card => card.categoryId === categoryId);
 
 			if (gameId === 1) {
@@ -1214,7 +1259,7 @@
 					alert('Không có từ vựng phù hợp cho trò chơi này trong chủ đề đã chọn.');
 					return;
 				}
-				startUnscrambleGame(suitableWords, gameId, categoryId);
+				startUnscrambleGame(suitableWords); // <-- Chỉ cần truyền danh sách từ
 			} else {
 				alert('Trò chơi này đang được phát triển.');
 			}
@@ -1361,34 +1406,32 @@
 		}
 
         function checkMatchingAnswers(gameId, categoryId) {
-            // Calculate score based on matched pairs
-            const totalPairs = document.querySelectorAll('#english-words .word-card').length;
-            const score = Math.round((matchedPairs.length / totalPairs) * 100);
-            
-            // Update button text
-            const checkButton = document.getElementById('check-answers');
-            checkButton.textContent = `Đúng ${matchedPairs.length}/${totalPairs} (${score}%)`;
-            checkButton.disabled = true;
-            
-            // If score is good enough, mark words as learned
-            if (score >= 60) {
-                matchedPairs.forEach(wordId => {
-                    markWordAsLearned(wordId);
-                });
-                
-                // Update game progress
-                updateGameProgress(gameId, categoryId, score);
-                
-                // Show completion message after a delay
-                setTimeout(() => {
-                    closeModal('matchingGameModal');
-                    showCompletionMessage(score, gameId, categoryId);
-                }, 2000);
-                
-                // Create confetti effect
-                createConfetti();
-            }
-        }
+			const totalPairs = document.querySelectorAll('#english-words .word-card').length;
+			const score = Math.round((matchedPairs.length / totalPairs) * 100);
+			const successIcon = document.getElementById('matching-success-feedback');
+
+			// 1. Vô hiệu hóa và cập nhật văn bản nút bấm để báo kết quả
+			const checkButton = document.getElementById('check-answers');
+			checkButton.textContent = `Đúng ${matchedPairs.length}/${totalPairs}`;
+			checkButton.disabled = true;
+
+			// 2. Nếu đạt điểm tuyệt đối (5/5), hiển thị icon chúc mừng
+			if (matchedPairs.length === totalPairs && totalPairs > 0) {
+				successIcon.classList.remove('hidden');
+				successIcon.classList.add('success-shake');
+			}
+
+			// 3. Sau 2 giây, tự động bắt đầu một lượt chơi mới
+			setTimeout(() => {
+				// Ẩn icon đi để chuẩn bị cho lượt sau
+				if (!successIcon.classList.contains('hidden')) {
+					successIcon.classList.add('hidden');
+					successIcon.classList.remove('success-shake');
+				}
+				// Gọi hàm để tải 5 từ mới
+				restartMatchingGame();
+			}, 2000); // Chờ 2 giây
+		}
 		
 		function restartMatchingGame() {
 			const gameId = currentActivity.id;
@@ -1550,66 +1593,75 @@
             }
         }
 
-        function startMultipleChoiceQuiz(words, quizId, categoryId) {
-            // Select up to 10 random words
-            const quizWords = words.sort(() => 0.5 - Math.random()).slice(0, Math.min(10, words.length));
-            
-            // Prepare questions
-            const questionsContainer = document.getElementById('quiz-questions');
-            questionsContainer.innerHTML = '';
-            
-            quizWords.forEach((word, index) => {
-                // Create options (1 correct + 3 incorrect)
-                const options = [word.vietnamese];
-                
-                // Add incorrect options
-                while (options.length < 4 && options.length < words.length) {
-                    const randomWord = words[Math.floor(Math.random() * words.length)];
-                    if (!options.includes(randomWord.vietnamese) && randomWord.id !== word.id) {
-                        options.push(randomWord.vietnamese);
-                    }
-                }
-                
-                // Shuffle options
-                const shuffledOptions = options.sort(() => 0.5 - Math.random());
-                
-                // Create question element
-                const questionElement = document.createElement('div');
-                questionElement.className = 'bg-white p-4 rounded-lg shadow';
-                questionElement.setAttribute('data-word-id', word.id);
-                questionElement.setAttribute('data-correct', word.vietnamese);
-                
-                let questionHTML = `
+		function startMultipleChoiceQuiz(words, quizId, categoryId) {
+			const progress = getUserProgress();
+			// Lọc ra những từ chưa được đánh dấu là "đã học"
+			const unlearnedWords = words.filter(word => !progress.completedWords[word.id]);
+
+			// Nếu không còn từ nào chưa học trong chủ đề này
+			if (unlearnedWords.length === 0) {
+				alert("🎉 Chúc mừng! Bạn đã học hết tất cả các từ trong chủ đề này.");
+				closeModal('multipleChoiceQuizModal');
+				return;
+			}
+
+			// Nếu không đủ từ để tạo câu hỏi (cần ít nhất 4 lựa chọn)
+			if (unlearnedWords.length < 4) {
+				alert(`Chỉ còn ${unlearnedWords.length} từ chưa học. Không đủ để tạo bài kiểm tra.`);
+				closeModal('multipleChoiceQuizModal');
+				return;
+			}
+
+			// --- Phần còn lại của hàm giữ nguyên, nhưng sử dụng 'unlearnedWords' ---
+			const quizWords = unlearnedWords.sort(() => 0.5 - Math.random()).slice(0, Math.min(10, unlearnedWords.length));
+			
+			const questionsContainer = document.getElementById('quiz-questions');
+			questionsContainer.innerHTML = '';
+			
+			quizWords.forEach((word, index) => {
+				const options = [word.vietnamese];
+				const distractors = unlearnedWords.filter(w => w.id !== word.id);
+
+				while (options.length < 4 && distractors.length > 0) {
+					const randomDistractor = distractors.splice(Math.floor(Math.random() * distractors.length), 1)[0];
+					options.push(randomDistractor.vietnamese);
+				}
+				
+				const shuffledOptions = options.sort(() => 0.5 - Math.random());
+				
+				const questionElement = document.createElement('div');
+				questionElement.className = 'bg-white p-4 rounded-lg shadow';
+				questionElement.setAttribute('data-word-id', word.id);
+				questionElement.setAttribute('data-correct', word.vietnamese);
+				
+				let questionHTML = `
 					<h4 class="font-bold text-gray-800 mb-3">${index + 1}. ${word.english}</h4>
 					<div class="grid grid-cols-2 gap-3">
 				`;
-                
-                shuffledOptions.forEach((option, optionIndex) => {
-                    questionHTML += `
-                        <div class="quiz-option p-2 border rounded-lg" data-value="${option}" onclick="selectQuizOption(this)">
-                            <label class="flex items-center cursor-pointer">
-                                <input type="radio" name="q${index}" value="${option}" class="mr-2 hidden">
-                                <span class="text-gray-700">${option}</span>
-                            </label>
-                        </div>
-                    `;
-                });
-                
-                questionHTML += `
-                    </div>
-                `;
-                
-                questionElement.innerHTML = questionHTML;
-                questionsContainer.appendChild(questionElement);
-            });
-            
-            // Set up submit button
-            const submitButton = document.getElementById('submit-quiz');
-            submitButton.onclick = () => checkQuizAnswers(quizId, categoryId);
-            
-            // Show the quiz modal
-            openModal('multipleChoiceQuizModal');
-        }
+				
+				shuffledOptions.forEach((option) => {
+					questionHTML += `
+						<div class="quiz-option p-2 border rounded-lg" data-value="${option}" onclick="selectQuizOption(this)">
+							<label class="flex items-center cursor-pointer">
+								<input type="radio" name="q${index}" value="${option}" class="mr-2 hidden">
+								<span class="text-gray-700">${option}</span>
+							</label>
+						</div>
+					`;
+				});
+				
+				questionHTML += `</div>`;
+				questionElement.innerHTML = questionHTML;
+				questionsContainer.appendChild(questionElement);
+			});
+			
+			const submitButton = document.getElementById('submit-quiz');
+			submitButton.textContent = 'Nộp bài';
+			submitButton.disabled = false;
+			submitButton.onclick = () => checkQuizAnswers(quizId, categoryId);
+			
+			openModal('multipleChoiceQuizModal');
+		}
 
         function selectQuizOption(optionElement) {
             // Deselect all options in the same question
@@ -1626,67 +1678,75 @@
             optionElement.querySelector('input').checked = true;
         }
 
-        function checkQuizAnswers(quizId, categoryId) {
-            const questions = document.querySelectorAll('#quiz-questions > div');
-            let correctCount = 0;
-            let totalCount = questions.length;
-            let learnedWords = [];
-            
-            questions.forEach(question => {
-                const correctAnswer = question.getAttribute('data-correct');
-                const selectedOption = question.querySelector('.quiz-option.selected');
-                
-                if (selectedOption) {
-                    const selectedValue = selectedOption.getAttribute('data-value');
-                    
-                    if (selectedValue === correctAnswer) {
-                        correctCount++;
-                        selectedOption.classList.add('correct');
-                        
-                        // Add to learned words
-                        learnedWords.push(question.getAttribute('data-word-id'));
-                    } else {
-                        selectedOption.classList.add('incorrect');
-                        
-                        // Highlight the correct answer
-                        const correctOption = Array.from(question.querySelectorAll('.quiz-option')).find(
-                            option => option.getAttribute('data-value') === correctAnswer
-                        );
-                        
-                        if (correctOption) {
-                            correctOption.classList.add('correct');
-                        }
-                    }
-                }
-            });
-            
-            // Calculate score
-            const score = Math.round((correctCount / totalCount) * 100);
-            
-            // Update button text
-            const submitButton = document.getElementById('submit-quiz');
-            submitButton.textContent = `Đúng ${correctCount}/${totalCount} (${score}%)`;
-            submitButton.disabled = true;
-            
-            // If score is good enough, mark words as learned
-            if (score >= 60) {
-                learnedWords.forEach(wordId => {
-                    markWordAsLearned(wordId);
-                });
-                
-                // Update quiz progress
-                updateQuizProgress(quizId, categoryId, score);
-                
-                // Show completion message after a delay
-                setTimeout(() => {
-                    closeModal('multipleChoiceQuizModal');
-                    showCompletionMessage(score, quizId, categoryId, true);
-                }, 2000);
-                
-                // Create confetti effect
-                createConfetti();
-            }
-        }
+		function checkQuizAnswers(quizId, categoryId) {
+			const questions = document.querySelectorAll('#quiz-questions > div');
+			let correctCount = 0;
+			let totalCount = questions.length;
+			let correctlyAnsweredWordIds = [];
+
+			// Bước 1: Vẫn kiểm tra và thu thập ID của các câu trả lời đúng
+			questions.forEach(question => {
+				const correctAnswer = question.getAttribute('data-correct');
+				const selectedOption = question.querySelector('.quiz-option.selected');
+				
+				if (selectedOption) {
+					const selectedValue = selectedOption.getAttribute('data-value');
+					if (selectedValue === correctAnswer) {
+						correctCount++;
+						selectedOption.classList.add('correct');
+						correctlyAnsweredWordIds.push(parseInt(question.getAttribute('data-word-id')));
+					} else {
+						selectedOption.classList.add('incorrect');
+						const correctOption = Array.from(question.querySelectorAll('.quiz-option')).find(
+							option => option.getAttribute('data-value') === correctAnswer
+						);
+						if (correctOption) correctOption.classList.add('correct');
+					}
+				}
+			});
+
+			// --- PHẦN SỬA LỖI QUAN TRỌNG ---
+			// Bước 2: Cập nhật tất cả các từ đã học trong một lần duy nhất
+			if (correctlyAnsweredWordIds.length > 0) {
+				const progress = getUserProgress(); // Đọc từ localStorage 1 lần
+				let newWordsLearnedCount = 0;
+
+				correctlyAnsweredWordIds.forEach(wordId => {
+					// Chỉ tính là hoạt động mới nếu từ này chưa được học trước đó
+					if (!progress.completedWords[wordId]) {
+						newWordsLearnedCount++;
+					}
+					progress.completedWords[wordId] = true; // Đánh dấu đã học
+				});
+
+				// Cập nhật số hoạt động trong ngày
+				for (let i = 0; i < newWordsLearnedCount; i++) {
+					updateDailyActivity();
+				}
+
+				updateCategoryProgress(); // Cập nhật tiến độ chủ đề
+				saveUserProgress(progress); // Ghi xuống localStorage 1 lần
+				updateUserStats(); // Cập nhật giao diện thống kê
+			}
+			// --- KẾT THÚC PHẦN SỬA LỖI ---
+
+			const submitButton = document.getElementById('submit-quiz');
+			submitButton.textContent = `Đúng ${correctCount}/${totalCount}`;
+			submitButton.disabled = true;
+
+			// Hiệu ứng chúc mừng nếu đạt điểm tuyệt đối
+			if (correctCount === totalCount && totalCount > 0) {
+				createConfetti();
+				const tadaSound = new Audio('https://www.myinstants.com/media/sounds/tada-fanfare-a-6312.mp3');
+				if (soundEnabled) tadaSound.play();
+			}
+
+			// Tự động bắt đầu vòng mới sau 2 giây
+			setTimeout(() => {
+				const categoryWords = flashcards.filter(card => card.categoryId === categoryId);
+				startMultipleChoiceQuiz(categoryWords, quizId, categoryId);
+			}, 2000);
+		}
 
         // Completion message
         function showCompletionMessage(score, activityId, categoryId, isQuiz = false) {
