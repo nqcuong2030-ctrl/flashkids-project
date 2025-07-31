@@ -1694,6 +1694,8 @@
 		}
 
         function selectQuizOption(optionElement) {
+			playSound('click'); // <-- Thêm âm thanh khi nhấn
+			
             // Deselect all options in the same question
             const questionElement = optionElement.closest('.bg-white');
             const options = questionElement.querySelectorAll('.quiz-option');
@@ -1709,13 +1711,15 @@
         }
 
 		function checkQuizAnswers(quizId, categoryId) {
+			playSound('click'); // <-- Thêm âm thanh khi nhấn "Nộp bài"
+
 			const questions = document.querySelectorAll('#quiz-questions > div');
 			let correctCount = 0;
 			let totalCount = questions.length;
 			let correctlyAnsweredWordIds = [];
 
+			// ... (Phần code kiểm tra đáp án đúng/sai giữ nguyên) ...
 			questions.forEach(question => {
-				// ... (phần code kiểm tra đáp án đúng/sai giữ nguyên) ...
 				const correctAnswer = question.getAttribute('data-correct');
 				const selectedOption = question.querySelector('.quiz-option.selected');
 				if (selectedOption) {
@@ -1734,32 +1738,35 @@
 				}
 			});
 
+			// ... (Phần code cập nhật progress giữ nguyên) ...
 			if (correctlyAnsweredWordIds.length > 0) {
-				const progress = getUserProgress(); // 1. Đọc 1 lần
-
+				const progress = getUserProgress();
+				let newWordsLearnedCount = 0;
 				correctlyAnsweredWordIds.forEach(wordId => {
 					if (!progress.completedWords[wordId]) {
-						updateDailyActivity(); // Cập nhật hoạt động hằng ngày
+						newWordsLearnedCount++;
 					}
-					progress.completedWords[wordId] = true; // 2. Cập nhật từ đã học
+					progress.completedWords[wordId] = true;
 				});
-
-				updateCategoryProgress(progress); // 3. Truyền progress đã cập nhật để tính toán
-				saveUserProgress(progress);      // 4. Lưu tất cả thay đổi 1 lần
+				for (let i = 0; i < newWordsLearnedCount; i++) {
+					updateDailyActivity();
+				}
+				updateCategoryProgress(progress);
+				saveUserProgress(progress);
 				updateUserStats();
 			}
 
-			// ... (phần code hiệu ứng và tải vòng mới giữ nguyên) ...
 			const submitButton = document.getElementById('submit-quiz');
 			submitButton.textContent = `Đúng ${correctCount}/${totalCount}`;
 			submitButton.disabled = true;
 
+			// Hiệu ứng chúc mừng nếu đạt điểm tuyệt đối
 			if (correctCount === totalCount && totalCount > 0) {
 				createConfetti();
-				const tadaSound = new Audio('https://www.myinstants.com/media/sounds/tada-fanfare-a-6312.mp3');
-				if (soundEnabled) tadaSound.play();
+				playSound('success'); // <-- Thay thế âm thanh "tada" bằng "success"
 			}
 
+			// Tự động bắt đầu vòng mới sau 2 giây
 			setTimeout(() => {
 				const categoryWords = flashcards.filter(card => card.categoryId === categoryId);
 				startMultipleChoiceQuiz(categoryWords, quizId, categoryId);
