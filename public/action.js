@@ -570,6 +570,7 @@
 				})
 				.then(data => {
 					categories = data.categories || [];
+					console.log("Dữ liệu categories đã tải:", categories);
 					allFlashcards = data.flashcards || []; // Lưu tất cả từ vựng vào đây
 					console.log("Dữ liệu flashcards đã tải:", allFlashcards);
 					dataLoaded = true;
@@ -826,8 +827,8 @@
 			container.innerHTML = '';
 			
 			// --- PHẦN LOGIC MỚI ---
-			// 1. Lấy tất cả từ vựng thuộc level hiện tại
-			const wordsForCurrentLevel = allFlashcards.filter(card => card.level === currentLevel);
+			// 1. Lấy tất cả từ vựng thuộc level hiện tại (không phân biệt chữ hoa/thường)
+			const wordsForCurrentLevel = allFlashcards.filter(card => card.level && card.level.toLowerCase() === currentLevel.toLowerCase());
 			
 			// 2. Lấy danh sách ID của các chủ đề duy nhất từ các từ vựng đó
 			const relevantCategoryIds = [...new Set(wordsForCurrentLevel.map(card => card.categoryId))];
