@@ -369,29 +369,26 @@
 		
 		// === LOGIC CHO TRÒ CHƠI XẾP CHỮ ===
 		function startUnscrambleGame(words) {
-			// Nếu một danh sách từ mới được cung cấp (khi bắt đầu game), hãy lưu nó lại
 			if (words) {
 				unscrambleWordPool = words;
 			}
-
-			// Nếu không còn từ nào, báo lỗi
 			if (!unscrambleWordPool || unscrambleWordPool.length === 0) {
 				alert("Không có từ nào phù hợp để chơi!");
 				return;
 			}
 
-			// Chọn một từ ngẫu nhiên từ danh sách đã lưu
 			const randomWord = unscrambleWordPool[Math.floor(Math.random() * unscrambleWordPool.length)];
 			unscrambleTargetWord = randomWord.english.toUpperCase();
+			
+			// Đọc to nghĩa tiếng Việt để làm gợi ý
+			speakWord(randomWord.vietnamese, 'vi-VN');
 
 			const scrambledLetters = unscrambleTargetWord.split('').sort(() => Math.random() - 0.5);
-
 			const answerArea = document.getElementById('answer-area');
 			const letterTilesArea = document.getElementById('letter-tiles');
 			answerArea.innerHTML = '';
 			letterTilesArea.innerHTML = '';
 
-			// Tạo các ô trả lời trống
 			unscrambleTargetWord.split('').forEach(() => {
 				const slot = document.createElement('div');
 				slot.className = 'answer-slot';
@@ -403,7 +400,6 @@
 				answerArea.appendChild(slot);
 			});
 
-			// Tạo các ô chữ cái
 			scrambledLetters.forEach(letter => {
 				const tile = document.createElement('div');
 				tile.className = 'letter-tile';
@@ -412,9 +408,7 @@
 				letterTilesArea.appendChild(tile);
 			});
 
-			// Gán sự kiện cho các nút
 			document.getElementById('check-unscramble-btn').onclick = checkUnscrambleAnswer;
-			// Nút "Đổi từ" sẽ gọi lại chính hàm này để bắt đầu một lượt mới
 			document.getElementById('change-word-btn').onclick = () => startUnscrambleGame(); 
 
 			openModal('unscrambleGameModal');
@@ -422,24 +416,23 @@
 
 		function moveLetter(tile) {
 			if (!tile) return;
+			playSound('click'); // Âm thanh "lách cách" khi di chuyển chữ
 
 			const answerArea = document.getElementById('answer-area');
 			const letterTilesArea = document.getElementById('letter-tiles');
 
-			// Nếu chữ đang ở khay chờ, chuyển nó lên ô trả lời trống đầu tiên
 			if (tile.parentElement === letterTilesArea) {
 				const emptySlot = Array.from(answerArea.children).find(slot => !slot.firstChild);
 				if (emptySlot) {
 					emptySlot.appendChild(tile);
 				}
-			} 
-			// Nếu chữ đang ở ô trả lời, chuyển nó về lại khay chờ
-			else {
+			} else {
 				letterTilesArea.appendChild(tile);
 			}
 		}
 
 		function checkUnscrambleAnswer() {
+			playSound('click'); // Âm thanh khi nhấn nút
 			const answerArea = document.getElementById('answer-area');
 			const letterTilesArea = document.getElementById('letter-tiles');
 			let userAnswer = '';
@@ -452,21 +445,19 @@
 			});
 
 			if (userAnswer === unscrambleTargetWord) {
-				// --- XỬ LÝ KHI TRẢ LỜI ĐÚNG ---
+				playSound('success'); // Âm thanh thành công
+				speakWord(unscrambleTargetWord, 'en-US'); // Đọc to từ vừa xếp đúng
 				const successIcon = document.getElementById('unscramble-success-feedback');
 
-				// 1. Chuyển các ô chữ thành màu xanh lá
 				answerSlots.forEach(slot => {
 					if (slot.firstChild) {
 						slot.firstChild.classList.add('bg-green-200', 'border-green-400');
 					}
 				});
 
-				// 2. Hiện và rung lắc icon 👍
 				successIcon.classList.remove('hidden');
 				successIcon.classList.add('success-shake');
 
-				// 3. Sau 1.5 giây, tải từ mới và ẩn icon đi
 				setTimeout(() => {
 					successIcon.classList.add('hidden');
 					successIcon.classList.remove('success-shake');
@@ -474,7 +465,7 @@
 				}, 1500);
 
 			} else {
-				// --- XỬ LÝ KHI TRẢ LỜI SAI ---
+				playSound('error'); // Âm thanh thất bại
 				answerArea.classList.add('error');
 				setTimeout(() => answerArea.classList.remove('error'), 500);
 
@@ -1347,7 +1338,6 @@
 		}
 
         function selectEnglishWord(element, wordId) {
-			playSound('click'); // Âm thanh khi nhấn
 			speakWord(element.textContent, 'en-US'); // Đọc to từ tiếng Anh
 
 			if (element.classList.contains('matched')) return;
@@ -1366,7 +1356,6 @@
 		}
 
 		function selectVietnameseWord(element, wordId) {
-			playSound('click'); // Âm thanh khi nhấn
 			speakWord(element.textContent, 'vi-VN'); // Đọc to từ tiếng Việt
 
 			if (element.classList.contains('matched')) return;
@@ -1549,6 +1538,9 @@
 		}
 
 		function handleImageQuizOptionClick(button, selectedOption, correctOption) {
+			// Âm thanh khi người dùng nhấn chọn
+			playSound('click');
+
 			// Vô hiệu hóa tất cả các nút để tránh nhấn nhiều lần
 			document.querySelectorAll('#image-quiz-options button').forEach(btn => btn.disabled = true);
 
@@ -1556,9 +1548,12 @@
 				// Trả lời đúng
 				button.classList.add('correct');
 				imageQuizScore++;
+				playSound('success'); // Âm thanh thành công
 			} else {
 				// Trả lời sai
 				button.classList.add('incorrect');
+				playSound('error'); // Âm thanh thất bại
+				
 				// Tìm và hiển thị đáp án đúng
 				document.querySelectorAll('#image-quiz-options button').forEach(btn => {
 					if (btn.textContent === correctOption.english) {
@@ -1566,6 +1561,9 @@
 					}
 				});
 			}
+
+			// Đọc to từ tiếng Anh đúng để người dùng ghi nhớ
+			speakWord(correctOption.english, 'en-US');
 
 			// Chuyển sang câu hỏi tiếp theo sau 1.5 giây
 			setTimeout(() => {
