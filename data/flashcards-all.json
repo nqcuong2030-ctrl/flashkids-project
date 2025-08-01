@@ -2063,7 +2063,7 @@
     {"id": 2027, "english": "remote", "vietnamese": "xa xôi", "phonetic": "/rɪˈmoʊt/", "categoryId": "no17", "image": null, "level": "B2"},
     {"id": 2028, "english": "remove", "vietnamese": "loại bỏ", "phonetic": "/rɪˈmuːv/", "categoryId": "no24", "image": null, "level": "B1"},
     {"id": 2029, "english": "rent", "vietnamese": "thuê", "phonetic": "/rent/", "categoryId": "no24", "image": null, "level": "A2"},
-    {"id": 2030, "english": "repair", "vietnamese": "sửa chữa", "phonetic": "/rɪˈper/", "categoryId": "no24", "image": null, "level": "A2"},
+    {"id": 2030, "english": "repair", "vietnamese": "sửa chữa", "phonetic": "/rɪˈper/", "categoryId": "no24", "image": null, "level": "A2"}
 	
 	
  ]
