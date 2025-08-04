@@ -19,6 +19,8 @@
 		let unscrambleTargetWord = '';
 		let unscrambleWordPool = []; 
 		
+		let unscrambleTargetWordId = null;
+		
 		// Countdown
 		let dailyTimerInterval = null;
 		let timeRemaining = 600; // 10 phút = 600 giây
@@ -117,11 +119,12 @@
         const games = [
             { id: 1, name: 'Ghép từ', description: 'Ghép từ tiếng Anh với nghĩa tiếng Việt tương ứng', difficulty: 'Dễ', color: 'blue', icon: 'puzzle' },
             { id: 2, name: 'Chọn từ', description: 'Chọn từ vựng tương ứng với hình ảnh minh họa', difficulty: 'Trung bình', color: 'purple', icon: 'image' },
-            { id: 3, name: 'Xếp từ', description: 'Xếp thành từ hoàn chỉnh', difficulty: 'Khó', color: 'pink', icon: 'question' }
+            //{ id: 3, name: 'Xếp từ', description: 'Xếp thành từ hoàn chỉnh', difficulty: 'Khó', color: 'pink', icon: 'question' }
         ];
 
         const quizTypes = [
-            { id: 1, name: 'Trắc nghiệm', description: 'Chọn đáp án đúng cho từng câu hỏi', time: 10, difficulty: 3, icon: 'document' }
+            { id: 1, name: 'Trắc nghiệm', description: 'Chọn đáp án đúng cho từng câu hỏi', time: 10, difficulty: 3, icon: 'document' },
+			{ id: 2, name: 'Xếp chữ', description: 'Sắp xếp các chữ cái thành từ đúng', time: 5, difficulty: 4, icon: 'question' }
         ];
 
         const badges = [
@@ -378,6 +381,7 @@
 
 			const randomWord = unscrambleWordPool[Math.floor(Math.random() * unscrambleWordPool.length)];
 			unscrambleTargetWord = randomWord.english.toUpperCase();
+			unscrambleTargetWordId = randomWord.id;
 			
 			// Đọc to nghĩa tiếng Việt để làm gợi ý
 			speakWord(randomWord.vietnamese, 'vi-VN');
@@ -444,6 +448,7 @@
 			});
 
 			if (userAnswer === unscrambleTargetWord) {
+				markWordAsLearned(unscrambleTargetWordId);
 				playSound('tada'); // Âm thanh thành công
 				speakWord(unscrambleTargetWord, 'en-US'); // Đọc to từ vừa xếp đúng
 				const successIcon = document.getElementById('unscramble-success-feedback');
@@ -1357,7 +1362,7 @@
 
 		function playGame(gameId, categoryId) {
 			const categoryWords = flashcards.filter(card => card.categoryId === categoryId);
-			
+
 			if (gameId === 1) { // Ghép từ
 				if (categoryWords.length < 5) {
 					alert('Cần ít nhất 5 từ vựng để chơi trò chơi này.');
@@ -1365,21 +1370,14 @@
 				}
 				startMatchingGame(categoryWords, gameId, categoryId);
 			} else if (gameId === 2) { // Chọn từ
-				// Chỉ cần ít nhất 4 từ trong chủ đề là có thể chơi
 				if (categoryWords.length < 4) {
 					alert('Cần ít nhất 4 từ vựng trong chủ đề này để chơi.');
 					return;
 				}
-				// Truyền toàn bộ danh sách từ của chủ đề vào game
 				startImageQuiz(categoryWords, gameId, categoryId);
-			} else if (gameId === 3) { // Xếp từ
-				const suitableWords = categoryWords.filter(w => w.english.length > 3 && w.english.length < 8);
-				if (suitableWords.length < 1) {
-					alert('Không có từ vựng phù hợp cho trò chơi này trong chủ đề đã chọn.');
-					return;
-				}
-				startUnscrambleGame(suitableWords);
-			} else {
+			} 
+			// Đã xóa trường hợp gameId === 3
+			else {
 				alert('Trò chơi này đang được phát triển.');
 			}
 		}
@@ -1712,14 +1710,19 @@
 			startDailyTimer();
 			const categoryWords = flashcards.filter(card => card.categoryId === categoryId);
 
-			if (categoryWords.length < 4) {
-				alert('Cần ít nhất 4 từ vựng để làm bài kiểm tra này.');
-				return;
-			}
-			
-			if (quizId === 1) {
-				// Không cần truyền isReview nữa
+			if (quizId === 1) { // Trắc nghiệm
+				if (categoryWords.length < 4) {
+					alert('Cần ít nhất 4 từ vựng để làm bài kiểm tra này.');
+					return;
+				}
 				startMultipleChoiceQuiz(categoryWords, quizId, categoryId);
+			} else if (quizId === 2) { // Xếp chữ
+				const suitableWords = categoryWords.filter(w => w.english.length > 3 && w.english.length < 8);
+				if (suitableWords.length < 1) {
+					alert('Không có từ vựng phù hợp cho trò chơi này trong chủ đề đã chọn.');
+					return;
+				}
+				startUnscrambleGame(suitableWords);
 			} else {
 				alert('Bài kiểm tra này đang được phát triển.');
 			}
