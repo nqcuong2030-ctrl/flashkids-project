@@ -387,6 +387,7 @@
 
 			if (fillBlankWordPool.length === 0) {
 				alert("Không có từ nào phù hợp để chơi trong chủ đề này.");
+				closeModal('fillBlankGameModal'); // Đóng modal nếu không có từ
 				return;
 			}
 
@@ -435,12 +436,12 @@
 				wordArea.appendChild(charElement);
 			});
 
-			// Tạo các lựa chọn
+			// Tạo các lựa chọn (gồm các chữ đúng và các chữ sai)
 			let choices = fillBlankMissingLetters.map(item => item.letter);
 			const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 			while (choices.length < 6) {
 				const randomLetter = alphabet[Math.floor(Math.random() * alphabet.length)];
-				if (!choices.includes(randomLetter)) {
+				if (!choices.includes(randomLetter) && !word.includes(randomLetter)) {
 					choices.push(randomLetter);
 				}
 			}
