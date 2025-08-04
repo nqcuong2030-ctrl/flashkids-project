@@ -1601,6 +1601,15 @@ function updateCategoryFilters() {
 	});
 }
 
+function filterByCategory(categoryId) {
+	playSound('click'); // <-- Thêm âm thanh khi nhấn
+	
+	currentCategoryId = categoryId;
+	currentCardIndex = 0;
+	updateFlashcard();
+	updateCategoryFilters();
+}
+
 // Load sample data
 function loadSampleData() {
 	// Sample data based on your JSON structure
@@ -2082,5 +2091,12 @@ function resetFlashcardInactivityTimer() {
 			console.log("Timer paused due to inactivity on flashcards.");
 		}
 	}, INACTIVITY_DELAY);
+}
+
+function updateTimerDisplay() {
+	const minutes = Math.floor(timeRemaining / 60);
+	const seconds = timeRemaining % 60;
+	document.getElementById('daily-timer-display').textContent = 
+		`${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 }
 
