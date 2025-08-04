@@ -468,6 +468,20 @@
 		.card-back.back-audio {
 			background-color: #3b82f6; /* blue-500 */
 		}
+		
+		/* Bố cục cho màn hình lớn (desktop) - từ 768px trở lên */
+		@media (min-width: 768px) {
+			/* Bàn chơi 12 thẻ sẽ có 4 cột */
+			#sound-match-board.grid-12-cards {
+				grid-template-columns: repeat(4, 1fr);
+			}
+
+			/* Tăng kích thước thẻ cho cả hai chế độ trên desktop */
+			.match-card {
+				width: 100px;  /* Chiều rộng lớn hơn */
+				height: 85px;  /* Chiều cao lớn hơn */
+			}
+		}
     </style>
 </head>
 <body>
