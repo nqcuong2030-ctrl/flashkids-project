@@ -121,9 +121,7 @@
         const games = [
             { id: 1, name: 'Ghép từ', description: 'Ghép từ tiếng Anh với nghĩa tiếng Việt tương ứng', difficulty: 'Dễ', color: 'blue', icon: 'puzzle' },
             { id: 2, name: 'Chọn từ', description: 'Chọn từ vựng tương ứng với hình ảnh minh họa', difficulty: 'Trung bình', color: 'purple', icon: 'image' },
-			{ id: 4, name: 'Ghép Âm thanh & Từ', description: 'Lắng nghe và ghép cặp âm thanh với từ vựng đúng', difficulty: 'Trung bình', color: 'cyan', icon: 'volume-up' }
-            //{ id: 3, name: 'Xếp từ', description: 'Xếp thành từ hoàn chỉnh', difficulty: 'Khó', color: 'pink', icon: 'question' }		
-];
+			{ id: 4, name: 'Ghép Âm thanh & Từ', description: 'Lắng nghe và ghép cặp âm thanh với từ vựng đúng', difficulty: 'Trung bình', color: 'cyan', icon: 'volume-up' }	
         ];
 
         const quizTypes = [
