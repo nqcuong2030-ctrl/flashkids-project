@@ -127,8 +127,8 @@
         const games = [
             { id: 1, name: 'Ghép từ', description: 'Ghép từ tiếng Anh với nghĩa tiếng Việt tương ứng', difficulty: 'Dễ', color: 'blue', icon: 'puzzle' },
             { id: 2, name: 'Chọn từ', description: 'Chọn từ vựng tương ứng với hình ảnh minh họa', difficulty: 'Trung bình', color: 'purple', icon: 'image' },
-			{ id: 4, name: 'Ghép Âm thanh & Từ', description: 'Lắng nghe và ghép cặp âm thanh với từ vựng đúng', difficulty: 'Trung bình', color: 'cyan', icon: 'volume-up' },
-			{ id: 3, name: 'Điền từ', description: 'Chọn chữ cái đúng để hoàn thành từ', difficulty: 'Khó', color: 'purple', icon: 'question' }
+			{ id: 4, name: 'Ghép Âm thanh & Từ', description: 'Lắng nghe và ghép cặp âm thanh với từ vựng đúng', difficulty: 'Trung bình', color: 'lime', icon: 'volume-up' },
+			{ id: 3, name: 'Điền từ', description: 'Chọn chữ cái đúng để hoàn thành từ', difficulty: 'Khó', color: 'red', icon: 'question' }
         ];
 
         const quizTypes = [
@@ -1493,31 +1493,32 @@
 
 		function playGame(gameId, categoryId) {
 			const categoryWords = flashcards.filter(card => card.categoryId === categoryId);
-
-			if (gameId === 1) {
-				// --- LOGIC CHO GAME GHÉP TỪ ---
+			
+			if (gameId === 1) { // Ghép từ
 				if (categoryWords.length < 5) {
 					alert('Cần ít nhất 5 từ vựng để chơi trò chơi này.');
 					return;
 				}
 				startMatchingGame(categoryWords, gameId, categoryId);
-
-			} else if (gameId === 2) {
-				// --- LOGIC CHO GAME CHỌN TỪ ---
+			} else if (gameId === 2) { // Chọn từ
 				if (categoryWords.length < 4) {
 					alert('Cần ít nhất 4 từ vựng trong chủ đề này để chơi.');
 					return;
 				}
 				startImageQuiz(categoryWords, gameId, categoryId);
-			
-			} else if (gameId === 4) {
-				// --- LOGIC CHO GAME GHÉP ÂM THANH & TỪ ---
+			} else if (gameId === 3) { // <-- THÊM LẠI LOGIC CHO GAME "ĐIỀN TỪ"
+				const suitableWords = categoryWords.filter(w => w.english.length >= 4 && w.english.length <= 15);
+				if (suitableWords.length < 1) {
+					alert('Không có từ vựng phù hợp cho trò chơi này trong chủ đề đã chọn.');
+					return;
+				}
+				startFillInTheBlankGame(suitableWords);
+			} else if (gameId === 4) { // Ghép Âm thanh & Từ
 				if (categoryWords.length < 3) {
 					alert('Cần ít nhất 3 từ vựng trong chủ đề này để chơi.');
 					return;
 				}
-				startSoundMatchGame(categoryWords, gameId, categoryId);
-
+				startSoundMatchGame(categoryWords, 9); // Mặc định 9 thẻ
 			} else {
 				alert('Trò chơi này đang được phát triển.');
 			}
@@ -2005,7 +2006,6 @@
 					return;
 				}
 				startMultipleChoiceQuiz(categoryWords, quizId, categoryId);
-
 			} else if (quizId === 2) { // Xếp chữ
 				const suitableWords = categoryWords.filter(w => w.english.length > 3 && w.english.length < 8);
 				if (suitableWords.length < 1) {
@@ -2013,17 +2013,9 @@
 					return;
 				}
 				startUnscrambleGame(suitableWords);
-
-			} else if (quizId === 3) { // <-- THÊM MỚI: Logic cho game Điền từ
-				// Lọc những từ có câu ví dụ
-				const suitableWords = categoryWords.filter(w => w.example && w.example.sentence);
-				if (suitableWords.length < 1) {
-					alert('Không có từ vựng (với câu ví dụ) phù hợp cho trò chơi này trong chủ đề đã chọn.');
-					return;
-				}
-				startFillInTheBlankGame(suitableWords);
-				
-			} else {
+			} 
+			// Đã xóa logic cho quizId === 3 ở đây
+			else {
 				alert('Bài kiểm tra này đang được phát triển.');
 			}
 		}
