@@ -1464,7 +1464,7 @@
 			setTimeout(() => {
 				allCards.forEach(card => card.classList.remove('flipped'));
 				isCheckingMatch = false; // Mở khóa bàn chơi
-			}, 4500); // 500ms (chờ) + 4000ms (ghi nhớ)
+			}, 3500); // 500ms (chờ) + 3000ms (ghi nhớ)
 		}
 
 		function handleMatchCardClick(cardElement, cardData) {
@@ -1498,20 +1498,21 @@
 			const card1 = selectedMatchCards[0];
 			const card2 = selectedMatchCards[1];
 
-			const isPair = card1.data.pairId === card2.data.pairId;
-			const isAudioText = card1.data.type !== 'blank' && card1.data.type !== card2.data.type;
+			// Kiểm tra điều kiện ghép cặp
+			const isPair = card1.data.pairId === card2.data.pairId; // Cùng ID
+			const isAudioText = card1.data.type !== 'blank' && card1.data.type !== card2.data.type; // Phải là 1 âm 1 chữ
 
 			if (isPair && isAudioText) {
 				// Ghép đúng
-				// playSound('success'); // <-- ĐÃ TẮT ÂM THANH KHI GHÉP ĐÚNG 1 CẶP
+				playSound('success_2');
 				card1.element.classList.add('matched');
 				card2.element.classList.add('matched');
-				
+				// Kiểm tra xem đã thắng chưa
 				const matchedCount = document.querySelectorAll('.match-card.matched').length;
-				if (matchedCount === 6) { // Khi tìm đủ 3 cặp = 6 thẻ
-					playSound('tada'); // <-- CHỈ PHÁT ÂM THANH CHÚC MỪNG KHI HOÀN THÀNH
+				if (matchedCount === 6) { // 3 cặp = 6 thẻ
+					playSound('tada');
 					setTimeout(() => {
-						alert('Chúc mừng! Bạn đã hoàn thành!');
+						//alert('Chúc mừng! Bạn đã hoàn thành!');
 						closeModal('soundMatchModal');
 					}, 500);
 				}
@@ -1522,8 +1523,8 @@
 				card2.element.classList.remove('flipped');
 			}
 
-			selectedMatchCards = [];
-			isCheckingMatch = false;
+			selectedMatchCards = []; // Xóa các thẻ đã chọn
+			isCheckingMatch = false; // Mở khóa bàn chơi
 		}
 
         function startMatchingGame(words, gameId, categoryId) {
