@@ -1844,6 +1844,36 @@ function updateUserStats() {
 	document.getElementById('streak-days').textContent = progress.streakDays || 0;
 }
 
+function updateCategoryProgressDisplay() {
+	const container = document.getElementById('category-progress-container');
+	container.innerHTML = '';
+	
+	if (categories.length === 0) {
+		container.innerHTML = '<p class="text-gray-500 text-center">Không có dữ liệu tiến độ.</p>';
+		return;
+	}
+	
+	categories.forEach(category => {
+		const progress = getCategoryProgress(category.id);
+		const colorClass = category.colorClass || getCategoryColorClass(category.color);
+		const baseColor = colorClass.split(' ')[0].replace('from-', '');
+		
+		const categoryElement = document.createElement('div');
+		categoryElement.className = 'mb-4';
+		categoryElement.innerHTML = `
+			<div class="flex justify-between items-center mb-1">
+				<span class="font-semibold text-gray-700">${category.name}</span>
+				<span class="text-sm text-${baseColor}-600">${progress}%</span>
+			</div>
+			<div class="w-full bg-gray-200 rounded-full h-2">
+				<div class="bg-${baseColor}-500 h-2 rounded-full" style="width: ${progress}%"></div>
+			</div>
+		`;
+		
+		container.appendChild(categoryElement);
+	});
+}
+
 function showCompletionMessage(score, activityId, categoryId, isQuiz = false) {
 	const category = categories.find(c => c.id === categoryId);
 	const activity = isQuiz 
