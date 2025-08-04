@@ -1395,7 +1395,7 @@
 				return;
 			}
 
-			// 2. Tạo 9 thẻ: 3 cặp (âm thanh + từ) và 3 thẻ trống
+			// 2. Tạo 9 thẻ: 3 cặp và 3 thẻ trống
 			let cards = [];
 			gameWords.forEach(word => {
 				cards.push({ type: 'audio', word: word.english, pairId: word.id });
@@ -1408,44 +1408,47 @@
 			// 3. Xáo trộn 9 thẻ
 			cards.sort(() => 0.5 - Math.random());
 
-			// 4. Vẽ các thẻ lên bàn chơi
+			// 4. Vẽ các thẻ lên bàn chơi với các lớp Tailwind CSS
 			cards.forEach((cardData, index) => {
 				const cardElement = document.createElement('div');
-				cardElement.className = 'match-card';
+				// Thêm kích thước w-[60px] h-[75px] tại đây
+				cardElement.className = 'match-card w-[60px] h-[75px] cursor-pointer';
 				cardElement.dataset.cardIndex = index;
 				cardElement.innerHTML = `
-					<div class="card-face card-back">?</div>
-					<div class="card-face card-front"></div>
+					<div class="card-face card-back w-full h-full rounded-lg flex justify-center items-center text-4xl bg-gray-700 text-white shadow-md">?</div>
+					<div class="card-face card-front w-full h-full rounded-lg flex justify-center items-center p-1 text-center font-bold text-base md:text-xl shadow-md"></div>
 				`;
 				cardElement.addEventListener('click', () => handleMatchCardClick(cardElement, cardData));
 				board.appendChild(cardElement);
 			});
-
+			
 			openModal('soundMatchModal');
 		}
 
 		function handleMatchCardClick(cardElement, cardData) {
-			// Không cho phép nhấn khi đang kiểm tra, hoặc thẻ đã được chọn/ghép
 			if (isCheckingMatch || cardElement.classList.contains('flipped')) return;
 
 			playSound('click');
 			cardElement.classList.add('flipped');
-
+			
 			const cardFront = cardElement.querySelector('.card-front');
-			cardFront.classList.add(`${cardData.type}-card`); // Thêm màu cho loại thẻ
-
+			
 			if(cardData.type === 'audio') {
-				cardFront.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>`;
+				cardFront.classList.add('bg-blue-100', 'text-blue-600');
+				cardFront.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>`;
 				speakWord(cardData.word, 'en-US');
 			} else if (cardData.type === 'text') {
+				cardFront.classList.add('bg-yellow-100', 'text-yellow-800');
 				cardFront.textContent = cardData.word;
+			} else { // Thẻ trống
+				cardFront.classList.add('bg-gray-200');
 			}
 
 			selectedMatchCards.push({ element: cardElement, data: cardData });
 
 			if (selectedMatchCards.length === 2) {
-				isCheckingMatch = true; // Khóa bàn chơi
-				setTimeout(checkSoundMatch, 1000);
+				isCheckingMatch = true;
+				setTimeout(checkSoundMatch, 1200); // Tăng thời gian chờ một chút
 			}
 		}
 
