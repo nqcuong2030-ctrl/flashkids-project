@@ -2,6 +2,7 @@
         let categories = [];
         let flashcards = [];
 		let flashcardCache = {};
+		let isCardInteractable = true;
         let currentCategoryId = null;
         let currentCardIndex = 0;
         let soundEnabled = true;
@@ -172,26 +173,22 @@
             
             // Set up flashcard click event
             document.getElementById('current-flashcard').addEventListener('click', function() {
-                const wasFlipped = this.classList.contains('flipped');
-                this.classList.toggle('flipped');
-                
-                // Store the new flip state
-                lastFlipState = !wasFlipped;
-                
-                // If card is being flipped, speak the appropriate language after a small delay
-                if (isFlashcardsTabActive && soundEnabled) {
-                    setTimeout(() => {
-                        // If now showing back (Vietnamese), speak Vietnamese
-                        if (!wasFlipped) {
-                            speakCurrentWord('vietnamese');
-                        } 
-                        // If now showing front (English), speak English
-                        else {
-                            speakCurrentWord('english');
-                        }
-                    }, 100); // Small delay to let the flip animation complete - tốc độ đọc
-                }
-            });
+				if (!isCardInteractable) return; // <-- Thêm dòng kiểm tra này
+
+				const wasFlipped = this.classList.contains('flipped');
+				this.classList.toggle('flipped');
+				lastFlipState = !wasFlipped;
+				
+				if (isFlashcardsTabActive && soundEnabled) {
+					setTimeout(() => {
+						if (!wasFlipped) {
+							speakCurrentWord('vietnamese');
+						} else {
+							speakCurrentWord('english');
+						}
+					}, 100);
+				}
+			});
 
             // Set up navigation buttons
             document.getElementById('prev-card').addEventListener('click', previousCard);
@@ -885,17 +882,15 @@
 		
 		//Hàm này dùng để bật/tắt các nút điều khiển thẻ
 		function disableCardControls() {
+			isCardInteractable = false; // Dùng cờ để khóa thẻ
 			document.getElementById('prev-card').disabled = true;
 			document.getElementById('next-card').disabled = true;
-			// Vô hiệu hóa việc lật thẻ bằng cách chặn sự kiện click
-			document.getElementById('current-flashcard').style.pointerEvents = 'none';
 		}
 
 		function enableCardControls() {
+			isCardInteractable = true; // Dùng cờ để mở khóa thẻ
 			document.getElementById('prev-card').disabled = false;
 			document.getElementById('next-card').disabled = false;
-			// Kích hoạt lại việc lật thẻ
-			document.getElementById('current-flashcard').style.pointerEvents = 'auto';
 		}
 
         // Modal functions
