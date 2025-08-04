@@ -15,10 +15,17 @@ exports.handler = async (event) => {
         const fileContent = await fs.readFile(filePath, 'utf8');
         const allData = JSON.parse(fileContent);
 
-        // --- SỬA LỖI Ở ĐÂY ---
-        // Thêm .toLowerCase() để so sánh không phân biệt chữ hoa/thường
-        const levelCategories = allData.categories.filter(cat => cat.level && cat.level.toLowerCase() === level.toLowerCase());
-        const levelFlashcards = allData.flashcards.filter(card => card.level && card.level.toLowerCase() === level.toLowerCase());
+        // --- LOGIC LỌC ĐÃ ĐƯỢC NÂNG CẤP ---
+        // 1. Lọc ra các chủ đề có chứa level đang được yêu cầu trong mảng "level" của nó
+        const levelCategories = allData.categories.filter(cat => 
+            Array.isArray(cat.level) && cat.level.map(l => l.toLowerCase()).includes(level.toLowerCase())
+        );
+
+        // 2. Lọc các flashcards vẫn giữ nguyên như cũ (vì level của flashcard là string)
+        const levelFlashcards = allData.flashcards.filter(card => 
+            card.level && card.level.toLowerCase() === level.toLowerCase()
+        );
+        // --- KẾT THÚC NÂNG CẤP ---
 
         const responseData = {
             categories: levelCategories,
