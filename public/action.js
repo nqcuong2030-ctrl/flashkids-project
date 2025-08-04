@@ -1386,16 +1386,15 @@
 			const board = document.getElementById('sound-match-board');
 			board.innerHTML = '';
 			selectedMatchCards = [];
-			isCheckingMatch = false;
+			isCheckingMatch = true; // <-- Khóa bàn chơi ngay từ đầu
 
-			// 1. Chọn 3 từ ngẫu nhiên
 			const gameWords = words.sort(() => 0.5 - Math.random()).slice(0, 3);
 			if (gameWords.length < 3) {
 				alert("Chủ đề này không đủ từ vựng để chơi.");
+				isCheckingMatch = false; // Mở khóa lại nếu không thể chơi
 				return;
 			}
 
-			// 2. Tạo 9 thẻ: 3 cặp và 3 thẻ trống
 			let cards = [];
 			gameWords.forEach(word => {
 				cards.push({ type: 'audio', word: word.english, pairId: word.id });
@@ -1405,17 +1404,18 @@
 				cards.push({ type: 'blank', word: null, pairId: null });
 			}
 
-			// 3. Xáo trộn 9 thẻ
 			cards.sort(() => 0.5 - Math.random());
 
-			// 4. Vẽ các thẻ lên bàn chơi với các lớp Tailwind CSS
+			// Vẽ các thẻ lên bàn chơi
 			cards.forEach((cardData, index) => {
 				const cardElement = document.createElement('div');
-				// Thêm kích thước w-[60px] h-[75px] tại đây
-				cardElement.className = 'match-card w-[60px] h-[75px] cursor-pointer';
+				const backClass = cardData.type === 'audio' ? 'back-audio' : ''; // Lớp màu riêng cho thẻ âm thanh
+
+				// Thay đổi kích thước thẻ thành nằm ngang
+				cardElement.className = 'match-card w-[90px] h-[70px] cursor-pointer'; 
 				cardElement.dataset.cardIndex = index;
 				cardElement.innerHTML = `
-					<div class="card-face card-back w-full h-full rounded-lg flex justify-center items-center text-4xl bg-gray-700 text-white shadow-md">?</div>
+					<div class="card-face card-back rounded-lg flex justify-center items-center ${backClass}">${cardData.type !== 'blank' ? '?' : ''}</div>
 					<div class="card-face card-front w-full h-full rounded-lg flex justify-center items-center p-1 text-center font-bold text-base md:text-xl shadow-md"></div>
 				`;
 				cardElement.addEventListener('click', () => handleMatchCardClick(cardElement, cardData));
@@ -1423,6 +1423,20 @@
 			});
 			
 			openModal('soundMatchModal');
+
+			// --- LOGIC GIAI ĐOẠN GHI NHỚ 5 GIÂY ---
+			const allCards = board.querySelectorAll('.match-card');
+
+			// 1. Lật tất cả các thẻ để người dùng xem trước
+			setTimeout(() => {
+				allCards.forEach(card => card.classList.add('flipped'));
+			}, 500); // Đợi 0.5s để modal hiện ra mượt mà
+
+			// 2. Sau 5 giây, úp các thẻ xuống và cho phép chơi
+			setTimeout(() => {
+				allCards.forEach(card => card.classList.remove('flipped'));
+				isCheckingMatch = false; // Mở khóa bàn chơi
+			}, 5500); // 500ms (chờ) + 5000ms (ghi nhớ)
 		}
 
 		function handleMatchCardClick(cardElement, cardData) {

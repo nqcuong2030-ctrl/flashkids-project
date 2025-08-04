@@ -456,6 +456,18 @@
 		.card-front {
 			transform: rotateY(180deg);
 		}
+
+		.card-back {
+			/* Đổi màu nền mặc định cho mặt sau */
+			background-color: #1e40af; /* blue-800 */
+			color: white;
+			font-size: 2.25rem; /* text-4xl */
+		}
+
+		/* Thêm lớp này để định nghĩa màu riêng cho thẻ âm thanh */
+		.card-back.back-audio {
+			background-color: #3b82f6; /* blue-500 */
+		}
     </style>
 </head>
 <body>
