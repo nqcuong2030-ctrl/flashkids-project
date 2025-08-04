@@ -321,6 +321,32 @@ function changeTab(tabId) {
     }
 }
 
+function updateMarkLearnedButton(wordId) {
+	const progress = getUserProgress();
+	const button = document.getElementById('mark-learned-btn');
+	
+	if (progress.completedWords[wordId]) {
+		button.innerHTML = `
+			<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+				<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+			</svg>
+			Đã học
+		`;
+		button.disabled = true;
+		button.classList.remove('btn-success');
+		button.classList.add('bg-gray-400');
+	} else {
+		button.innerHTML = `
+			<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+				<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+			</svg>
+			Đánh dấu đã học
+		`;
+		button.disabled = false;
+		button.classList.remove('bg-gray-400');
+		button.classList.add('btn-success');
+	}
+}
 
 // ===================================================================================
 // ===== 6. LOGIC THẺ TỪ VỰNG (FLASHCARDS)
