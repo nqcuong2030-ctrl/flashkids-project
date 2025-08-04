@@ -1427,8 +1427,7 @@
 			if (numCards === 12) {
 				numPairs = 4;
 				numBlanks = 4;
-				// Gán một lớp đặc biệt để CSS có thể nhận diện
-				board.className = 'grid grid-cols-3 gap-2 md:gap-1 grid-12-cards'; 
+				board.className = 'grid grid-cols-3 gap-1 md:gap-2 grid-12-cards';
 			} else {
 				numCards = 9;
 				numPairs = 3;
@@ -1459,13 +1458,27 @@
 			cards.forEach((cardData, index) => {
 				const cardElement = document.createElement('div');
 				const backClass = cardData.type === 'audio' ? 'back-audio' : '';
+				const cardSize = numCards === 12 ? 'w-[90px] h-[70px]' : 'w-[90px] h-[70px]';
 				
-				// Luôn dùng kích thước mặc định cho di động
-				cardElement.className = 'match-card w-[90px] h-[70px] cursor-pointer'; 
+				// --- LOGIC MỚI: Chuẩn bị sẵn nội dung mặt trước ---
+				let frontContent = '';
+				let frontClasses = 'card-face card-front w-full h-full rounded-lg flex justify-center items-center p-1 text-center font-bold text-base md:text-xl shadow-md';
+				
+				if (cardData.type === 'audio') {
+					frontClasses += ' bg-blue-100 text-blue-600';
+					frontContent = `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>`;
+				} else if (cardData.type === 'text') {
+					frontClasses += ' bg-yellow-100 text-yellow-800';
+					frontContent = cardData.word;
+				} else {
+					frontClasses += ' bg-gray-200';
+				}
+
+				cardElement.className = `match-card ${cardSize} cursor-pointer`;
 				cardElement.dataset.cardIndex = index;
 				cardElement.innerHTML = `
 					<div class="card-face card-back w-full h-full rounded-lg flex justify-center items-center text-4xl ${backClass}">?</div>
-					<div class="card-face card-front w-full h-full rounded-lg flex justify-center items-center p-1 text-center font-bold text-base md:text-xl shadow-md"></div>
+					<div class="${frontClasses}">${frontContent}</div>
 				`;
 				cardElement.addEventListener('click', () => handleMatchCardClick(cardElement, cardData));
 				board.appendChild(cardElement);
@@ -1473,11 +1486,12 @@
 			
 			openModal('soundMatchModal');
 
-			// ... (Phần code ghi nhớ 3 giây giữ nguyên) ...
+			// Giai đoạn ghi nhớ 3 giây
 			const allCards = board.querySelectorAll('.match-card');
 			setTimeout(() => {
 				allCards.forEach(card => card.classList.add('flipped'));
 			}, 500);
+
 			setTimeout(() => {
 				allCards.forEach(card => card.classList.remove('flipped'));
 				isCheckingMatch = false;
@@ -1519,19 +1533,20 @@
 			const isAudioText = card1.data.type !== 'blank' && card1.data.type !== card2.data.type;
 
 			if (isPair && isAudioText) {
+				// --- LOGIC MỚI: Đổi mặt sau thành icon checked ---
+				const back1 = card1.element.querySelector('.card-back');
+				const back2 = card2.element.querySelector('.card-back');
+				back1.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-green-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>`;
+				back2.innerHTML = back1.innerHTML;
+				// --- KẾT THÚC LOGIC MỚI ---
+
 				card1.element.classList.add('matched');
 				card2.element.classList.add('matched');
 				
 				const matchedCount = document.querySelectorAll('.match-card.matched').length;
-				
-				// --- LOGIC TỰ ĐỘNG CHƠI LẠI ---
-				// Kiểm tra chiến thắng dựa trên số cặp đã lưu
 				if (matchedCount === currentActivity.numPairs * 2) {
 					playSound('tada');
-					// Sau 1.5 giây, tự động bắt đầu lượt mới với cùng số thẻ đã chọn
 					setTimeout(() => {
-						// Gọi lại game, truyền vào null cho danh sách từ (để dùng lại danh sách cũ)
-						// và truyền vào số thẻ đã được lưu trong currentActivity
 						startSoundMatchGame(null, currentActivity.numCards);
 					}, 1500);
 				}
