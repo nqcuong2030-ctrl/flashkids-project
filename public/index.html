@@ -888,7 +888,24 @@
 		</div>
 	</div>
 	
-	<!-- Quiz Game Modal 3333 -->
+	<!-- Sound Matching Game Modal 4444 -->
+	<div id="soundMatchModal" class="modal">
+		<div class="modal-content" style="max-width: 500px;">
+			<div class="flex justify-between items-center mb-4">
+				<h3 class="text-xl font-bold text-gray-800">Ghép Âm thanh & Từ</h3>
+				<button onclick="closeModal('soundMatchModal')" class="text-gray-500 hover:text-gray-700">
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+					</svg>
+				</button>
+			</div>
+
+			<div id="sound-match-board" class="grid grid-cols-3 gap-4" style="perspective: 1000px;">
+				</div>
+		</div>
+	</div>
+
+	<!-- Quiz Modal 3333 -->
 	<div id="unscrambleGameModal" class="modal">
 		<div class="modal-content text-center">
 			<div id="unscramble-success-feedback" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-6xl hidden">👍</div>

@@ -17,9 +17,11 @@
         let matchedPairs = [];
 		
 		let unscrambleTargetWord = '';
-		let unscrambleWordPool = []; 
-		
 		let unscrambleTargetWordId = null;
+		let unscrambleWordPool = []; 		
+		
+		let selectedMatchCards = [];
+		let isCheckingMatch = false;
 		
 		// Countdown
 		let dailyTimerInterval = null;
@@ -119,7 +121,9 @@
         const games = [
             { id: 1, name: 'Ghép từ', description: 'Ghép từ tiếng Anh với nghĩa tiếng Việt tương ứng', difficulty: 'Dễ', color: 'blue', icon: 'puzzle' },
             { id: 2, name: 'Chọn từ', description: 'Chọn từ vựng tương ứng với hình ảnh minh họa', difficulty: 'Trung bình', color: 'purple', icon: 'image' },
-            //{ id: 3, name: 'Xếp từ', description: 'Xếp thành từ hoàn chỉnh', difficulty: 'Khó', color: 'pink', icon: 'question' }
+			{ id: 4, name: 'Ghép Âm thanh & Từ', description: 'Lắng nghe và ghép cặp âm thanh với từ vựng đúng', difficulty: 'Trung bình', color: 'cyan', icon: 'volume-up' }
+            //{ id: 3, name: 'Xếp từ', description: 'Xếp thành từ hoàn chỉnh', difficulty: 'Khó', color: 'pink', icon: 'question' }		
+];
         ];
 
         const quizTypes = [
@@ -1363,23 +1367,121 @@
 		function playGame(gameId, categoryId) {
 			const categoryWords = flashcards.filter(card => card.categoryId === categoryId);
 
-			if (gameId === 1) { // Ghép từ
-				if (categoryWords.length < 5) {
-					alert('Cần ít nhất 5 từ vựng để chơi trò chơi này.');
+			if (gameId === 1) { /* Ghép từ */ }
+			else if (gameId === 2) { /* Chọn từ */ }
+			else if (gameId === 3) { /* Xếp từ */ }
+			else if (gameId === 4) { // <-- THÊM TRƯỜNG HỢP NÀY
+				if (categoryWords.length < 3) {
+					alert('Cần ít nhất 3 từ vựng trong chủ đề này để chơi.');
 					return;
 				}
-				startMatchingGame(categoryWords, gameId, categoryId);
-			} else if (gameId === 2) { // Chọn từ
-				if (categoryWords.length < 4) {
-					alert('Cần ít nhất 4 từ vựng trong chủ đề này để chơi.');
-					return;
-				}
-				startImageQuiz(categoryWords, gameId, categoryId);
-			} 
-			// Đã xóa trường hợp gameId === 3
+				startSoundMatchGame(categoryWords, gameId, categoryId);
+			}
 			else {
 				alert('Trò chơi này đang được phát triển.');
 			}
+		}
+		
+		// === LOGIC CHO TRÒ CHƠI GHÉP ÂM THANH & TỪ ===
+
+		function startSoundMatchGame(words, gameId, categoryId) {
+			const board = document.getElementById('sound-match-board');
+			board.innerHTML = '';
+			selectedMatchCards = [];
+			isCheckingMatch = false;
+
+			// 1. Chọn 3 từ ngẫu nhiên
+			const gameWords = words.sort(() => 0.5 - Math.random()).slice(0, 3);
+			if (gameWords.length < 3) {
+				alert("Chủ đề này không đủ từ vựng để chơi.");
+				return;
+			}
+
+			// 2. Tạo 9 thẻ: 3 cặp (âm thanh + từ) và 3 thẻ trống
+			let cards = [];
+			gameWords.forEach(word => {
+				cards.push({ type: 'audio', word: word.english, pairId: word.id });
+				cards.push({ type: 'text', word: word.english, pairId: word.id });
+			});
+			for (let i = 0; i < 3; i++) {
+				cards.push({ type: 'blank', word: null, pairId: null });
+			}
+
+			// 3. Xáo trộn 9 thẻ
+			cards.sort(() => 0.5 - Math.random());
+
+			// 4. Vẽ các thẻ lên bàn chơi
+			cards.forEach((cardData, index) => {
+				const cardElement = document.createElement('div');
+				cardElement.className = 'match-card';
+				cardElement.dataset.cardIndex = index;
+				cardElement.innerHTML = `
+					<div class="card-face card-back">?</div>
+					<div class="card-face card-front"></div>
+				`;
+				cardElement.addEventListener('click', () => handleMatchCardClick(cardElement, cardData));
+				board.appendChild(cardElement);
+			});
+
+			openModal('soundMatchModal');
+		}
+
+		function handleMatchCardClick(cardElement, cardData) {
+			// Không cho phép nhấn khi đang kiểm tra, hoặc thẻ đã được chọn/ghép
+			if (isCheckingMatch || cardElement.classList.contains('flipped')) return;
+
+			playSound('click');
+			cardElement.classList.add('flipped');
+
+			const cardFront = cardElement.querySelector('.card-front');
+			cardFront.classList.add(`${cardData.type}-card`); // Thêm màu cho loại thẻ
+
+			if(cardData.type === 'audio') {
+				cardFront.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>`;
+				speakWord(cardData.word, 'en-US');
+			} else if (cardData.type === 'text') {
+				cardFront.textContent = cardData.word;
+			}
+
+			selectedMatchCards.push({ element: cardElement, data: cardData });
+
+			if (selectedMatchCards.length === 2) {
+				isCheckingMatch = true; // Khóa bàn chơi
+				setTimeout(checkSoundMatch, 1000);
+			}
+		}
+
+		function checkSoundMatch() {
+			const card1 = selectedMatchCards[0];
+			const card2 = selectedMatchCards[1];
+
+			// Kiểm tra điều kiện ghép cặp
+			const isPair = card1.data.pairId === card2.data.pairId; // Cùng ID
+			const isAudioText = card1.data.type !== 'blank' && card1.data.type !== card2.data.type; // Phải là 1 âm 1 chữ
+
+			if (isPair && isAudioText) {
+				// Ghép đúng
+				playSound('success');
+				card1.element.classList.add('matched');
+				card2.element.classList.add('matched');
+				// Kiểm tra xem đã thắng chưa
+				const matchedCount = document.querySelectorAll('.match-card.matched').length;
+				if (matchedCount === 6) { // 3 cặp = 6 thẻ
+					playSound('tada');
+					setTimeout(() => {
+						alert('Chúc mừng! Bạn đã hoàn thành!');
+						closeModal('soundMatchModal');
+					}, 500);
+				}
+			} else {
+				// Ghép sai
+				playSound('error');
+				card1.element.classList.remove('flipped');
+				card2.element.classList.remove('flipped');
+			}
+
+			selectedMatchCards = []; // Xóa các thẻ đã chọn
+			isCheckingMatch = false; // Mở khóa bàn chơi
 		}
 
         function startMatchingGame(words, gameId, categoryId) {
