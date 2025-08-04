@@ -919,7 +919,7 @@
 		</div>
 	</div>
 	
-	<!-- Sound Matching Game Modal 4444 -->
+	<!-- Sound Matching Game Modal 9 cards -->
 	<div id="soundMatchModal" class="modal">
 		<div class="modal-content" style="max-width: 500px;">
 			<div class="flex justify-between items-center mb-4">
@@ -933,6 +933,22 @@
 
 			<div id="sound-match-board" class="grid grid-cols-3 gap-4" style="perspective: 1000px;">
 				</div>
+		</div>
+	</div>
+	
+	<!-- Sound Matching Game Modal 12 cards -->
+	<div id="gameOptionsModal" class="modal">
+		<div class="modal-content" style="max-width: 400px;">
+			<div class="flex justify-between items-center mb-4">
+				<h3 class="text-xl font-bold text-gray-800">Chọn độ khó</h3>
+				<button onclick="closeModal('gameOptionsModal')" class="text-gray-500 hover:text-gray-700">
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+				</button>
+			</div>
+			<div class="flex flex-col space-y-3">
+				<button id="option-9-cards" class="btn-primary text-white w-full py-3 rounded-lg shadow-md">9 Thẻ (3 cặp)</button>
+				<button id="option-12-cards" class="btn-warning text-white w-full py-3 rounded-lg shadow-md">12 Thẻ (4 cặp)</button>
+			</div>
 		</div>
 	</div>
 

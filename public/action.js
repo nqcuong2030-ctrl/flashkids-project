@@ -23,6 +23,8 @@
 		let selectedMatchCards = [];
 		let isCheckingMatch = false;
 		
+		let soundMatchWordPool = []; 
+		
 		// Countdown
 		let dailyTimerInterval = null;
 		let timeRemaining = 600; // 10 phút = 600 giây
@@ -1320,16 +1322,14 @@
             showCategorySelectionModal();
         }
 
-        function showCategorySelectionModal() {
+		function showCategorySelectionModal() {
 			const container = document.getElementById('category-selection-container');
 			container.innerHTML = '';
 			
 			categories.forEach(category => {
 				const progress = getCategoryProgress(category.id);
 				const colorClass = category.colorClass || getCategoryColorClass(category.color);
-				
 				const categoryElement = document.createElement('div');
-				// ... (phần code className và innerHTML giữ nguyên) ...
 				categoryElement.className = `bg-gradient-to-br ${colorClass} rounded-xl p-4 text-white cursor-pointer hover:shadow-lg transition duration-300`;
 				categoryElement.innerHTML = `
 					<div class="flex justify-between items-start mb-2">
@@ -1344,15 +1344,33 @@
 					</div>
 				`;
 				
-				// Sự kiện click giờ sẽ đơn giản hơn
 				categoryElement.addEventListener('click', () => {
 					playSound('click');
 					closeModal('categorySelectionModal');
+					const categoryWords = flashcards.filter(card => card.categoryId === category.id);
 					
-					if (currentActivity.type === 'game') {
-						playGame(currentActivity.id, category.id);
-					} else if (currentActivity.type === 'quiz') {
-						startQuizWithCategory(currentActivity.id, category.id);
+					// --- LOGIC MỚI ---
+					// Nếu là game "Ghép Âm thanh & Từ", hiển thị lựa chọn độ khó
+					if (currentActivity.id === 4) {
+						openModal('gameOptionsModal');
+						// Gán sự kiện cho các nút chọn độ khó
+						document.getElementById('option-9-cards').onclick = () => {
+							playSound('click');
+							closeModal('gameOptionsModal');
+							startSoundMatchGame(categoryWords, 9);
+						};
+						document.getElementById('option-12-cards').onclick = () => {
+							playSound('click');
+							closeModal('gameOptionsModal');
+							startSoundMatchGame(categoryWords, 12);
+						};
+					} else {
+						// Giữ nguyên logic cũ cho các game và quiz khác
+						if (currentActivity.type === 'game') {
+							playGame(currentActivity.id, category.id);
+						} else if (currentActivity.type === 'quiz') {
+							startQuizWithCategory(currentActivity.id, category.id);
+						}
 					}
 				});
 				
@@ -1396,16 +1414,35 @@
 		
 		// === LOGIC CHO TRÒ CHƠI GHÉP ÂM THANH & TỪ ===
 
-		function startSoundMatchGame(words, gameId, categoryId) {
+		function startSoundMatchGame(words, numCards) {
+			// Nếu có danh sách từ mới (lần đầu chơi), lưu nó lại
+			if (words) {
+				soundMatchWordPool = words;
+			}
+			
 			const board = document.getElementById('sound-match-board');
 			board.innerHTML = '';
 			selectedMatchCards = [];
-			isCheckingMatch = true; // Khóa bàn chơi ngay từ đầu để chuẩn bị cho giai đoạn ghi nhớ
+			isCheckingMatch = true;
 
-			const gameWords = words.sort(() => 0.5 - Math.random()).slice(0, 3);
-			if (gameWords.length < 3) {
-				alert("Chủ đề này không đủ từ vựng để chơi.");
-				isCheckingMatch = false; // Mở khóa lại nếu không thể chơi
+			let numPairs, numBlanks;
+			if (numCards === 12) {
+				numPairs = 4;
+				numBlanks = 4;
+				board.className = 'grid grid-cols-3 gap-2 md:gap-4';
+			} else {
+				numCards = 9; // Đặt giá trị mặc định
+				numPairs = 3;
+				numBlanks = 3;
+				board.className = 'grid grid-cols-3 gap-4';
+			}
+			currentActivity.numCards = numCards; // Lưu lại lựa chọn số thẻ
+			currentActivity.numPairs = numPairs;
+
+			const gameWords = soundMatchWordPool.sort(() => 0.5 - Math.random()).slice(0, numPairs);
+			if (gameWords.length < numPairs) {
+				alert(`Chủ đề này không đủ ${numPairs} từ vựng để chơi.`);
+				isCheckingMatch = false;
 				return;
 			}
 
@@ -1414,37 +1451,22 @@
 				cards.push({ type: 'audio', word: word.english, pairId: word.id });
 				cards.push({ type: 'text', word: word.english, pairId: word.id });
 			});
-			for (let i = 0; i < 3; i++) {
-				cards.push({ type: 'blank', word: null, pairId: null });
+			for (let i = 0; i < numBlanks; i++) {
+				cards.push({ type: 'blank', word: null, pairId: `blank_${i}` });
 			}
 
 			cards.sort(() => 0.5 - Math.random());
 
-			// Vẽ các thẻ lên bàn chơi với nội dung mặt trước được điền sẵn
+			// ... (Phần code vẽ thẻ bài giữ nguyên) ...
 			cards.forEach((cardData, index) => {
 				const cardElement = document.createElement('div');
 				const backClass = cardData.type === 'audio' ? 'back-audio' : '';
-				
-				// Chuẩn bị sẵn nội dung và màu sắc cho mặt trước
-				let frontContent = '';
-				let frontClasses = 'card-face card-front w-full h-full rounded-lg flex justify-center items-center p-1 text-center font-bold text-base md:text-xl shadow-md';
-				
-				if (cardData.type === 'audio') {
-					frontClasses += ' bg-blue-100 text-blue-600';
-					frontContent = `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>`;
-				} else if (cardData.type === 'text') {
-					frontClasses += ' bg-yellow-100 text-yellow-800';
-					frontContent = cardData.word;
-				} else { // Thẻ trống
-					frontClasses += ' bg-gray-200';
-				}
-
-				// Kích thước thẻ nằm ngang
-				cardElement.className = 'match-card w-[90px] h-[70px] cursor-pointer'; 
+				const cardSize = numCards === 12 ? 'w-[80px] h-[65px]' : 'w-[90px] h-[70px]';
+				cardElement.className = `match-card ${cardSize} cursor-pointer`;
 				cardElement.dataset.cardIndex = index;
 				cardElement.innerHTML = `
-					<div class="card-face card-back w-full h-full rounded-lg flex justify-center items-center text-4xl ${backClass}">?</div>
-					<div class="${frontClasses}">${frontContent}</div>
+					<div class="card-face card-back w-full h-full rounded-lg flex justify-center items-center text-4xl ${backClass}">${cardData.type !== 'blank' ? '?' : ''}</div>
+					<div class="card-face card-front w-full h-full rounded-lg flex justify-center items-center p-1 text-center font-bold text-base md:text-xl shadow-md"></div>
 				`;
 				cardElement.addEventListener('click', () => handleMatchCardClick(cardElement, cardData));
 				board.appendChild(cardElement);
@@ -1497,34 +1519,30 @@
 		function checkSoundMatch() {
 			const card1 = selectedMatchCards[0];
 			const card2 = selectedMatchCards[1];
-
-			// Kiểm tra điều kiện ghép cặp
-			const isPair = card1.data.pairId === card2.data.pairId; // Cùng ID
-			const isAudioText = card1.data.type !== 'blank' && card1.data.type !== card2.data.type; // Phải là 1 âm 1 chữ
+			
+			const isPair = card1.data.pairId === card2.data.pairId;
+			const isAudioText = card1.data.type !== 'blank' && card1.data.type !== card2.data.type;
 
 			if (isPair && isAudioText) {
-				// Ghép đúng
-				playSound('success_2');
 				card1.element.classList.add('matched');
 				card2.element.classList.add('matched');
-				// Kiểm tra xem đã thắng chưa
+				
 				const matchedCount = document.querySelectorAll('.match-card.matched').length;
-				if (matchedCount === 6) { // 3 cặp = 6 thẻ
+				if (matchedCount === currentActivity.numPairs * 2) {
 					playSound('tada');
+					// Sau 1.5 giây, tự động bắt đầu lượt mới với cùng số thẻ đã chọn
 					setTimeout(() => {
-						//alert('Chúc mừng! Bạn đã hoàn thành!');
-						closeModal('soundMatchModal');
-					}, 500);
+						startSoundMatchGame(null, currentActivity.numCards);
+					}, 1000);
 				}
 			} else {
-				// Ghép sai
 				playSound('error');
 				card1.element.classList.remove('flipped');
 				card2.element.classList.remove('flipped');
 			}
 
-			selectedMatchCards = []; // Xóa các thẻ đã chọn
-			isCheckingMatch = false; // Mở khóa bàn chơi
+			selectedMatchCards = [];
+			isCheckingMatch = false;
 		}
 
         function startMatchingGame(words, gameId, categoryId) {
