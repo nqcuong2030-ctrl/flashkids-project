@@ -1365,17 +1365,31 @@
 		function playGame(gameId, categoryId) {
 			const categoryWords = flashcards.filter(card => card.categoryId === categoryId);
 
-			if (gameId === 1) { /* Ghép từ */ }
-			else if (gameId === 2) { /* Chọn từ */ }
-			else if (gameId === 3) { /* Xếp từ */ }
-			else if (gameId === 4) { // <-- THÊM TRƯỜNG HỢP NÀY
+			if (gameId === 1) {
+				// --- LOGIC CHO GAME GHÉP TỪ ---
+				if (categoryWords.length < 5) {
+					alert('Cần ít nhất 5 từ vựng để chơi trò chơi này.');
+					return;
+				}
+				startMatchingGame(categoryWords, gameId, categoryId);
+
+			} else if (gameId === 2) {
+				// --- LOGIC CHO GAME CHỌN TỪ ---
+				if (categoryWords.length < 4) {
+					alert('Cần ít nhất 4 từ vựng trong chủ đề này để chơi.');
+					return;
+				}
+				startImageQuiz(categoryWords, gameId, categoryId);
+			
+			} else if (gameId === 4) {
+				// --- LOGIC CHO GAME GHÉP ÂM THANH & TỪ ---
 				if (categoryWords.length < 3) {
 					alert('Cần ít nhất 3 từ vựng trong chủ đề này để chơi.');
 					return;
 				}
 				startSoundMatchGame(categoryWords, gameId, categoryId);
-			}
-			else {
+
+			} else {
 				alert('Trò chơi này đang được phát triển.');
 			}
 		}
@@ -1386,7 +1400,7 @@
 			const board = document.getElementById('sound-match-board');
 			board.innerHTML = '';
 			selectedMatchCards = [];
-			isCheckingMatch = true; // <-- Khóa bàn chơi ngay từ đầu
+			isCheckingMatch = true; // Khóa bàn chơi ngay từ đầu để chuẩn bị cho giai đoạn ghi nhớ
 
 			const gameWords = words.sort(() => 0.5 - Math.random()).slice(0, 3);
 			if (gameWords.length < 3) {
@@ -1406,17 +1420,31 @@
 
 			cards.sort(() => 0.5 - Math.random());
 
-			// Vẽ các thẻ lên bàn chơi
+			// Vẽ các thẻ lên bàn chơi với nội dung mặt trước được điền sẵn
 			cards.forEach((cardData, index) => {
 				const cardElement = document.createElement('div');
-				const backClass = cardData.type === 'audio' ? 'back-audio' : ''; // Lớp màu riêng cho thẻ âm thanh
+				const backClass = cardData.type === 'audio' ? 'back-audio' : '';
+				
+				// Chuẩn bị sẵn nội dung và màu sắc cho mặt trước
+				let frontContent = '';
+				let frontClasses = 'card-face card-front w-full h-full rounded-lg flex justify-center items-center p-1 text-center font-bold text-base md:text-xl shadow-md';
+				
+				if (cardData.type === 'audio') {
+					frontClasses += ' bg-blue-100 text-blue-600';
+					frontContent = `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>`;
+				} else if (cardData.type === 'text') {
+					frontClasses += ' bg-yellow-100 text-yellow-800';
+					frontContent = cardData.word;
+				} else { // Thẻ trống
+					frontClasses += ' bg-gray-200';
+				}
 
-				// Thay đổi kích thước thẻ thành nằm ngang
+				// Kích thước thẻ nằm ngang
 				cardElement.className = 'match-card w-[90px] h-[70px] cursor-pointer'; 
 				cardElement.dataset.cardIndex = index;
 				cardElement.innerHTML = `
-					<div class="card-face card-back rounded-lg flex justify-center items-center ${backClass}">${cardData.type !== 'blank' ? '?' : ''}</div>
-					<div class="card-face card-front w-full h-full rounded-lg flex justify-center items-center p-1 text-center font-bold text-base md:text-xl shadow-md"></div>
+					<div class="card-face card-back w-full h-full rounded-lg flex justify-center items-center text-4xl ${backClass}">?</div>
+					<div class="${frontClasses}">${frontContent}</div>
 				`;
 				cardElement.addEventListener('click', () => handleMatchCardClick(cardElement, cardData));
 				board.appendChild(cardElement);
@@ -1424,7 +1452,7 @@
 			
 			openModal('soundMatchModal');
 
-			// --- LOGIC GIAI ĐOẠN GHI NHỚ 5 GIÂY ---
+			// --- GIAI ĐOẠN GHI NHỚ 4 GIÂY ---
 			const allCards = board.querySelectorAll('.match-card');
 
 			// 1. Lật tất cả các thẻ để người dùng xem trước
@@ -1432,11 +1460,11 @@
 				allCards.forEach(card => card.classList.add('flipped'));
 			}, 500); // Đợi 0.5s để modal hiện ra mượt mà
 
-			// 2. Sau 5 giây, úp các thẻ xuống và cho phép chơi
+			// 2. Sau 4 giây, úp các thẻ xuống và cho phép chơi
 			setTimeout(() => {
 				allCards.forEach(card => card.classList.remove('flipped'));
 				isCheckingMatch = false; // Mở khóa bàn chơi
-			}, 5500); // 500ms (chờ) + 5000ms (ghi nhớ)
+			}, 4500); // 500ms (chờ) + 4000ms (ghi nhớ)
 		}
 
 		function handleMatchCardClick(cardElement, cardData) {
@@ -1470,19 +1498,18 @@
 			const card1 = selectedMatchCards[0];
 			const card2 = selectedMatchCards[1];
 
-			// Kiểm tra điều kiện ghép cặp
-			const isPair = card1.data.pairId === card2.data.pairId; // Cùng ID
-			const isAudioText = card1.data.type !== 'blank' && card1.data.type !== card2.data.type; // Phải là 1 âm 1 chữ
+			const isPair = card1.data.pairId === card2.data.pairId;
+			const isAudioText = card1.data.type !== 'blank' && card1.data.type !== card2.data.type;
 
 			if (isPair && isAudioText) {
 				// Ghép đúng
-				playSound('success');
+				// playSound('success'); // <-- ĐÃ TẮT ÂM THANH KHI GHÉP ĐÚNG 1 CẶP
 				card1.element.classList.add('matched');
 				card2.element.classList.add('matched');
-				// Kiểm tra xem đã thắng chưa
+				
 				const matchedCount = document.querySelectorAll('.match-card.matched').length;
-				if (matchedCount === 6) { // 3 cặp = 6 thẻ
-					playSound('tada');
+				if (matchedCount === 6) { // Khi tìm đủ 3 cặp = 6 thẻ
+					playSound('tada'); // <-- CHỈ PHÁT ÂM THANH CHÚC MỪNG KHI HOÀN THÀNH
 					setTimeout(() => {
 						alert('Chúc mừng! Bạn đã hoàn thành!');
 						closeModal('soundMatchModal');
@@ -1495,8 +1522,8 @@
 				card2.element.classList.remove('flipped');
 			}
 
-			selectedMatchCards = []; // Xóa các thẻ đã chọn
-			isCheckingMatch = false; // Mở khóa bàn chơi
+			selectedMatchCards = [];
+			isCheckingMatch = false;
 		}
 
         function startMatchingGame(words, gameId, categoryId) {
