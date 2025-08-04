@@ -768,8 +768,42 @@
             }
         }
 		
-		// THAY THẾ CẢ 2 HÀM speakWord VÀ speakWordDefault BẰNG KHỐI MÃ NÀY:
+		function pruneAudioCache(itemsToRemove = 50) {
+			console.warn(`LocalStorage đầy! Đang tiến hành xóa ${itemsToRemove} file âm thanh cũ nhất...`);
+			
+			// 1. Lấy tất cả các khóa (key) của audio trong localStorage
+			const audioKeys = Object.keys(localStorage).filter(key => key.startsWith('audio_'));
 
+			if (audioKeys.length < itemsToRemove) {
+				console.error("Không đủ file âm thanh trong cache để xóa.");
+				return;
+			}
+
+			// 2. Lấy thời gian lưu của từng file
+			const timedKeys = audioKeys.map(key => {
+				try {
+					const item = JSON.parse(localStorage.getItem(key));
+					// Trả về một đối tượng chứa key và timestamp
+					return { key: key, timestamp: item.timestamp || 0 };
+				} catch (e) {
+					return { key: key, timestamp: 0 }; // Xử lý nếu dữ liệu bị lỗi
+				}
+			});
+
+			// 3. Sắp xếp các file theo thời gian, cũ nhất đứng đầu
+			timedKeys.sort((a, b) => a.timestamp - b.timestamp);
+			
+			// 4. Lấy 50 file cũ nhất để xóa
+			const keysToRemove = timedKeys.slice(0, itemsToRemove);
+			
+			// 5. Xóa các file đó khỏi localStorage
+			keysToRemove.forEach(item => {
+				console.log(`Đang xóa cache cũ: ${item.key}`);
+				localStorage.removeItem(item.key);
+			});
+		}
+		
+		// THAY THẾ CẢ 2 HÀM speakWord VÀ speakWordDefault BẰNG KHỐI MÃ NÀY:
 		// Hàm dự phòng, dùng giọng đọc của trình duyệt
 		function speakWordDefault(word, lang) {
 			if ('speechSynthesis' in window && soundEnabled) {
@@ -781,16 +815,66 @@
 
 		// Hàm mới gọi đến Netlify Function
 		function speakWord(word, lang) {
-			// Gọi đến function text-to-speech với các tham số
+			const cacheKey = `audio_${lang}_${word.toLowerCase()}`;
+			const cachedItem = localStorage.getItem(cacheKey);
+			
+			// 1. Kiểm tra cache
+			if (cachedItem) {
+				try {
+					const data = JSON.parse(cachedItem);
+					console.log(`Đang phát âm thanh cho từ '${word}' từ cache.`);
+					const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
+					
+					disableCardControls();
+					audio.addEventListener('ended', enableCardControls);
+					audio.addEventListener('error', enableCardControls);
+					audio.play();
+					return;
+				} catch (e) {
+					// Nếu dữ liệu trong cache bị lỗi, hãy xóa nó đi
+					localStorage.removeItem(cacheKey);
+				}
+			}
+
+			// 2. Nếu không có trong cache, gọi API
+			console.log(`Đang tải âm thanh cho từ '${word}' từ server.`);
 			fetch(`/.netlify/functions/text-to-speech?text=${encodeURIComponent(word)}&lang=${lang}`)
 				.then(response => response.json())
 				.then(data => {
 					if (data.audioContent) {
+						// Tạo một đối tượng để lưu trữ, bao gồm cả timestamp
+						const itemToCache = {
+							audioContent: data.audioContent,
+							timestamp: Date.now() // Lưu thời gian hiện tại
+						};
+
+						// 3. Cố gắng lưu vào localStorage
+						try {
+							localStorage.setItem(cacheKey, JSON.stringify(itemToCache));
+						} catch (e) {
+							// 4. Nếu thất bại (do đầy bộ nhớ), hãy dọn dẹp và thử lại
+							if (e.name === 'QuotaExceededError') {
+								pruneAudioCache(50); // Gọi hàm dọn dẹp
+								try {
+									// Thử lưu lại một lần nữa
+									localStorage.setItem(cacheKey, JSON.stringify(itemToCache));
+								} catch (e2) {
+									console.error("Vẫn không thể lưu cache sau khi đã dọn dẹp.", e2);
+								}
+							} else {
+								console.error("Lỗi khi lưu cache âm thanh.", e);
+							}
+						}
+
+						// Phát âm thanh vừa tải về
 						const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
+						disableCardControls();
+						audio.addEventListener('ended', enableCardControls);
+						audio.addEventListener('error', enableCardControls);
 						audio.play();
 					} else {
 						console.error('Lỗi từ Netlify Function:', data);
-						speakWordDefault(word, lang); // Dùng giọng đọc mặc định nếu có lỗi
+						speakWordDefault(word, lang);
 					}
 				})
 				.catch(error => {
