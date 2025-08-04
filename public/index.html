@@ -482,6 +482,23 @@
 				height: 85px;  /* Chiều cao lớn hơn */
 			}
 		}
+		
+		/* Thêm vào trong thẻ <style> */
+		.word-char, .blank-slot {
+			@apply w-12 h-14 md:w-14 md:h-16 flex justify-center items-center font-bold text-3xl md:text-4xl rounded-md;
+		}
+		.word-char {
+			@apply bg-white text-gray-800 shadow-sm;
+		}
+		.blank-slot {
+			@apply bg-blue-100 border-2 border-dashed border-blue-400 text-blue-800;
+		}
+		.letter-choice {
+			@apply w-12 h-12 md:w-14 md:h-14 bg-yellow-100 border-2 border-yellow-300 rounded-md flex justify-center items-center font-bold text-2xl text-yellow-900 shadow-md cursor-pointer transition-transform duration-200;
+		}
+		.letter-choice:hover {
+			@apply transform scale-110 bg-yellow-200;
+		}
     </style>
 </head>
 <body>
@@ -963,6 +980,25 @@
 				<button id="option-9-cards" class="btn-primary text-white w-full py-3 rounded-lg shadow-md">9 Thẻ (3 cặp)</button>
 				<button id="option-12-cards" class="btn-warning text-white w-full py-3 rounded-lg shadow-md">12 Thẻ (4 cặp)</button>
 			</div>
+		</div>
+	</div>
+	
+	<!-- Blank Game Modal -->
+	<div id="fillBlankGameModal" class="modal">
+		<div class="modal-content text-center">
+			<div class="flex justify-between items-center mb-4">
+				<h3 class="text-xl font-bold text-gray-800">Điền từ vào chỗ trống</h3>
+				<button onclick="closeModal('fillBlankGameModal')" class="text-gray-500 hover:text-gray-700">
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+				</button>
+			</div>
+			<p class="text-gray-600 mb-4">Chọn chữ cái đúng để điền vào ô trống.</p>
+
+			<div id="fill-blank-word-area" class="flex justify-center items-center gap-1 my-6 h-16 bg-gray-100 rounded-lg p-2">
+				</div>
+
+			<div id="fill-blank-choices" class="flex justify-center flex-wrap gap-3 my-6">
+				</div>
 		</div>
 	</div>
 
