@@ -882,7 +882,7 @@
 		
 		//Hàm này dùng để bật/tắt các nút điều khiển thẻ
 		function disableCardControls() {
-			isCardInteractable = false; // Dùng cờ để khóa thẻ
+			isCardInteractable = true; // Dùng cờ để khóa thẻ
 			document.getElementById('prev-card').disabled = true;
 			document.getElementById('next-card').disabled = true;
 		}
