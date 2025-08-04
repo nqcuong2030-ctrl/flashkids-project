@@ -1429,7 +1429,7 @@
 			if (numCards === 12) {
 				numPairs = 4;
 				numBlanks = 4;
-				board.className = 'grid grid-cols-3 gap-2 md:gap-4';
+				board.className = 'grid grid-cols-4 gap-2 md:gap-4';
 			} else {
 				numCards = 9; // Đặt giá trị mặc định
 				numPairs = 3;
@@ -1461,7 +1461,7 @@
 			cards.forEach((cardData, index) => {
 				const cardElement = document.createElement('div');
 				const backClass = cardData.type === 'audio' ? 'back-audio' : '';
-				const cardSize = numCards === 12 ? 'w-[80px] h-[65px]' : 'w-[90px] h-[70px]';
+				const cardSize = numCards === 12 ? 'w-[90px] h-[75px]' : 'w-[90px] h-[75px]';
 				cardElement.className = `match-card ${cardSize} cursor-pointer`;
 				cardElement.dataset.cardIndex = index;
 				cardElement.innerHTML = `
