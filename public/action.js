@@ -1668,6 +1668,16 @@ function filterByCategory(categoryId) {
 	updateCategoryFilters();
 }
 
+function updateDailyProgress() {
+	const progress = getUserProgress();
+	const dailyGoal = 5; // 5 activities per day
+	const completed = progress.dailyActivities || 0;
+	const percent = Math.min(100, Math.round((completed / dailyGoal) * 100));
+	
+	document.getElementById('daily-progress-text').textContent = `${completed}/${dailyGoal} hoàn thành`;
+	document.getElementById('daily-progress-bar').style.width = `${percent}%`;
+}
+
 // Load sample data
 function loadSampleData() {
 	// Sample data based on your JSON structure
