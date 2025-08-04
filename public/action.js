@@ -1427,12 +1427,12 @@
 			if (numCards === 12) {
 				numPairs = 4;
 				numBlanks = 4;
-				board.className = 'grid grid-cols-3 gap-1 md:gap-2 grid-12-cards';
+				board.className = 'grid grid-cols-3 gap-2 md:gap-4 grid-12-cards';
 			} else {
 				numCards = 9;
 				numPairs = 3;
 				numBlanks = 3;
-				board.className = 'grid grid-cols-3 gap-1';
+				board.className = 'grid grid-cols-3 gap-2';
 			}
 			currentActivity.numCards = numCards;
 			currentActivity.numPairs = numPairs;
