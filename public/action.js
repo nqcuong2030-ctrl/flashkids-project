@@ -25,6 +25,7 @@
 		
 		let soundMatchWordPool = [];
 		
+		let fillBlankTargetWord = '';
 		let fillBlankWordPool = [];
 		let fillBlankCurrentWord = null;
 		let fillBlankMissingLetters = [];
@@ -380,108 +381,98 @@
 		
 		// === LOGIC CHO TRÒ CHƠI ĐIỀN TỪ VÀO CHỖ TRỐNG ===
 
-		function startFillInTheBlankGame(words) {
+		function startFillBlankGame(words) {
 			if (words) {
-				fillBlankWordPool = words.filter(w => w.english.length >= 4 && w.english.length <= 15);
+				fillBlankWordPool = words;
 			}
 
-			if (fillBlankWordPool.length === 0) {
-				alert("Không có từ nào phù hợp để chơi trong chủ đề này.");
-				closeModal('fillBlankGameModal'); // Đóng modal nếu không có từ
+			if (!fillBlankWordPool || fillBlankWordPool.length === 0) {
+				alert("Không có từ nào phù hợp để chơi!");
 				return;
 			}
 
-			// Chọn và xóa một từ ngẫu nhiên khỏi danh sách để không bị lặp lại
-			const wordIndex = Math.floor(Math.random() * fillBlankWordPool.length);
-			fillBlankCurrentWord = fillBlankWordPool.splice(wordIndex, 1)[0];
+			const randomWord = fillBlankWordPool[Math.floor(Math.random() * fillBlankWordPool.length)];
+			fillBlankTargetWord = randomWord.english.toUpperCase();
 
-			const word = fillBlankCurrentWord.english.toUpperCase();
-			const wordArea = document.getElementById('fill-blank-word-area');
-			const choicesArea = document.getElementById('fill-blank-choices');
-			wordArea.innerHTML = '';
-			choicesArea.innerHTML = '';
+			const scrambledLetters = fillBlankTargetWord.split('').sort(() => Math.random() - 0.5);
 
-			// Đọc từ tiếng Anh trước khi bắt đầu
-			speakWord(word, 'en-US');
+			const answerArea = document.getElementById('answer-area');
+			const letterTilesArea = document.getElementById('letter-tiles');
+			answerArea.innerHTML = '';
+			letterTilesArea.innerHTML = '';
 
-			// Xác định số lượng ký tự cần điền
-			let blanksCount = 1;
-			if (word.length >= 6 && word.length <= 8) blanksCount = 2;
-			if (word.length >= 9) blanksCount = 3;
-
-			// Chọn ngẫu nhiên các vị trí để làm trống
-			let letterArray = word.split('');
-			fillBlankMissingLetters = [];
-			for (let i = 0; i < blanksCount; i++) {
-				if (letterArray.filter(l => l !== '_').length === 0) break;
-				let randomIndex;
-				do {
-					randomIndex = Math.floor(Math.random() * word.length);
-				} while (letterArray[randomIndex] === '_');
-
-				fillBlankMissingLetters.push({ letter: letterArray[randomIndex], index: randomIndex });
-				letterArray[randomIndex] = '_';
-			}
-
-			// Hiển thị từ với các ô trống
-			letterArray.forEach((char, index) => {
-				const charElement = document.createElement('div');
-				if (char === '_') {
-					charElement.className = 'blank-slot';
-					charElement.dataset.index = index;
-				} else {
-					charElement.className = 'word-char';
-					charElement.textContent = char;
-				}
-				wordArea.appendChild(charElement);
+			fillBlankTargetWord.split('').forEach(() => {
+				const slot = document.createElement('div');
+				slot.className = 'answer-slot';
+				slot.addEventListener('click', (event) => {
+					if (event.currentTarget.firstChild) {
+						moveLetter(event.currentTarget.firstChild);
+					}
+				});
+				answerArea.appendChild(slot);
 			});
 
-			// Tạo các lựa chọn (gồm các chữ đúng và các chữ sai)
-			let choices = fillBlankMissingLetters.map(item => item.letter);
-			const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-			while (choices.length < 6) {
-				const randomLetter = alphabet[Math.floor(Math.random() * alphabet.length)];
-				if (!choices.includes(randomLetter) && !word.includes(randomLetter)) {
-					choices.push(randomLetter);
-				}
-			}
-			choices.sort(() => 0.5 - Math.random());
-
-			choices.forEach(letter => {
-				const choiceElement = document.createElement('div');
-				choiceElement.className = 'letter-choice';
-				choiceElement.textContent = letter;
-				choiceElement.onclick = () => handleFillBlankChoice(letter);
-				choicesArea.appendChild(choiceElement);
+			scrambledLetters.forEach(letter => {
+				const tile = document.createElement('div');
+				tile.className = 'letter-tile';
+				tile.textContent = letter;
+				tile.addEventListener('click', (event) => moveLetter(event.currentTarget));
+				letterTilesArea.appendChild(tile);
 			});
 
+			// Gán sự kiện cho các nút (ID đã đổi)
+			document.getElementById('check-fill-blank-btn').onclick = checkFillBlankAnswer;
+			document.getElementById('change-word-fill-blank-btn').onclick = () => startFillBlankGame(); 
+
+			// Mở modal với ID mới
 			openModal('fillBlankGameModal');
 		}
 
-		function handleFillBlankChoice(chosenLetter) {
-			playSound('click');
-			const missing = fillBlankMissingLetters.find(item => item.letter === chosenLetter);
+		function checkFillBlankAnswer() {
+			const answerArea = document.getElementById('answer-area');
+			let userAnswer = '';
+			const answerSlots = Array.from(answerArea.children);
 
-			if (missing) { // Điền đúng
-				playSound('success_2');
-				const slot = document.querySelector(`.blank-slot[data-index='${missing.index}']`);
-				slot.textContent = chosenLetter;
-				slot.classList.remove('blank-slot');
-				slot.classList.add('word-char');
-
-				// Xóa chữ cái đã điền đúng khỏi danh sách cần tìm
-				fillBlankMissingLetters = fillBlankMissingLetters.filter(item => item.letter !== chosenLetter);
-
-				if (fillBlankMissingLetters.length === 0) { // Hoàn thành từ
-					markWordAsLearned(fillBlankCurrentWord.id);
-					speakWord(fillBlankCurrentWord.english, 'en-US');
-					setTimeout(() => startFillInTheBlankGame(), 1500); // Tải từ mới
+			answerSlots.forEach(slot => {
+				if (slot.firstChild) {
+					userAnswer += slot.firstChild.textContent;
 				}
-			} else { // Điền sai
-				playSound('fail');
-				const choicesArea = document.getElementById('fill-blank-choices');
-				choicesArea.classList.add('error');
-				setTimeout(() => choicesArea.classList.remove('error'), 500);
+			});
+
+			if (userAnswer === fillBlankTargetWord) {
+				// --- XỬ LÝ KHI TRẢ LỜI ĐÚNG ---
+				const successIcon = document.getElementById('fill-blank-success-feedback');
+
+				 // 1. Chuyển các ô chữ thành màu xanh lá
+				answerSlots.forEach(slot => {
+					if (slot.firstChild) {
+						slot.firstChild.classList.add('bg-green-200', 'border-green-400');
+					}
+				});
+
+				// 2. Hiện và rung lắc icon 👍
+				successIcon.classList.remove('hidden');
+				successIcon.classList.add('success-shake');
+				
+				// 3. Sau 1.5 giây, tải từ mới và ẩn icon đi
+				setTimeout(() => {
+					successIcon.classList.add('hidden');
+					successIcon.classList.remove('success-shake');
+					startFillBlankGame();
+				}, 1500);
+
+			} else {
+				// --- XỬ LÝ KHI TRẢ LỜI SAI ---
+				answerArea.classList.add('error');
+				setTimeout(() => answerArea.classList.remove('error'), 500);
+
+				setTimeout(() => {
+					answerSlots.forEach(slot => {
+						if (slot.firstChild) {
+							letterTilesArea.appendChild(slot.firstChild);
+						}
+					});
+				}, 500);
 			}
 		}
 		
@@ -1508,12 +1499,12 @@
 				}
 				startImageQuiz(categoryWords, gameId, categoryId);
 			} else if (gameId === 3) { // <-- THÊM LẠI LOGIC CHO GAME "ĐIỀN TỪ"
-				const suitableWords = categoryWords.filter(w => w.english.length >= 4 && w.english.length <= 15);
+				const suitableWords = categoryWords.filter(w => w.english.length >= 3 && w.english.length <= 15);
 				if (suitableWords.length < 1) {
 					alert('Không có từ vựng phù hợp cho trò chơi này trong chủ đề đã chọn.');
 					return;
 				}
-				startFillInTheBlankGame(suitableWords);
+				startFillBlankGame(suitableWords);
 			} else if (gameId === 4) { // Ghép Âm thanh & Từ
 				if (categoryWords.length < 3) {
 					alert('Cần ít nhất 3 từ vựng trong chủ đề này để chơi.');

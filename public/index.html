@@ -428,7 +428,7 @@
 			position: relative;
 		}
 		
-		#matching-success-feedback, #unscramble-success-feedback {
+		#matching-success-feedback, #unscramble-success-feedback, #fill-blank-success-feedback {
 			z-index: 10;
 		}
 		
@@ -983,22 +983,27 @@
 		</div>
 	</div>
 	
-	<!-- Blank Game Modal -->
+	<!-- Fill Blank Game Modal -->
 	<div id="fillBlankGameModal" class="modal">
 		<div class="modal-content text-center">
+			<div id="fill-blank-success-feedback" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-6xl hidden">👍</div>
 			<div class="flex justify-between items-center mb-4">
-				<h3 class="text-xl font-bold text-gray-800">Điền từ vào chỗ trống</h3>
+				<h3 class="text-xl font-bold text-gray-800">Điền vào chỗ trống</h3>
 				<button onclick="closeModal('fillBlankGameModal')" class="text-gray-500 hover:text-gray-700">
-					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+					</svg>
 				</button>
 			</div>
-			<p class="text-gray-600 mb-4">Chọn chữ cái đúng để điền vào ô trống.</p>
-
-			<div id="fill-blank-word-area" class="flex justify-center items-center gap-1 my-6 h-16 bg-gray-100 rounded-lg p-2">
+			<p class="text-gray-600 mb-4">Sắp xếp các chữ cái dưới đây để tạo thành một từ tiếng Anh có nghĩa.</p>
+			<div id="answer-area" class="flex justify-center flex-wrap gap-2 my-4 min-h-[4rem] bg-gray-200 rounded-lg p-2">
 				</div>
-
-			<div id="fill-blank-choices" class="flex justify-center flex-wrap gap-3 my-6">
+			<div id="letter-tiles" class="flex justify-center flex-wrap gap-2 my-6 min-h-[4rem]">
 				</div>
+			<div class="flex justify-center gap-4 mt-4">
+				<button id="check-fill-blank-btn" class="btn-primary text-white py-2 px-6 rounded-lg shadow-md">Kiểm tra</button>
+				<button id="change-word-fill-blank-btn" class="btn-warning text-white py-2 px-6 rounded-lg shadow-md">Đổi từ</button>
+			</div>
 		</div>
 	</div>
 
