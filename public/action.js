@@ -495,6 +495,64 @@ function startQuizWithCategory(quizId, categoryId) {
 	}
 }
 
+function showCategorySelectionModal() {
+	const container = document.getElementById('category-selection-container');
+	container.innerHTML = '';
+	
+	categories.forEach(category => {
+		const progress = getCategoryProgress(category.id);
+		const colorClass = category.colorClass || getCategoryColorClass(category.color);
+		const categoryElement = document.createElement('div');
+		categoryElement.className = `bg-gradient-to-br ${colorClass} rounded-xl p-4 text-white cursor-pointer hover:shadow-lg transition duration-300`;
+		categoryElement.innerHTML = `
+			<div class="flex justify-between items-start mb-2">
+				<h4 class="font-bold">${category.name}</h4>
+				<span class="bg-white text-gray-700 text-xs font-bold px-2 py-1 rounded-full">${category.wordCount} từ</span>
+			</div>
+			<div class="mt-2">
+				<div class="text-sm mb-1">Tiến độ: ${progress}%</div>
+				<div class="w-full bg-white bg-opacity-30 rounded-full h-2">
+					<div class="bg-white h-2 rounded-full" style="width: ${progress}%"></div>
+				</div>
+			</div>
+		`;
+		
+		categoryElement.addEventListener('click', () => {
+			playSound('click');
+			closeModal('categorySelectionModal');
+			const categoryWords = flashcards.filter(card => card.categoryId === category.id);
+			
+			// --- LOGIC MỚI ---
+			// Nếu là game "Ghép Âm thanh & Từ", hiển thị lựa chọn độ khó
+			if (currentActivity.id === 4) {
+				openModal('gameOptionsModal');
+				// Gán sự kiện cho các nút chọn độ khó
+				document.getElementById('option-9-cards').onclick = () => {
+					playSound('click');
+					closeModal('gameOptionsModal');
+					startSoundMatchGame(categoryWords, 9);
+				};
+				document.getElementById('option-12-cards').onclick = () => {
+					playSound('click');
+					closeModal('gameOptionsModal');
+					startSoundMatchGame(categoryWords, 12);
+				};
+			} else {
+				// Giữ nguyên logic cũ cho các game và quiz khác
+				if (currentActivity.type === 'game') {
+					playGame(currentActivity.id, category.id);
+				} else if (currentActivity.type === 'quiz') {
+					startQuizWithCategory(currentActivity.id, category.id);
+				}
+			}
+		});
+		
+		container.appendChild(categoryElement);
+	});
+	
+	openModal('categorySelectionModal');
+}
+
 // --- Game 1: Ghép từ (Matching Game) ---
 function startMatchingGame(words, gameId, categoryId) {
 	// Đặt lại trạng thái trò chơi
@@ -1958,83 +2016,6 @@ function getFilteredCards() {
 // ===== 11. ĐỒNG HỒ ĐẾM NGƯỢC
 // ===================================================================================
 
-function updateFlashcard() {
-	const filteredCards = getFilteredCards();
-			
-	if (filteredCards.length === 0) {
-		document.getElementById('english-word').textContent = 'Không có từ vựng';
-		document.getElementById('vietnamese-word').textContent = 'Không có từ vựng';
-		document.getElementById('phonetic-text').textContent = '';
-		document.getElementById('card-image').innerHTML = '';
-		updateCardCounter();
-		return;
-	}
-	
-	const card = filteredCards[currentCardIndex];
-	
-	// --- Cập nhật mặt trước của thẻ (không đổi) ---
-	document.getElementById('english-word').textContent = card.english;
-	document.getElementById('phonetic-text').textContent = card.phonetic || `/ˈsæmpəl/`;
-	
-	// --- Cập nhật mặt sau của thẻ (LOGIC MỚI) ---
-	const vietnameseWordEl = document.getElementById('vietnamese-word');
-	const cardImageEl = document.getElementById('card-image');
-	const flashcardBackEl = document.querySelector('.flashcard-back');
-
-	// Luôn đặt nghĩa tiếng Việt (quan trọng cho chức năng đọc)
-	vietnameseWordEl.textContent = card.vietnamese;
-
-	// Kiểm tra xem 'image' có phải là một URL không
-	if (card.image && (card.image.startsWith('http') || card.image.startsWith('https'))) {
-		// NẾU LÀ URL: Hiển thị ảnh và ẩn chữ tiếng Việt
-		vietnameseWordEl.classList.add('hidden');
-		 // Thay đổi layout của mặt sau để chứa ảnh
-		flashcardBackEl.classList.add('no-padding');
-		flashcardBackEl.classList.remove('justify-center'); // Bỏ căn giữa dọc
-
-		// Cho vùng chứa ảnh chiếm toàn bộ chiều cao và bỏ margin
-		cardImageEl.classList.add('h-full');
-		cardImageEl.classList.remove('mb-4');
-		
-		// Hiển thị ảnh
-		cardImageEl.innerHTML = `<img src="${card.image}" alt="${card.english}" class="w-full h-full object-contain">`; 
-	} else {
-		// NẾU KHÔNG PHẢI URL: Hiển thị chữ tiếng Việt và icon (nếu có)
-		vietnameseWordEl.classList.remove('hidden');
-		// Trả lại layout căn giữa mặc định
-		flashcardBackEl.classList.remove('no-padding');
-		flashcardBackEl.classList.add('justify-center'); // Thêm lại căn giữa dọc
-
-		// Trả lại kích thước và margin cho vùng chứa icon
-		cardImageEl.classList.remove('h-full');
-		cardImageEl.classList.add('mb-4');
-		
-		// Hiển thị icon
-		cardImageEl.innerHTML = `
-			<svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-600 hidden" viewBox="0 0 20 20" fill="currentColor">
-				${getImageIcon(card.image)}
-			</svg>
-		`;
-	}
-	
-	// Đặt lại trạng thái lật thẻ
-	document.getElementById('current-flashcard').classList.remove('flipped');
-	lastFlipState = false;
-	
-	// Cập nhật trạng thái nút "Đánh dấu đã học"
-	updateMarkLearnedButton(card.id);
-	
-	// Cập nhật bộ đếm thẻ
-	updateCardCounter();
-	
-	// Tự động đọc từ tiếng Anh khi hiển thị thẻ mới - tốc độ lật thẻ
-	if (isFlashcardsTabActive && soundEnabled) {
-		setTimeout(() => {
-			speakWord(card.english, 'en-US');
-		}, 100);
-	}
-}
-
 function tick() {
 	if (timeRemaining > 0) {
 		timeRemaining--;
@@ -2099,4 +2080,3 @@ function updateTimerDisplay() {
 	document.getElementById('daily-timer-display').textContent = 
 		`${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 }
-
