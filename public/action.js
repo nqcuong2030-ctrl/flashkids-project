@@ -1428,12 +1428,12 @@
 				numPairs = 4;
 				numBlanks = 4;
 				// Gán một lớp đặc biệt để CSS có thể nhận diện
-				board.className = 'grid grid-cols-3 gap-2 md:gap-4 grid-12-cards'; 
+				board.className = 'grid grid-cols-3 gap-2 md:gap-1 grid-12-cards'; 
 			} else {
 				numCards = 9;
 				numPairs = 3;
 				numBlanks = 3;
-				board.className = 'grid grid-cols-3 gap-4';
+				board.className = 'grid grid-cols-3 gap-1';
 			}
 			currentActivity.numCards = numCards;
 			currentActivity.numPairs = numPairs;
@@ -1461,7 +1461,7 @@
 				const backClass = cardData.type === 'audio' ? 'back-audio' : '';
 				
 				// Luôn dùng kích thước mặc định cho di động
-				cardElement.className = 'match-card w-[75px] h-[60px] cursor-pointer'; 
+				cardElement.className = 'match-card w-[90px] h-[70px] cursor-pointer'; 
 				cardElement.dataset.cardIndex = index;
 				cardElement.innerHTML = `
 					<div class="card-face card-back w-full h-full rounded-lg flex justify-center items-center text-4xl ${backClass}">?</div>
