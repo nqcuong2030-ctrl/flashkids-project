@@ -591,40 +591,56 @@ function startQuiz(quizId) {
 function playGame(gameId, categoryId) {
 	const categoryWords = flashcards.filter(card => card.categoryId === categoryId);
 	
-	if (gameId === 1) { // <-- LOGIC CHO GAME "GHÉP TỪ"
+	if (gameId === 1) {
 		if (categoryWords.length < 5) {
 			alert('Cần ít nhất 5 từ vựng để chơi trò chơi này.');
 			return;
 		}
 		startMatchingGame(categoryWords, gameId, categoryId);
-	} else if (gameId === 2) { // <-- LOGIC CHO GAME "CHỌN TỪ"
+	} else if (gameId === 2) {
 		if (categoryWords.length < 4) {
 			alert('Cần ít nhất 4 từ vựng trong chủ đề này để chơi.');
 			return;
 		}
 		startImageQuiz(categoryWords, gameId, categoryId);
-	} else if (gameId === 3) { // <-- LOGIC CHO GAME "ĐIỀN TỪ"
+	} else if (gameId === 3) {
 		const suitableWords = categoryWords.filter(w => w.english.length >= 3 && w.english.length <= 15);
 		if (suitableWords.length < 1) {
 			alert('Không có từ vựng phù hợp cho trò chơi này trong chủ đề đã chọn.');
 			return;
 		}
 		startFillBlankGame(suitableWords);
-	} else if (gameId === 4) { // <-- LOGIC CHO GAME "GHÉPTỪ & ÂM THANH"
+	} else if (gameId === 4) {
 		if (categoryWords.length < 3) {
 			alert('Cần ít nhất 3 từ vựng trong chủ đề này để chơi.');
 			return;
 		}
-		startSoundMatchGame(categoryWords, 9); // Mặc định 9 thẻ
-	} else if (gameId === 5) { // <-- LOGIC CHO GAME "ĐỌC HIỂU CÂU"
-        // Lọc những từ có câu ví dụ
-        const suitableWords = categoryWords.filter(w => w.exampleSentence);
-        if (suitableWords.length < 4) {
-            alert('Cần ít nhất 4 từ vựng có câu ví dụ trong chủ đề này để chơi.');
+		startSoundMatchGame(categoryWords, 9);
+	} else if (gameId === 5) {
+        // === PHẦN SỬA LỖI BẮT ĐẦU TỪ ĐÂY ===
+
+        // 1. Lọc những từ có câu ví dụ TRONG CHỦ ĐỀ đã chọn
+        const suitableWordsInCategory = categoryWords.filter(w => w.exampleSentence);
+        
+        // 2. Kiểm tra xem chủ đề này có ít nhất 1 từ phù hợp không
+        if (suitableWordsInCategory.length < 1) {
+            alert('Chủ đề này không có từ vựng nào có câu ví dụ để chơi.');
             return;
         }
-        startReadingGame(suitableWords);
-	} else {
+
+        // 3. Lọc TẤT CẢ các từ có câu ví dụ TRONG LEVEL hiện tại để làm đáp án sai
+        const allWordsWithSentenceInLevel = flashcards.filter(w => w.exampleSentence);
+
+        // 4. Kiểm tra xem toàn bộ level có đủ 4 từ (1 đúng, 3 sai) để tạo câu hỏi không
+        if (allWordsWithSentenceInLevel.length < 4) {
+            alert('Cần ít nhất 4 từ vựng có câu ví dụ trong toàn bộ cấp độ này để chơi.');
+            return;
+        }
+
+        // Nếu đủ điều kiện, bắt đầu game với các từ phù hợp trong chủ đề
+        startReadingGame(suitableWordsInCategory);
+        // === KẾT THÚC PHẦN SỬA LỖI ===
+    } else {
 		alert('Trò chơi này đang được phát triển.');
 	}
 }
@@ -1325,7 +1341,6 @@ function startReadingGame(words) {
     const wordsForGame = words.sort(() => 0.5 - Math.random());
     const currentWord = wordsForGame[0];
 
-    // Tạo các lựa chọn, bao gồm 1 đáp án đúng và 3 đáp án sai
     const options = [currentWord];
     const distractors = allWordsWithSentence.filter(w => w.id !== currentWord.id);
     while (options.length < 4 && distractors.length > 0) {
@@ -1336,7 +1351,9 @@ function startReadingGame(words) {
 
     // Hiển thị câu
     const sentenceContainer = document.getElementById('reading-sentence-container');
-    const sentenceHTML = currentWord.exampleSentence.replace('___', '<span class="inline-block bg-blue-200 px-4 py-1 rounded-md border-2 border-dashed border-blue-400">&nbsp;</span>');
+    
+    // THAY ĐỔI Ở DÒNG DƯỚI: Thêm class "mx-2" vào span
+    const sentenceHTML = currentWord.exampleSentence.replace('___', '<span class="inline-block bg-blue-200 px-4 py-1 rounded-md border-2 border-dashed border-blue-400 mx-2">&nbsp;</span>');
     sentenceContainer.innerHTML = sentenceHTML;
 
     // Hiển thị các lựa chọn
