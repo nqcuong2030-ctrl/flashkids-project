@@ -1,4 +1,28 @@
 // ===================================================================================
+// ===== 0. VERSIONING & DATA MIGRATION
+// ===================================================================================
+
+const APP_VERSION = '1.1'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
+
+function checkAppVersion() {
+    const storedVersion = localStorage.getItem('flashkids_app_version');
+
+    if (storedVersion !== APP_VERSION) {
+        console.log(`Phiên bản cũ (${storedVersion}) được phát hiện. Đang cập nhật lên phiên bản ${APP_VERSION}.`);
+        
+        // Xóa tất cả dữ liệu cũ để đảm bảo tương thích
+        localStorage.clear(); 
+        
+        // Lưu phiên bản mới
+        localStorage.setItem('flashkids_app_version', APP_VERSION);
+        console.log('Đã xóa dữ liệu cũ và cập nhật phiên bản thành công.');
+    }
+}
+
+// Gọi hàm này ngay khi script được tải
+checkAppVersion();
+
+// ===================================================================================
 // ===== 1. KHAI BÁO BIẾN TOÀN CỤC & HẰNG SỐ
 // ===================================================================================
 
@@ -63,7 +87,7 @@ const categoryColors = [
 const games = [
     { id: 1, name: 'Ghép từ', description: 'Ghép từ tiếng Anh với nghĩa tiếng Việt tương ứng', difficulty: 'Dễ', color: 'blue', icon: 'puzzle' },
     { id: 2, name: 'Chọn từ', description: 'Chọn từ vựng tương ứng với hình ảnh minh họa', difficulty: 'Trung bình', color: 'purple', icon: 'image' },	
-    { id: 4, name: 'Ghép Âm thanh & Từ', description: 'Lắng nghe và ghép cặp âm thanh với từ vựng đúng', difficulty: 'Trung bình', color: 'lime', icon: 'volume-up' },
+    { id: 4, name: 'Ghép Âm thanh & Từ', description: 'Lắng nghe và ghép cặp âm thanh với từ vựng đúng', difficulty: 'Trung bình', color: 'emerald', icon: 'volume-up' },
     { id: 3, name: 'Điền từ', description: 'Chọn chữ cái đúng để hoàn thành từ', difficulty: 'Khó', color: 'red', icon: 'question' }
 ];
 
