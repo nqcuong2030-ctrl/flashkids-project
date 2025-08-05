@@ -1072,6 +1072,7 @@ function checkFillBlankAnswer() {
 
 	if (userAnswer === fillBlankTargetWord) {
 		// --- XỬ LÝ KHI TRẢ LỜI ĐÚNG ---
+		playSound('success_2'); // Âm thanh thất bại
 		const successIcon = document.getElementById('fill-blank-success-feedback');
 
 		 // 1. Chuyển các ô chữ thành màu xanh lá
@@ -1094,6 +1095,7 @@ function checkFillBlankAnswer() {
 
 	} else {
 		// --- XỬ LÝ KHI TRẢ LỜI SAI ---
+		playSound('fail');
 		answerArea.classList.add('error');
 		setTimeout(() => answerArea.classList.remove('error'), 500);
 
@@ -1245,7 +1247,7 @@ function checkSoundMatch() {
 			}, 1500);
 		}
 	} else {
-		playSound('error');
+		playSound('fail');
 		card1.element.classList.remove('flipped');
 		card2.element.classList.remove('flipped');
 	}
