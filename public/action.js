@@ -1336,7 +1336,6 @@ function checkSoundMatch() {
 }
 
 // --- Game 5: Đọc và Chọn Từ (Reading Comprehension) ---
-// --- Game 5: Đọc và Chọn Từ (Reading Comprehension) ---
 function startReadingGame(words) {
     const allWordsWithSentence = flashcards.filter(w => w.exampleSentence);
     const wordsForGame = words.sort(() => 0.5 - Math.random());
@@ -1353,9 +1352,43 @@ function startReadingGame(words) {
     // Hiển thị câu
     const sentenceContainer = document.getElementById('reading-sentence-container');
     
-    // THAY ĐỔI: Tách câu thành các phần và bọc chúng trong span để flexbox căn chỉnh
-    const parts = currentWord.exampleSentence.split('___');
-    const sentenceHTML = `<span>${parts[0]}</span><span class="inline-block bg-blue-200 self-center px-8 py-0 rounded-md border-2 border-dashed border-blue-400 mx-2" style="min-width: 100px;">&nbsp;</span><span>${parts[1] || ''}</span>`;
+    // THAY ĐỔI: Thay thế '___' bằng một đoạn text gạch dưới để đảm bảo thẳng hàng
+    const sentenceHTML = currentWord.exampleSentence.replace('___', '<span class="text-blue-500 font-bold mx-2">_______</span>');
+    sentenceContainer.innerHTML = sentenceHTML;
+
+    // Hiển thị các lựa chọn
+    const optionsContainer = document.getElementById('reading-options-container');
+    optionsContainer.innerHTML = '';
+    shuffledOptions.forEach(option => {
+        const optionButton = document.createElement('button');
+        optionButton.className = 'quiz-option p-4 border rounded-lg text-lg font-semibold text-gray-700 bg-white';
+        optionButton.textContent = option.english;
+        optionButton.onclick = () => handleReadingOptionClick(optionButton, option, currentWord, wordsForGame);
+        optionsContainer.appendChild(optionButton);
+    });
+
+    openModal('readingGameModal');
+}
+
+// Hàm xử lý khi người dùng chọn đáp án trong game Đọc hiểu
+function startReadingGame(words) {
+    const allWordsWithSentence = flashcards.filter(w => w.exampleSentence);
+    const wordsForGame = words.sort(() => 0.5 - Math.random());
+    const currentWord = wordsForGame[0];
+
+    const options = [currentWord];
+    const distractors = allWordsWithSentence.filter(w => w.id !== currentWord.id);
+    while (options.length < 4 && distractors.length > 0) {
+        const randomDistractor = distractors.splice(Math.floor(Math.random() * distractors.length), 1)[0];
+        options.push(randomDistractor);
+    }
+    const shuffledOptions = options.sort(() => 0.5 - Math.random());
+
+    // Hiển thị câu
+    const sentenceContainer = document.getElementById('reading-sentence-container');
+    
+    // THAY ĐỔI: Thay thế '___' bằng một đoạn text gạch dưới để đảm bảo thẳng hàng
+    const sentenceHTML = currentWord.exampleSentence.replace('___', '<span class="text-blue-500 font-bold mx-2">_______</span>');
     sentenceContainer.innerHTML = sentenceHTML;
 
     // Hiển thị các lựa chọn
@@ -1382,9 +1415,9 @@ function handleReadingOptionClick(button, selectedOption, correctOption, wordPoo
         playSound('success_2');
         markWordAsLearned(correctOption.id);
         
-        // THAY ĐỔI: Tách câu để đảm bảo căn chỉnh đúng sau khi điền từ
-        const parts = correctOption.exampleSentence.split('___');
-        document.getElementById('reading-sentence-container').innerHTML = `<span>${parts[0]}</span><span class="text-blue-600 font-bold mx-2">${correctOption.english}</span><span>${parts[1] || ''}</span>`;
+        // THAY ĐỔI: Thay thế '___' bằng từ đúng, đảm bảo có khoảng cách
+        const filledSentenceHTML = correctOption.exampleSentence.replace('___', `<span class="text-blue-600 font-bold mx-2">${correctOption.english}</span>`);
+        document.getElementById('reading-sentence-container').innerHTML = filledSentenceHTML;
     } else {
         button.classList.add('incorrect');
         playSound('fail');
