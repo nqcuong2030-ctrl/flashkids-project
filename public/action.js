@@ -29,6 +29,7 @@ let imageQuizScore = 0;
 let unscrambleTargetWord = '';
 let unscrambleTargetWordId = null;
 let unscrambleWordPool = [];
+let lastUnscrambleWordId = null;
 
 // Trạng thái game "Ghép Âm thanh & Từ"
 let selectedMatchCards = [];
@@ -40,6 +41,7 @@ let fillBlankTargetWord = '';
 let fillBlankWordPool = [];
 let fillBlankCurrentWord = null;
 let fillBlankMissingLetters = [];
+let lastFillBlankWordId = null;
 
 // Đồng hồ đếm ngược
 let dailyTimerInterval = null;
@@ -1018,8 +1020,14 @@ function startFillBlankGame(words) {
 		alert("Không có từ nào phù hợp để chơi!");
 		return;
 	}
+	
+	let availableWords = fillBlankWordPool;
+    if (lastFillBlankWordId && fillBlankWordPool.length > 1) {
+        availableWords = fillBlankWordPool.filter(word => word.id !== lastFillBlankWordId);
+    }
+    const randomWord = availableWords[Math.floor(Math.random() * availableWords.length)];
+    lastFillBlankWordId = randomWord.id; // Lưu lại ID của từ mới
 
-	const randomWord = fillBlankWordPool[Math.floor(Math.random() * fillBlankWordPool.length)];
 	fillBlankTargetWord = randomWord.english.toUpperCase();
 	
 	// Đọc to nghĩa tiếng Việt để làm gợi ý
@@ -1053,7 +1061,8 @@ function startFillBlankGame(words) {
 
 	// Gán sự kiện cho các nút (ID đã đổi)
 	document.getElementById('check-fill-blank-btn').onclick = checkFillBlankAnswer;
-	document.getElementById('change-word-fill-blank-btn').onclick = () => startFillBlankGame(); 
+	document.getElementById('change-word-fill-blank-btn').onclick = () => startFillBlankGame();
+	document.getElementById('fill-blank-listen-btn').onclick = () => speakWord(randomWord.english, 'en-US');
 
 	// Mở modal với ID mới
 	openModal('fillBlankGameModal');
@@ -1408,8 +1417,14 @@ function startUnscrambleGame(words) {
         alert("Không có từ nào phù hợp để chơi!");
         return;
     }
+	
+	let availableWords = unscrambleWordPool;
+    if (lastUnscrambleWordId && unscrambleWordPool.length > 1) {
+        availableWords = unscrambleWordPool.filter(word => word.id !== lastUnscrambleWordId);
+    }
+    const randomWord = availableWords[Math.floor(Math.random() * availableWords.length)];
+    lastUnscrambleWordId = randomWord.id; // Lưu lại ID của từ mới
 
-    const randomWord = unscrambleWordPool[Math.floor(Math.random() * unscrambleWordPool.length)];
     unscrambleTargetWord = randomWord.english.toUpperCase();
     unscrambleTargetWordId = randomWord.id;
 
@@ -1427,7 +1442,6 @@ function startUnscrambleGame(words) {
         slot.className = 'answer-slot';
         slot.addEventListener('click', (event) => {
             if (event.currentTarget.firstChild) {
-                // THAY ĐỔI Ở ĐÂY: Gọi hàm mới
                 moveLetter(event.currentTarget.firstChild, 'unscramble-answer-area', 'unscramble-letter-tiles');
             }
         });
@@ -1438,7 +1452,6 @@ function startUnscrambleGame(words) {
         const tile = document.createElement('div');
         tile.className = 'letter-tile';
         tile.textContent = letter;
-         // THAY ĐỔI Ở ĐÂY: Gọi hàm mới
         tile.addEventListener('click', (event) => moveLetter(event.currentTarget, 'unscramble-answer-area', 'unscramble-letter-tiles'));
         letterTilesArea.appendChild(tile);
     });
