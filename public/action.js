@@ -1021,15 +1021,17 @@ function startFillBlankGame(words) {
         return;
     }
 
-    // 1. Chọn từ mới, tránh lặp lại từ cũ
+    // === LOGIC MỚI: Chọn từ mới, tránh lặp lại từ cũ ===
     let availableWords = fillBlankWordPool;
+    // Chỉ lọc nếu có nhiều hơn 1 từ để tránh lỗi
     if (lastFillBlankWordId && fillBlankWordPool.length > 1) {
         availableWords = fillBlankWordPool.filter(word => word.id !== lastFillBlankWordId);
     }
     const randomWord = availableWords[Math.floor(Math.random() * availableWords.length)];
-    lastFillBlankWordId = randomWord.id;
-    fillBlankTargetWord = randomWord.english.toUpperCase();
+    lastFillBlankWordId = randomWord.id; // Lưu lại ID của từ mới để kiểm tra ở lần sau
+    // =======================================================
 
+    fillBlankTargetWord = randomWord.english.toUpperCase();
     speakWord(randomWord.vietnamese, 'vi-VN');
 
     // 2. Xác định số lượng ô trống dựa trên độ dài từ
@@ -1080,7 +1082,8 @@ function startFillBlankGame(words) {
                 if (charElement.textContent) {
                     const letter = charElement.textContent;
                     charElement.textContent = '';
-                    const choiceToUnhide = document.querySelector(`.letter-choice[data-letter-instance="${letter}"]`);
+                    // Tìm đúng ký tự đã ẩn để hiện lại
+                    const choiceToUnhide = Array.from(document.querySelectorAll('.letter-choice.hidden')).find(el => el.dataset.letterInstance.startsWith(letter));
                     if (choiceToUnhide) choiceToUnhide.classList.remove('hidden');
                 }
             };
@@ -1107,7 +1110,7 @@ function startFillBlankGame(words) {
         };
         letterTilesArea.appendChild(tile);
     });
-
+    
     document.getElementById('check-fill-blank-btn').onclick = checkFillBlankAnswer;
     document.getElementById('change-word-fill-blank-btn').onclick = () => startFillBlankGame();
     document.getElementById('fill-blank-listen-btn').onclick = () => speakWord(randomWord.english, 'en-US');
