@@ -1321,75 +1321,6 @@ function checkSoundMatch() {
 	isCheckingMatch = false;
 }
 
-// --- Game 5: Đọc và Chọn Từ (Reading Comprehension) ---
-function startReadingGame(words) {
-    const allWordsWithSentence = flashcards.filter(w => w.exampleSentence);
-    const wordsForGame = words.sort(() => 0.5 - Math.random());
-    const currentWord = wordsForGame[0];
-
-    const options = [currentWord];
-    const distractors = allWordsWithSentence.filter(w => w.id !== currentWord.id);
-    while (options.length < 4 && distractors.length > 0) {
-        const randomDistractor = distractors.splice(Math.floor(Math.random() * distractors.length), 1)[0];
-        options.push(randomDistractor);
-    }
-    const shuffledOptions = options.sort(() => 0.5 - Math.random());
-
-    // Hiển thị câu
-    const sentenceContainer = document.getElementById('reading-sentence-container');
-    
-    // THAY ĐỔI: Thay thế '___' bằng một đoạn text gạch dưới để đảm bảo thẳng hàng
-    const sentenceHTML = currentWord.exampleSentence.replace('___', '<span class="text-blue-500 font-bold mx-2">___</span>');
-    sentenceContainer.innerHTML = sentenceHTML;
-
-    // Hiển thị các lựa chọn
-    const optionsContainer = document.getElementById('reading-options-container');
-    optionsContainer.innerHTML = '';
-    shuffledOptions.forEach(option => {
-        const optionButton = document.createElement('button');
-        optionButton.className = 'quiz-option p-4 border rounded-lg text-lg font-semibold text-gray-700 bg-white';
-        optionButton.textContent = option.english;
-        optionButton.onclick = () => handleReadingOptionClick(optionButton, option, currentWord, wordsForGame);
-        optionsContainer.appendChild(optionButton);
-    });
-
-    openModal('readingGameModal');
-}
-
-// Hàm xử lý khi người dùng chọn đáp án trong game Đọc hiểu
-function handleReadingOptionClick(button, selectedOption, correctOption, wordPool) {
-    playSound('click');
-    document.querySelectorAll('#reading-options-container button').forEach(btn => btn.disabled = true);
-
-    if (selectedOption.id === correctOption.id) {
-        button.classList.add('correct');
-        playSound('success_2');
-        markWordAsLearned(correctOption.id);
-        
-        // THAY ĐỔI: Thay thế '___' bằng từ đúng, đảm bảo có khoảng cách
-        const filledSentenceHTML = correctOption.exampleSentence.replace('___', `<span class="text-blue-600 font-bold mx-2">${correctOption.english}</span>`);
-        document.getElementById('reading-sentence-container').innerHTML = filledSentenceHTML;
-    } else {
-        button.classList.add('incorrect');
-        playSound('fail');
-        document.querySelectorAll('#reading-options-container button').forEach(btn => {
-            if (btn.textContent === correctOption.english) {
-                btn.classList.add('correct');
-            }
-        });
-    }
-
-    setTimeout(() => {
-        const nextWordPool = wordPool.filter(w => w.id !== correctOption.id);
-        if (nextWordPool.length > 0) {
-            startReadingGame(nextWordPool);
-        } else {
-            closeModal('readingGameModal');
-            alert("Chúc mừng! Bạn đã hoàn thành phần đọc hiểu cho chủ đề này.");
-        }
-    }, 2000);
-}
-
 // --- Quiz 1: Trắc nghiệm (Multiple Choice) ---
 function startMultipleChoiceQuiz(words, quizId, categoryId) {
 	let wordsForQuiz;
@@ -1670,7 +1601,9 @@ function startReadingQuiz(words) {
     const shuffledOptions = options.sort(() => 0.5 - Math.random());
 
     const sentenceContainer = document.getElementById('reading-quiz-sentence-container');
-    const placeholderText = '_'.repeat(currentWord.english.length + 2);
+    
+    // THAY ĐỔI: Sử dụng một chuỗi gạch chân cố định
+    const placeholderText = '_________'; // Độ dài này sẽ không đổi
     const sentenceHTML = currentWord.exampleSentence.replace('___', `<span class="text-blue-500 font-bold mx-2">${placeholderText}</span>`);
     sentenceContainer.innerHTML = sentenceHTML;
 
