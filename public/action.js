@@ -1336,7 +1336,8 @@ function checkSoundMatch() {
 }
 
 // --- Game 5: Đọc và Chọn Từ (Reading Comprehension) ---
-unction startReadingGame(words) {
+// --- Game 5: Đọc và Chọn Từ (Reading Comprehension) ---
+function startReadingGame(words) {
     const allWordsWithSentence = flashcards.filter(w => w.exampleSentence);
     const wordsForGame = words.sort(() => 0.5 - Math.random());
     const currentWord = wordsForGame[0];
@@ -1352,8 +1353,9 @@ unction startReadingGame(words) {
     // Hiển thị câu
     const sentenceContainer = document.getElementById('reading-sentence-container');
     
-    // THAY ĐỔI: Bỏ padding dọc (py-1) và min-width để ô trống tự điều chỉnh chiều cao theo dòng chữ
-    const sentenceHTML = currentWord.exampleSentence.replace('___', '<span class="inline-block bg-blue-200 px-8 rounded-md border-2 border-dashed border-blue-400 mx-2 align-middle">&nbsp;</span>');
+    // THAY ĐỔI: Tách câu thành các phần và bọc chúng trong span để flexbox căn chỉnh
+    const parts = currentWord.exampleSentence.split('___');
+    const sentenceHTML = `<span>${parts[0]}</span><span class="inline-block bg-blue-200 self-center px-8 py-0 rounded-md border-2 border-dashed border-blue-400 mx-2" style="min-width: 100px;">&nbsp;</span><span>${parts[1] || ''}</span>`;
     sentenceContainer.innerHTML = sentenceHTML;
 
     // Hiển thị các lựa chọn
@@ -1380,8 +1382,9 @@ function handleReadingOptionClick(button, selectedOption, correctOption, wordPoo
         playSound('success_2');
         markWordAsLearned(correctOption.id);
         
-        // THAY ĐỔI: Thêm 'mx-2' để tạo khoảng cách cho từ đúng sau khi điền
-        document.getElementById('reading-sentence-container').innerHTML = correctOption.exampleSentence.replace('___', `<span class="text-blue-600 font-bold mx-2">${correctOption.english}</span>`);
+        // THAY ĐỔI: Tách câu để đảm bảo căn chỉnh đúng sau khi điền từ
+        const parts = correctOption.exampleSentence.split('___');
+        document.getElementById('reading-sentence-container').innerHTML = `<span>${parts[0]}</span><span class="text-blue-600 font-bold mx-2">${correctOption.english}</span><span>${parts[1] || ''}</span>`;
     } else {
         button.classList.add('incorrect');
         playSound('fail');
@@ -1402,6 +1405,7 @@ function handleReadingOptionClick(button, selectedOption, correctOption, wordPoo
         }
     }, 2000);
 }
+
 
 // --- Quiz 1: Trắc nghiệm (Multiple Choice) ---
 function startMultipleChoiceQuiz(words, quizId, categoryId) {
