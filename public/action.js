@@ -1053,10 +1053,7 @@ function startFillBlankGame(words) {
 
     document.getElementById('check-fill-blank-btn').onclick = checkFillBlankAnswer;
     document.getElementById('change-word-fill-blank-btn').onclick = () => startFillBlankGame(); 
-
-    // === DÒNG MỚI ĐƯỢC THÊM VÀO ===
     document.getElementById('fill-blank-listen-btn').onclick = () => speakWord(randomWord.english, 'en-US');
-    // ================================
 
     openModal('fillBlankGameModal');
 }
@@ -1418,6 +1415,7 @@ function startUnscrambleGame(words) {
     speakWord(randomWord.vietnamese, 'vi-VN');
 
     const scrambledLetters = unscrambleTargetWord.split('').sort(() => Math.random() - 0.5);
+    // THAY ĐỔI Ở ĐÂY: Sử dụng ID mới
     const answerArea = document.getElementById('unscramble-answer-area');
     const letterTilesArea = document.getElementById('unscramble-letter-tiles');
     answerArea.innerHTML = '';
@@ -1428,6 +1426,7 @@ function startUnscrambleGame(words) {
         slot.className = 'answer-slot';
         slot.addEventListener('click', (event) => {
             if (event.currentTarget.firstChild) {
+                // THAY ĐỔI Ở ĐÂY: Gọi hàm mới
                 moveLetter(event.currentTarget.firstChild, 'unscramble-answer-area', 'unscramble-letter-tiles');
             }
         });
@@ -1438,16 +1437,14 @@ function startUnscrambleGame(words) {
         const tile = document.createElement('div');
         tile.className = 'letter-tile';
         tile.textContent = letter;
+         // THAY ĐỔI Ở ĐÂY: Gọi hàm mới
         tile.addEventListener('click', (event) => moveLetter(event.currentTarget, 'unscramble-answer-area', 'unscramble-letter-tiles'));
         letterTilesArea.appendChild(tile);
     });
 
     document.getElementById('check-unscramble-btn').onclick = checkUnscrambleAnswer;
-    document.getElementById('change-word-btn').onclick = () => startUnscrambleGame(); 
-
-    // === DÒNG MỚI ĐƯỢC THÊM VÀO ===
-    document.getElementById('unscramble-listen-btn').onclick = () => speakWord(randomWord.english, 'en-US');
-    // ================================
+    document.getElementById('change-word-btn').onclick = () => startUnscrambleGame();
+	document.getElementById('unscramble-listen-btn').onclick = () => speakWord(randomWord.english, 'en-US');
 
     openModal('unscrambleGameModal');
 }
