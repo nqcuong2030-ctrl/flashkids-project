@@ -1336,7 +1336,7 @@ function checkSoundMatch() {
 }
 
 // --- Game 5: Đọc và Chọn Từ (Reading Comprehension) ---
-function startReadingGame(words) {
+unction startReadingGame(words) {
     const allWordsWithSentence = flashcards.filter(w => w.exampleSentence);
     const wordsForGame = words.sort(() => 0.5 - Math.random());
     const currentWord = wordsForGame[0];
@@ -1352,8 +1352,8 @@ function startReadingGame(words) {
     // Hiển thị câu
     const sentenceContainer = document.getElementById('reading-sentence-container');
     
-    // THAY ĐỔI: Thêm 'align-middle' để căn chỉnh ô trống thẳng hàng với chữ
-    const sentenceHTML = currentWord.exampleSentence.replace('___', '<span class="inline-block bg-blue-200 px-4 py-1 rounded-md border-2 border-dashed border-blue-400 mx-2 align-middle" style="min-width: 120px;">&nbsp;</span>');
+    // THAY ĐỔI: Bỏ padding dọc (py-1) và min-width để ô trống tự điều chỉnh chiều cao theo dòng chữ
+    const sentenceHTML = currentWord.exampleSentence.replace('___', '<span class="inline-block bg-blue-200 px-8 rounded-md border-2 border-dashed border-blue-400 mx-2 align-middle">&nbsp;</span>');
     sentenceContainer.innerHTML = sentenceHTML;
 
     // Hiển thị các lựa chọn
