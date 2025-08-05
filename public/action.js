@@ -62,15 +62,15 @@ const categoryColors = [
 
 const games = [
     { id: 1, name: 'Ghép từ', description: 'Ghép từ tiếng Anh với nghĩa tiếng Việt tương ứng', difficulty: 'Dễ', color: 'blue', icon: 'puzzle' },
-    { id: 2, name: 'Chọn từ', description: 'Chọn từ vựng tương ứng với hình ảnh minh họa', difficulty: 'Trung bình', color: 'purple', icon: 'image' },
-	{ id: 5, name: 'Đọc hiểu', description: 'Đọc câu và chọn từ đúng để điền vào chỗ trống', difficulty: 'Trung bình', color: 'teal', icon: 'book-open' },
+    { id: 2, name: 'Chọn từ', description: 'Chọn từ vựng tương ứng với hình ảnh minh họa', difficulty: 'Trung bình', color: 'purple', icon: 'image' },	
     { id: 4, name: 'Ghép Âm thanh & Từ', description: 'Lắng nghe và ghép cặp âm thanh với từ vựng đúng', difficulty: 'Trung bình', color: 'lime', icon: 'volume-up' },
     { id: 3, name: 'Điền từ', description: 'Chọn chữ cái đúng để hoàn thành từ', difficulty: 'Khó', color: 'red', icon: 'question' }
 ];
 
 const quizTypes = [
     { id: 1, name: 'Trắc nghiệm', description: 'Chọn đáp án đúng cho từng câu hỏi', time: 10, difficulty: 3, icon: 'document' },
-    { id: 2, name: 'Xếp chữ', description: 'Sắp xếp các chữ cái thành từ đúng', time: 5, difficulty: 4, icon: 'question' }
+    { id: 2, name: 'Xếp chữ', description: 'Sắp xếp các chữ cái thành từ đúng', time: 5, difficulty: 4, icon: 'question' },
+	{ id: 3, name: 'Đọc hiểu', description: 'Đọc câu và chọn từ đúng để điền vào chỗ trống', time: 5, difficulty: 5, icon: 'book-open' }
 ];
 
 const badges = [
@@ -615,31 +615,7 @@ function playGame(gameId, categoryId) {
 			alert('Cần ít nhất 3 từ vựng trong chủ đề này để chơi.');
 			return;
 		}
-		startSoundMatchGame(categoryWords, 9);
-	} else if (gameId === 5) {
-        // === PHẦN SỬA LỖI BẮT ĐẦU TỪ ĐÂY ===
-
-        // 1. Lọc những từ có câu ví dụ TRONG CHỦ ĐỀ đã chọn
-        const suitableWordsInCategory = categoryWords.filter(w => w.exampleSentence);
-        
-        // 2. Kiểm tra xem chủ đề này có ít nhất 1 từ phù hợp không
-        if (suitableWordsInCategory.length < 1) {
-            alert('Chủ đề này không có từ vựng nào có câu ví dụ để chơi.');
-            return;
-        }
-
-        // 3. Lọc TẤT CẢ các từ có câu ví dụ TRONG LEVEL hiện tại để làm đáp án sai
-        const allWordsWithSentenceInLevel = flashcards.filter(w => w.exampleSentence);
-
-        // 4. Kiểm tra xem toàn bộ level có đủ 4 từ (1 đúng, 3 sai) để tạo câu hỏi không
-        if (allWordsWithSentenceInLevel.length < 4) {
-            alert('Cần ít nhất 4 từ vựng có câu ví dụ trong toàn bộ cấp độ này để chơi.');
-            return;
-        }
-
-        // Nếu đủ điều kiện, bắt đầu game với các từ phù hợp trong chủ đề
-        startReadingGame(suitableWordsInCategory);
-        // === KẾT THÚC PHẦN SỬA LỖI ===
+		startSoundMatchGame(categoryWords, 9);	
     } else {
 		alert('Trò chơi này đang được phát triển.');
 	}
@@ -662,9 +638,19 @@ function startQuizWithCategory(quizId, categoryId) {
 			return;
 		}
 		startUnscrambleGame(suitableWords);
-	} 
-	// Đã xóa logic cho quizId === 3 ở đây
-	else {
+	} else if (quizId === 3) { // <-- Đọc hiểu
+        const suitableWordsInCategory = categoryWords.filter(w => w.exampleSentence);
+        if (suitableWordsInCategory.length < 1) {
+            alert('Chủ đề này không có từ vựng nào có câu ví dụ để làm bài kiểm tra.');
+            return;
+        }
+        const allWordsWithSentenceInLevel = flashcards.filter(w => w.exampleSentence);
+        if (allWordsWithSentenceInLevel.length < 1) {
+            alert('Cần ít nhất 4 từ vựng có câu ví dụ trong toàn bộ cấp độ này để làm bài kiểm tra.');
+            return;
+        }
+        startReadingQuiz(suitableWordsInCategory);
+	} else {
 		alert('Bài kiểm tra này đang được phát triển.');
 	}
 }
@@ -1353,42 +1339,7 @@ function startReadingGame(words) {
     const sentenceContainer = document.getElementById('reading-sentence-container');
     
     // THAY ĐỔI: Thay thế '___' bằng một đoạn text gạch dưới để đảm bảo thẳng hàng
-    const sentenceHTML = currentWord.exampleSentence.replace('___', '<span class="text-blue-500 font-bold mx-2">_______</span>');
-    sentenceContainer.innerHTML = sentenceHTML;
-
-    // Hiển thị các lựa chọn
-    const optionsContainer = document.getElementById('reading-options-container');
-    optionsContainer.innerHTML = '';
-    shuffledOptions.forEach(option => {
-        const optionButton = document.createElement('button');
-        optionButton.className = 'quiz-option p-4 border rounded-lg text-lg font-semibold text-gray-700 bg-white';
-        optionButton.textContent = option.english;
-        optionButton.onclick = () => handleReadingOptionClick(optionButton, option, currentWord, wordsForGame);
-        optionsContainer.appendChild(optionButton);
-    });
-
-    openModal('readingGameModal');
-}
-
-// Hàm xử lý khi người dùng chọn đáp án trong game Đọc hiểu
-function startReadingGame(words) {
-    const allWordsWithSentence = flashcards.filter(w => w.exampleSentence);
-    const wordsForGame = words.sort(() => 0.5 - Math.random());
-    const currentWord = wordsForGame[0];
-
-    const options = [currentWord];
-    const distractors = allWordsWithSentence.filter(w => w.id !== currentWord.id);
-    while (options.length < 4 && distractors.length > 0) {
-        const randomDistractor = distractors.splice(Math.floor(Math.random() * distractors.length), 1)[0];
-        options.push(randomDistractor);
-    }
-    const shuffledOptions = options.sort(() => 0.5 - Math.random());
-
-    // Hiển thị câu
-    const sentenceContainer = document.getElementById('reading-sentence-container');
-    
-    // THAY ĐỔI: Thay thế '___' bằng một đoạn text gạch dưới để đảm bảo thẳng hàng
-    const sentenceHTML = currentWord.exampleSentence.replace('___', '<span class="text-blue-500 font-bold mx-2">_______</span>');
+    const sentenceHTML = currentWord.exampleSentence.replace('___', '<span class="text-blue-500 font-bold mx-2">___</span>');
     sentenceContainer.innerHTML = sentenceHTML;
 
     // Hiển thị các lựa chọn
@@ -1438,7 +1389,6 @@ function handleReadingOptionClick(button, selectedOption, correctOption, wordPoo
         }
     }, 2000);
 }
-
 
 // --- Quiz 1: Trắc nghiệm (Multiple Choice) ---
 function startMultipleChoiceQuiz(words, quizId, categoryId) {
@@ -1703,6 +1653,69 @@ function checkUnscrambleAnswer() {
             });
         }, 500);
     }
+}
+
+// --- Quiz 3: Đọc hiểu (Reading Comprehension) ---
+function startReadingQuiz(words) {
+    const allWordsWithSentence = flashcards.filter(w => w.exampleSentence);
+    const wordsForGame = words.sort(() => 0.5 - Math.random());
+    const currentWord = wordsForGame[0];
+
+    const options = [currentWord];
+    const distractors = allWordsWithSentence.filter(w => w.id !== currentWord.id);
+    while (options.length < 4 && distractors.length > 0) {
+        const randomDistractor = distractors.splice(Math.floor(Math.random() * distractors.length), 1)[0];
+        options.push(randomDistractor);
+    }
+    const shuffledOptions = options.sort(() => 0.5 - Math.random());
+
+    const sentenceContainer = document.getElementById('reading-quiz-sentence-container');
+    const placeholderText = '_'.repeat(currentWord.english.length + 2);
+    const sentenceHTML = currentWord.exampleSentence.replace('___', `<span class="text-blue-500 font-bold mx-2">${placeholderText}</span>`);
+    sentenceContainer.innerHTML = sentenceHTML;
+
+    const optionsContainer = document.getElementById('reading-quiz-options-container');
+    optionsContainer.innerHTML = '';
+    shuffledOptions.forEach(option => {
+        const optionButton = document.createElement('button');
+        optionButton.className = 'quiz-option p-4 border rounded-lg text-lg font-semibold text-gray-700 bg-white';
+        optionButton.textContent = option.english;
+        optionButton.onclick = () => handleReadingQuizOptionClick(optionButton, option, currentWord, wordsForGame);
+        optionsContainer.appendChild(optionButton);
+    });
+
+    openModal('readingQuizModal');
+}
+
+function handleReadingQuizOptionClick(button, selectedOption, correctOption, wordPool) {
+    playSound('click');
+    document.querySelectorAll('#reading-quiz-options-container button').forEach(btn => btn.disabled = true);
+
+    if (selectedOption.id === correctOption.id) {
+        button.classList.add('correct');
+        playSound('success_2');
+        markWordAsLearned(correctOption.id);
+        const filledSentenceHTML = correctOption.exampleSentence.replace('___', `<span class="text-blue-600 font-bold mx-2">${correctOption.english}</span>`);
+        document.getElementById('reading-quiz-sentence-container').innerHTML = filledSentenceHTML;
+    } else {
+        button.classList.add('incorrect');
+        playSound('fail');
+        document.querySelectorAll('#reading-quiz-options-container button').forEach(btn => {
+            if (btn.textContent === correctOption.english) {
+                btn.classList.add('correct');
+            }
+        });
+    }
+
+    setTimeout(() => {
+        const nextWordPool = wordPool.filter(w => w.id !== correctOption.id);
+        if (nextWordPool.length > 0) {
+            startReadingQuiz(nextWordPool);
+        } else {
+            closeModal('readingQuizModal');
+            alert("Chúc mừng! Bạn đã hoàn thành bài kiểm tra đọc hiểu cho chủ đề này.");
+        }
+    }, 2000);
 }
 
 // ===================================================================================
@@ -2365,7 +2378,8 @@ function getImageIcon(image) {
 function getQuizIcon(icon) {
 	const iconMap = {
 		'document': '<path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>',
-		'question': '<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>'
+		'question': '<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>',
+		'book-open': '<path fill-rule="evenodd" d="M4 2a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V4a2 2 0 00-2-2H4zm8.5 3.5a.5.5 0 00-1 0V11a.5.5 0 00.5.5h2a.5.5 0 000-1h-1.5V5.5a.5.5 0 00-.5-.5zM5.5 5a.5.5 0 01.5-.5H8a.5.5 0 010 1H6v4.5a.5.5 0 01-1 0V5z" clip-rule="evenodd"/>'
 	};
 	
 	return iconMap[icon] || '<path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>';

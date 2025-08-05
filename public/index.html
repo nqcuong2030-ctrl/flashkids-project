@@ -586,32 +586,7 @@
 				</div>
 		</div>
 	</div>
-	
-	<!-- Game: Reading Comprehension Modal -->
-	<div id="readingGameModal" class="modal">
-		<div class="modal-content" style="max-width: 600px">
-			<div class="flex justify-between items-center mb-4">
-				<h3 class="text-xl font-bold text-gray-800">Đọc và Chọn từ</h3>
-				<button onclick="closeModal('readingGameModal')" class="text-gray-500 hover:text-gray-700">
-					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-					</svg>
-				</button>
-			</div>
-			
-			<p class="text-gray-600 mb-6">Đọc câu dưới đây và chọn từ đúng nhất để điền vào chỗ trống.</p>
-			
-			<!-- THAY ĐỔI Ở DÒNG DƯỚI: Đã xóa "flex items-center justify-center" -->
-			<div id="reading-sentence-container" class="bg-blue-50 p-6 rounded-lg text-center text-xl md:text-2xl text-gray-800 font-semibold mb-6 min-h-[100px] leading-relaxed">
-				<!-- Sentence will be loaded here -->
-			</div>
-			
-			<div id="reading-options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-				<!-- Options will be loaded here -->
-			</div>
-		</div>
-	</div>
-	
+		
 	<!-- Sound Matching Game Modal 9 cards -->
 	<div id="soundMatchModal" class="modal">
 		<div class="modal-content" style="max-width: 500px;">
@@ -672,6 +647,31 @@
 			<div class="flex justify-center gap-4 mt-4">
 				<button id="change-word-fill-blank-btn" class="btn-warning text-white py-2 px-6 rounded-lg shadow-md">Đổi từ</button>
 				<button id="check-fill-blank-btn" class="btn-primary text-white py-2 px-6 rounded-lg shadow-md">Kiểm tra</button>				
+			</div>
+		</div>
+	</div>
+
+	<!-- Quiz: Reading Comprehension Modal -->
+	<div id="readingQuizModal" class="modal">
+		<div class="modal-content" style="max-width: 600px">
+			<div class="flex justify-between items-center mb-4">
+				<h3 class="text-xl font-bold text-gray-800">Đọc và Chọn từ</h3>
+				<button onclick="closeModal('readingQuizModal')" class="text-gray-500 hover:text-gray-700">
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+					</svg>
+				</button>
+			</div>
+			
+			<p class="text-gray-600 mb-6">Đọc câu dưới đây và chọn từ đúng nhất để điền vào chỗ trống.</p>
+			
+			<!-- THAY ĐỔI Ở DÒNG DƯỚI: Đã xóa "flex items-center justify-center" -->
+			<div id="reading-quiz-sentence-container" class="bg-blue-50 p-6 rounded-lg text-center text-xl md:text-2xl text-gray-800 font-semibold mb-6 min-h-[100px] leading-relaxed">
+				<!-- Sentence will be loaded here -->
+			</div>
+			
+			<div id="reading-quiz-options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+				<!-- Options will be loaded here -->
 			</div>
 		</div>
 	</div>
