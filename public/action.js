@@ -1027,28 +1027,28 @@ function startFillBlankGame(words) {
 
 	const scrambledLetters = fillBlankTargetWord.split('').sort(() => Math.random() - 0.5);
 
-	const answerArea = document.getElementById('answer-area');
-	const letterTilesArea = document.getElementById('letter-tiles');
-	answerArea.innerHTML = '';
-	letterTilesArea.innerHTML = '';
+	const answerArea_game = document.getElementById('answer-area');
+	const letterTilesArea_game = document.getElementById('letter-tiles');
+	answerArea_game.innerHTML = '';
+	letterTilesArea_game.innerHTML = '';
 
 	fillBlankTargetWord.split('').forEach(() => {
 		const slot = document.createElement('div');
 		slot.className = 'answer-slot';
 		slot.addEventListener('click', (event) => {
 			if (event.currentTarget.firstChild) {
-				moveLetter(event.currentTarget.firstChild);
+				moveLetter_game(event.currentTarget.firstChild);
 			}
 		});
-		answerArea.appendChild(slot);
+		answerArea_game.appendChild(slot);
 	});
 
 	scrambledLetters.forEach(letter => {
 		const tile = document.createElement('div');
 		tile.className = 'letter-tile';
 		tile.textContent = letter;
-		tile.addEventListener('click', (event) => moveLetter(event.currentTarget));
-		letterTilesArea.appendChild(tile);
+		tile.addEventListener('click', (event) => moveLetter_game(event.currentTarget));
+		letterTilesArea_game.appendChild(tile);
 	});
 
 	// Gán sự kiện cho các nút (ID đã đổi)
@@ -1059,10 +1059,29 @@ function startFillBlankGame(words) {
 	openModal('fillBlankGameModal');
 }
 
+function moveLetter_game(tile) {
+	if (!tile) return;
+	playSound('click'); // Âm thanh "lách cách" khi di chuyển chữ
+
+	const answerArea_game = document.getElementById('answer-area');
+	const letterTilesArea_game = document.getElementById('letter-tiles');
+
+	if (tile.parentElement === letterTilesArea_game) {
+		const emptySlot = Array.from(answerArea.children).find(slot => !slot.firstChild);
+		if (emptySlot) {
+			emptySlot.appendChild(tile);
+		}
+	} else {
+		letterTilesArea_game.appendChild(tile);
+	}
+}
+
 function checkFillBlankAnswer() {
-	const answerArea = document.getElementById('answer-area');
+	playSound('click');
+	const answerArea_game = document.getElementById('answer-area');
+	const letterTilesArea_game = document.getElementById('letter-tiles');
 	let userAnswer = '';
-	const answerSlots = Array.from(answerArea.children);
+	const answerSlots = Array.from(answerArea_game.children);
 
 	answerSlots.forEach(slot => {
 		if (slot.firstChild) {
@@ -1072,6 +1091,8 @@ function checkFillBlankAnswer() {
 
 	if (userAnswer === fillBlankTargetWord) {
 		// --- XỬ LÝ KHI TRẢ LỜI ĐÚNG ---
+		playSound('tada'); // Âm thanh thành công
+		speakWord(unscrambleTargetWord, 'en-US'); // Đọc to từ vừa xếp đúng
 		const successIcon = document.getElementById('fill-blank-success-feedback');
 
 		 // 1. Chuyển các ô chữ thành màu xanh lá
@@ -1094,8 +1115,9 @@ function checkFillBlankAnswer() {
 
 	} else {
 		// --- XỬ LÝ KHI TRẢ LỜI SAI ---
-		answerArea.classList.add('error');
-		setTimeout(() => answerArea.classList.remove('error'), 500);
+		playSound('error'); // Âm thanh thất bại
+		answerArea_game.classList.add('error');
+		setTimeout(() => answerArea_game.classList.remove('error'), 500);
 
 		setTimeout(() => {
 			answerSlots.forEach(slot => {
@@ -1398,14 +1420,12 @@ function checkQuizAnswers(quizId, categoryId) {
 }
 
 // --- Quiz 2: Xếp chữ (Unscramble) ---
-
-// Dán hàm này vào PHẦN 7. LOGIC TRÒ CHƠI & KIỂM TRA
-function startUnscrambleQuiz(words) {
+function startUnscrambleGame(words) {
 	if (words) {
 		unscrambleWordPool = words;
 	}
 	if (!unscrambleWordPool || unscrambleWordPool.length === 0) {
-		alert("Không có từ nào phù hợp để làm bài kiểm tra!");
+		alert("Không có từ nào phù hợp để chơi!");
 		return;
 	}
 
@@ -1413,11 +1433,12 @@ function startUnscrambleQuiz(words) {
 	unscrambleTargetWord = randomWord.english.toUpperCase();
 	unscrambleTargetWordId = randomWord.id;
 	
+	// Đọc to nghĩa tiếng Việt để làm gợi ý
 	speakWord(randomWord.vietnamese, 'vi-VN');
 
-    // SỬ DỤNG ID MỚI CHO QUIZ
-	const answerArea = document.getElementById('quiz-answer-area'); 
-	const letterTilesArea = document.getElementById('quiz-letter-tiles');
+	const scrambledLetters = unscrambleTargetWord.split('').sort(() => Math.random() - 0.5);
+	const answerArea = document.getElementById('answer-area');
+	const letterTilesArea = document.getElementById('letter-tiles');
 	answerArea.innerHTML = '';
 	letterTilesArea.innerHTML = '';
 
@@ -1426,26 +1447,24 @@ function startUnscrambleQuiz(words) {
 		slot.className = 'answer-slot';
 		slot.addEventListener('click', (event) => {
 			if (event.currentTarget.firstChild) {
-				moveLetter(event.currentTarget.firstChild, 'quiz-answer-area', 'quiz-letter-tiles');
+				moveLetter(event.currentTarget.firstChild);
 			}
 		});
 		answerArea.appendChild(slot);
 	});
 
-	randomWord.english.toUpperCase().split('').sort(() => Math.random() - 0.5).forEach(letter => {
+	scrambledLetters.forEach(letter => {
 		const tile = document.createElement('div');
 		tile.className = 'letter-tile';
 		tile.textContent = letter;
-		tile.addEventListener('click', (event) => moveLetter(event.currentTarget, 'quiz-answer-area', 'quiz-letter-tiles'));
+		tile.addEventListener('click', (event) => moveLetter(event.currentTarget));
 		letterTilesArea.appendChild(tile);
 	});
-    
-    // SỬ DỤNG CÁC NÚT VÀ HÀM KIỂM TRA MỚI (nếu cần)
-	document.getElementById('check-unscramble-quiz-btn').onclick = () => checkUnscrambleAnswer('quiz');
-	document.getElementById('change-word-quiz-btn').onclick = () => startUnscrambleQuiz(); 
 
-    // MỞ MODAL MỚI CỦA QUIZ
-	openModal('unscrambleQuizModal'); 
+	document.getElementById('check-unscramble-btn').onclick = checkUnscrambleAnswer;
+	document.getElementById('change-word-btn').onclick = () => startUnscrambleGame(); 
+
+	openModal('unscrambleGameModal');
 }
 
 function moveLetter(tile) {
