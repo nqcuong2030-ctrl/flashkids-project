@@ -619,7 +619,7 @@ function playGame(gameId, categoryId) {
 	} else if (gameId === 5) { // <-- LOGIC CHO GAME "ĐỌC HIỂU CÂU"
         // Lọc những từ có câu ví dụ
         const suitableWords = categoryWords.filter(w => w.exampleSentence);
-        if (suitableWords.length < 1) {
+        if (suitableWords.length < 4) {
             alert('Cần ít nhất 4 từ vựng có câu ví dụ trong chủ đề này để chơi.');
             return;
         }
