@@ -1445,6 +1445,7 @@ function startUnscrambleGame(words) {
 
     document.getElementById('check-unscramble-btn').onclick = checkUnscrambleAnswer;
     document.getElementById('change-word-btn').onclick = () => startUnscrambleGame(); 
+	document.getElementById('unscramble-listen-btn').onclick = () => speakWord(randomWord.english, 'en-US');
 
     openModal('unscrambleGameModal');
 }
