@@ -665,12 +665,12 @@ function startQuizWithCategory(quizId, categoryId) {
 	} else if (quizId === 3) { // <-- Đọc hiểu
         const suitableWordsInCategory = categoryWords.filter(w => w.exampleSentence);
         if (suitableWordsInCategory.length < 1) {
-            alert('Chúng tôi đang phát triển tính năng này. Bạn có thể chọn Chủ đề "Con người & Quan hệ" để TEST tính năng này.');
+            alert('Chúng tôi đang phát triển tính năng này. Bạn có thể chọn Chủ đề "Con người & Quan hệ" hoặc "Động vật" để TEST tính năng này.');
             return;
         }
         const allWordsWithSentenceInLevel = flashcards.filter(w => w.exampleSentence);
         if (allWordsWithSentenceInLevel.length < 1) {
-            alert('Chúng tôi đang phát triển tính năng này. Bạn có thể chọn Chủ đề "Con người & Quan hệ" để TEST tính năng này.'); //Cần ít nhất 1 từ vựng có câu ví dụ trong toàn bộ cấp độ này để làm bài kiểm tra.
+            alert('Chúng tôi đang phát triển tính năng này. Bạn có thể chọn Chủ đề "Con người & Quan hệ" hoặc "Động vật" để TEST tính năng này.'); //Cần ít nhất 1 từ vựng có câu ví dụ trong toàn bộ cấp độ này để làm bài kiểm tra.
             return;
         }
         startReadingQuiz(suitableWordsInCategory);
