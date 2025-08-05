@@ -578,12 +578,12 @@
                 <div class="bg-white rounded-2xl p-6 mb-8 shadow-md">
                     <h3 class="text-xl font-bold text-gray-800 mb-4">Chọn cấp độ từ vựng (hơn 3000 từ)</h3>
                     <div class="flex flex-wrap gap-3">
-                        <button class="level-badge level-a1 active" onclick="changeLevel('a1')">A1 - Cơ bản</button>
-                        <button class="level-badge level-a2" onclick="changeLevel('a2')">A2 - Sơ cấp</button>
-                        <button class="level-badge level-b1" onclick="changeLevel('b1')">B1 - Trung cấp</button>
-                        <button class="level-badge level-b2" onclick="changeLevel('b2')">B2 - Cao cấp</button>
-						<button class="level-badge level-c1 hidden" onclick="changeLevel('c1')">C1 - Thông thạo</button>
-						<button class="level-badge level-c2 hidden" onclick="changeLevel('c2')">C2 - Thành thạo</button>
+                        <button class="level-badge level-a1 active" onclick="changeLevel('a1', true)">A1 - Cơ bản</button>
+                        <button class="level-badge level-a2" onclick="changeLevel('a2', true)">A2 - Sơ cấp</button>
+                        <button class="level-badge level-b1" onclick="changeLevel('b1', true)">B1 - Trung cấp</button>
+                        <button class="level-badge level-b2" onclick="changeLevel('b2', true)">B2 - Cao cấp</button>
+						<button class="level-badge level-c1 hidden" onclick="changeLevel('c1', true)">C1 - Thông thạo</button>
+						<button class="level-badge level-c2 hidden" onclick="changeLevel('c2', true)">C2 - Thành thạo</button>
                     </div>
                 </div>
 
@@ -1034,6 +1034,23 @@
 			<div class="flex justify-center gap-4 mt-4">
 				<button id="change-word-btn" class="btn-warning text-white py-2 px-6 rounded-lg shadow-md">Đổi từ</button>
 				<button id="check-unscramble-btn" class="btn-primary text-white py-2 px-6 rounded-lg shadow-md">Kiểm tra đáp án</button>				
+			</div>
+		</div>
+	</div>
+	
+	<div id="unscrambleQuizModal" class="modal">
+		<div class="modal-content">
+			<h3 class="text-2xl font-bold mb-4">Quiz: Xếp chữ</h3>
+			
+			<div id="quiz-answer-area" class="answer-container">
+				</div>
+			
+			<div id="quiz-letter-tiles" class="tiles-container">
+				</div>
+			
+			<div class="flex justify-center space-x-4 mt-6">
+				<button id="check-unscramble-quiz-btn" class="btn-primary">Kiểm tra</button>
+				<button id="change-word-quiz-btn" class="btn-secondary">Đổi từ</button>
 			</div>
 		</div>
 	</div>

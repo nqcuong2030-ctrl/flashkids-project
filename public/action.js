@@ -405,12 +405,7 @@ function changeTab(tabId) {
 	
 	// Cập nhật flashcard nếu chuyển sang tab flashcards
 	if (isFlashcardsTabActive) {
-		updateFlashcard();
-		if (soundEnabled) {
-			setTimeout(() => {
-				speakCurrentWord('english');
-			}, 300);
-		}
+		updateFlashcard();		
 	}
 	
 	// Cập nhật hiển thị tiến độ nếu chuyển sang tab thống kê
@@ -1026,6 +1021,9 @@ function startFillBlankGame(words) {
 
 	const randomWord = fillBlankWordPool[Math.floor(Math.random() * fillBlankWordPool.length)];
 	fillBlankTargetWord = randomWord.english.toUpperCase();
+	
+	// Đọc to nghĩa tiếng Việt để làm gợi ý
+    speakWord(randomWord.vietnamese, 'vi-VN');
 
 	const scrambledLetters = fillBlankTargetWord.split('').sort(() => Math.random() - 0.5);
 
@@ -1445,6 +1443,55 @@ function startUnscrambleGame(words) {
 	document.getElementById('change-word-btn').onclick = () => startUnscrambleGame(); 
 
 	openModal('unscrambleGameModal');
+}
+
+// Dán hàm này vào PHẦN 7. LOGIC TRÒ CHƠI & KIỂM TRA
+function startUnscrambleQuiz(words) {
+	if (words) {
+		unscrambleWordPool = words;
+	}
+	if (!unscrambleWordPool || unscrambleWordPool.length === 0) {
+		alert("Không có từ nào phù hợp để làm bài kiểm tra!");
+		return;
+	}
+
+	const randomWord = unscrambleWordPool[Math.floor(Math.random() * unscrambleWordPool.length)];
+	unscrambleTargetWord = randomWord.english.toUpperCase();
+	unscrambleTargetWordId = randomWord.id;
+	
+	speakWord(randomWord.vietnamese, 'vi-VN');
+
+    // SỬ DỤNG ID MỚI CHO QUIZ
+	const answerArea = document.getElementById('quiz-answer-area'); 
+	const letterTilesArea = document.getElementById('quiz-letter-tiles');
+	answerArea.innerHTML = '';
+	letterTilesArea.innerHTML = '';
+
+	unscrambleTargetWord.split('').forEach(() => {
+		const slot = document.createElement('div');
+		slot.className = 'answer-slot';
+		slot.addEventListener('click', (event) => {
+			if (event.currentTarget.firstChild) {
+				moveLetter(event.currentTarget.firstChild, 'quiz-answer-area', 'quiz-letter-tiles');
+			}
+		});
+		answerArea.appendChild(slot);
+	});
+
+	randomWord.english.toUpperCase().split('').sort(() => Math.random() - 0.5).forEach(letter => {
+		const tile = document.createElement('div');
+		tile.className = 'letter-tile';
+		tile.textContent = letter;
+		tile.addEventListener('click', (event) => moveLetter(event.currentTarget, 'quiz-answer-area', 'quiz-letter-tiles'));
+		letterTilesArea.appendChild(tile);
+	});
+    
+    // SỬ DỤNG CÁC NÚT VÀ HÀM KIỂM TRA MỚI (nếu cần)
+	document.getElementById('check-unscramble-quiz-btn').onclick = () => checkUnscrambleAnswer('quiz');
+	document.getElementById('change-word-quiz-btn').onclick = () => startUnscrambleQuiz(); 
+
+    // MỞ MODAL MỚI CỦA QUIZ
+	openModal('unscrambleQuizModal'); 
 }
 
 function moveLetter(tile) {
