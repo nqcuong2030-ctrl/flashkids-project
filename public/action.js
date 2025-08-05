@@ -336,7 +336,7 @@ function speakWord(word, lang) {
 // ===================================================================================
 
 // Hàm changeLevel giờ chỉ cần gọi các hàm khác sau khi có dữ liệu
-async function changeLevel(level) {
+async function changeLevel(level, isUserAction = false) { 
 	if (isUserAction) {
         playSound('click'); // Chỉ phát âm thanh nếu đây là hành động của người dùng
     }
