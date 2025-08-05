@@ -337,7 +337,9 @@ function speakWord(word, lang) {
 
 // Hàm changeLevel giờ chỉ cần gọi các hàm khác sau khi có dữ liệu
 async function changeLevel(level) {
-	playSound('click'); // <-- Thêm âm thanh khi nhấn
+	if (isUserAction) {
+        playSound('click'); // Chỉ phát âm thanh nếu đây là hành động của người dùng
+    }
 	
 	currentLevel = level;
 
@@ -2202,9 +2204,107 @@ function getFilteredCards() {
 		: flashcards;
 }
 
+function processJSONInput() {
+	const jsonUrl = document.getElementById('json-url').value.trim();
+	const jsonData = document.getElementById('json-data').value.trim();
+	
+	if (jsonUrl) {
+		// Fetch from URL
+		showLoading();
+		fetch(jsonUrl)
+			.then(response => {
+				if (!response.ok) {
+					throw new Error('Không thể tải file JSON từ URL đã cung cấp.');
+				}
+				return response.json();
+			})
+			.then(data => {
+				importData(data);
+				closeModal('jsonFileModal');
+				hideLoading();
+			})
+			.catch(error => {
+				alert('Lỗi: ' + error.message);
+				hideLoading();
+			});
+	} else if (jsonData) {
+		// Parse direct input
+		try {
+			const data = JSON.parse(jsonData);
+			importData(data);
+			closeModal('jsonFileModal');
+		} catch (error) {
+			alert('Lỗi: Dữ liệu JSON không hợp lệ.');
+		}
+	} else {
+		alert('Vui lòng nhập URL hoặc dữ liệu JSON.');
+	}
+}
+
+function importData(data) {
+	if (data.categories && Array.isArray(data.categories)) {
+		// Merge with existing categories or replace them
+		const existingCategoryIds = categories.map(c => c.id);
+		const newCategories = data.categories.filter(c => !existingCategoryIds.includes(c.id));
+		categories = [...categories, ...newCategories];
+		
+		// Assign random colors to new categories
+		assignRandomColorsToCategories();
+	}
+	
+	if (data.flashcards && Array.isArray(data.flashcards)) {
+		// Merge with existing flashcards or replace them
+		const existingFlashcardIds = flashcards.map(f => f.id);
+		const newFlashcards = data.flashcards.filter(f => !existingFlashcardIds.includes(f.id));
+		flashcards = [...flashcards, ...newFlashcards];
+	}
+	
+	// Update category progress
+	updateCategoryProgress();
+	
+	// Reload everything
+	loadCategories();
+	loadCategoryFilters();
+	currentCardIndex = 0;
+	updateFlashcard();
+	
+	alert('Đã tải dữ liệu thành công!');
+}
+
+function exportFlashcardsToJSON() {
+	const data = {
+		categories: categories,
+		flashcards: flashcards
+	};
+	
+	const jsonString = JSON.stringify(data, null, 2);
+	
+	// Create a blob and download link
+	const blob = new Blob([jsonString], { type: 'application/json' });
+	const url = URL.createObjectURL(blob);
+	
+	const a = document.createElement('a');
+	a.href = url;
+	a.download = `flashcards-${currentLevel}.json`;
+	document.body.appendChild(a);
+	a.click();
+	
+	// Clean up
+	setTimeout(() => {
+		document.body.removeChild(a);
+		URL.revokeObjectURL(url);
+	}, 0);
+}
+
 // ===================================================================================
 // ===== 11. ĐỒNG HỒ ĐẾM NGƯỢC
 // ===================================================================================
+function updateTimerDisplay() {
+	const minutes = Math.floor(timeRemaining / 60);
+	const seconds = timeRemaining % 60;
+	document.getElementById('daily-timer-display').textContent = 
+		`${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
 
 function tick() {
 	if (timeRemaining > 0) {
@@ -2264,9 +2364,3 @@ function resetFlashcardInactivityTimer() {
 	}, INACTIVITY_DELAY);
 }
 
-function updateTimerDisplay() {
-	const minutes = Math.floor(timeRemaining / 60);
-	const seconds = timeRemaining % 60;
-	document.getElementById('daily-timer-display').textContent = 
-		`${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-}
