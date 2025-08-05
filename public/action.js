@@ -1352,8 +1352,8 @@ function startReadingGame(words) {
     // Hiển thị câu
     const sentenceContainer = document.getElementById('reading-sentence-container');
     
-    // THAY ĐỔI Ở DÒNG DƯỚI: Thêm class "mx-2" vào span
-    const sentenceHTML = currentWord.exampleSentence.replace('___', '<span class="inline-block bg-blue-200 px-4 py-1 rounded-md border-2 border-dashed border-blue-400 mx-2">&nbsp;</span>');
+    // THAY ĐỔI: Thêm 'align-middle' để căn chỉnh ô trống thẳng hàng với chữ
+    const sentenceHTML = currentWord.exampleSentence.replace('___', '<span class="inline-block bg-blue-200 px-4 py-1 rounded-md border-2 border-dashed border-blue-400 mx-2 align-middle" style="min-width: 120px;">&nbsp;</span>');
     sentenceContainer.innerHTML = sentenceHTML;
 
     // Hiển thị các lựa chọn
@@ -1370,22 +1370,21 @@ function startReadingGame(words) {
     openModal('readingGameModal');
 }
 
+// Hàm xử lý khi người dùng chọn đáp án trong game Đọc hiểu
 function handleReadingOptionClick(button, selectedOption, correctOption, wordPool) {
     playSound('click');
     document.querySelectorAll('#reading-options-container button').forEach(btn => btn.disabled = true);
 
     if (selectedOption.id === correctOption.id) {
-        // Trả lời đúng
         button.classList.add('correct');
         playSound('success_2');
-        markWordAsLearned(correctOption.id); // Đánh dấu đã học
-        // Cập nhật lại câu với từ đúng
-        document.getElementById('reading-sentence-container').innerHTML = correctOption.exampleSentence.replace('___', `<span class="text-blue-600 font-bold">${correctOption.english}</span>`);
+        markWordAsLearned(correctOption.id);
+        
+        // THAY ĐỔI: Thêm 'mx-2' để tạo khoảng cách cho từ đúng sau khi điền
+        document.getElementById('reading-sentence-container').innerHTML = correctOption.exampleSentence.replace('___', `<span class="text-blue-600 font-bold mx-2">${correctOption.english}</span>`);
     } else {
-        // Trả lời sai
         button.classList.add('incorrect');
         playSound('fail');
-        // Tìm và hiển thị đáp án đúng
         document.querySelectorAll('#reading-options-container button').forEach(btn => {
             if (btn.textContent === correctOption.english) {
                 btn.classList.add('correct');
@@ -1393,9 +1392,7 @@ function handleReadingOptionClick(button, selectedOption, correctOption, wordPoo
         });
     }
 
-    // Chuyển sang câu hỏi tiếp theo sau 2 giây
     setTimeout(() => {
-        // Lọc bỏ từ vừa học ra khỏi danh sách
         const nextWordPool = wordPool.filter(w => w.id !== correctOption.id);
         if (nextWordPool.length > 0) {
             startReadingGame(nextWordPool);
