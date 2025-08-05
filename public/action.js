@@ -1398,52 +1398,6 @@ function checkQuizAnswers(quizId, categoryId) {
 }
 
 // --- Quiz 2: Xếp chữ (Unscramble) ---
-function startUnscrambleGame(words) {
-	if (words) {
-		unscrambleWordPool = words;
-	}
-	if (!unscrambleWordPool || unscrambleWordPool.length === 0) {
-		alert("Không có từ nào phù hợp để chơi!");
-		return;
-	}
-
-	const randomWord = unscrambleWordPool[Math.floor(Math.random() * unscrambleWordPool.length)];
-	unscrambleTargetWord = randomWord.english.toUpperCase();
-	unscrambleTargetWordId = randomWord.id;
-	
-	// Đọc to nghĩa tiếng Việt để làm gợi ý
-	speakWord(randomWord.vietnamese, 'vi-VN');
-
-	const scrambledLetters = unscrambleTargetWord.split('').sort(() => Math.random() - 0.5);
-	const answerArea = document.getElementById('answer-area');
-	const letterTilesArea = document.getElementById('letter-tiles');
-	answerArea.innerHTML = '';
-	letterTilesArea.innerHTML = '';
-
-	unscrambleTargetWord.split('').forEach(() => {
-		const slot = document.createElement('div');
-		slot.className = 'answer-slot';
-		slot.addEventListener('click', (event) => {
-			if (event.currentTarget.firstChild) {
-				moveLetter(event.currentTarget.firstChild);
-			}
-		});
-		answerArea.appendChild(slot);
-	});
-
-	scrambledLetters.forEach(letter => {
-		const tile = document.createElement('div');
-		tile.className = 'letter-tile';
-		tile.textContent = letter;
-		tile.addEventListener('click', (event) => moveLetter(event.currentTarget));
-		letterTilesArea.appendChild(tile);
-	});
-
-	document.getElementById('check-unscramble-btn').onclick = checkUnscrambleAnswer;
-	document.getElementById('change-word-btn').onclick = () => startUnscrambleGame(); 
-
-	openModal('unscrambleGameModal');
-}
 
 // Dán hàm này vào PHẦN 7. LOGIC TRÒ CHƠI & KIỂM TRA
 function startUnscrambleQuiz(words) {
