@@ -137,7 +137,7 @@
     {"id": 115,"english": "anger","vietnamese": "sự tức giận","phonetic": "/ˈæŋɡər/","categoryId": "cat10","image": null,"part_of_speech": "n.","level": "B2" },
     {"id": 116,"english": "angle","vietnamese": "góc","phonetic": "/ˈæŋɡl/","categoryId": "cat10","image": null,"part_of_speech": "n.","level": "B2" },
     {"id": 117,"english": "angry","vietnamese": "tức giận","phonetic": "/ˈæŋɡri/","categoryId": "cat8","image": null,"part_of_speech": "adj.","level": "A1" },
-    {"id": 118,"english": "animal","vietnamese": "động vật","phonetic": "/ˈænɪml/","categoryId": "cat5","image": null,"part_of_speech": "n.","level": "A1", "Every ___ has its own unique features." },
+    {"id": 118,"english": "animal","vietnamese": "động vật","phonetic": "/ˈænɪml/","categoryId": "cat5","image": null,"part_of_speech": "n.","level": "A1", "exampleSentence": "Every ___ has its own unique features." },
     {"id": 119,"english": "ankle","vietnamese": "mắt cá chân","phonetic": "/ˈæŋkl/","categoryId": "cat2","image": null,"part_of_speech": "n.","level": "A2" },
     {"id": 120,"english": "anniversary","vietnamese": "lễ kỷ niệm","phonetic": "/ˌænɪˈvɜːsəri/","categoryId": "cat10","image": null,"part_of_speech": "n.","level": "B2" },
     {"id": 121,"english": "announce","vietnamese": "thông báo","phonetic": "/əˈnaʊns/","categoryId": "cat9","image": null,"part_of_speech": "v.","level": "B1" },
