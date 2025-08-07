@@ -382,6 +382,11 @@ async function changeLevel(level, isUserAction = false) {
 		// Gán dữ liệu đã được lọc sẵn cho level này
 		categories = data.categories || [];
 		flashcards = data.flashcards || [];
+		
+		categories.forEach(category => {
+			const count = flashcards.filter(card => card.categoryId === category.id).length;
+			category.wordCount = count; // Ghi đè lại wordCount bằng số đếm thực tế
+		});
 
 		// Cập nhật giao diện
 		currentCategoryId = null;
@@ -1925,7 +1930,7 @@ function loadCategories() {
 		categoryElement.innerHTML = `
 			<div class="flex justify-between items-start mb-4">
 				<h4 class="text-lg font-bold">${category.name}</h4>
-				<span class="bg-white text-gray-700 text-xs font-bold px-2 py-1 rounded-full">${filteredCards.length} từ</span>
+				<span class="bg-white text-gray-700 text-xs font-bold px-2 py-1 rounded-full">${category.wordCount} từ</span>
 			</div>
 			<div class="flex justify-between items-end">
 				<div>
