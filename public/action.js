@@ -698,7 +698,7 @@ function showCategorySelectionModal() {
 		const progress = getCategoryProgress(category.id);
 		const colorClass = category.colorClass || getCategoryColorClass(category.color);
 		const categoryElement = document.createElement('div');
-		categoryElement.className = `bg-gradient-to-br ${colorClass} rounded-xl p-4 text-white cursor-pointer hover:shadow-lg transition duration-300`;
+		categoryElement.className = `bg-gradient-to-br ${colorClass} rounded-xl p-4 text-white cursor-pointer hover:shadow-lg transition duration-300 lift-on-hover`;
 		categoryElement.innerHTML = `
 			<div class="flex justify-between items-start mb-2">
 				<h4 class="font-bold">${category.name}</h4>
@@ -1926,7 +1926,7 @@ function loadCategories() {
 		const progress = getCategoryProgress(category.id);
 		
 		const categoryElement = document.createElement('div');
-		categoryElement.className = `category-card bg-gradient-to-br ${colorClass} rounded-2xl p-5 text-white shadow-lg`;
+		categoryElement.className = `category-card bg-gradient-to-br ${colorClass} rounded-2xl p-5 text-white shadow-lg  lift-on-hover`;
 		categoryElement.innerHTML = `
 			<div class="flex justify-between items-start mb-4">
 				<h4 class="text-lg font-bold">${category.name}</h4>
@@ -2054,7 +2054,7 @@ function loadGames() {
 		// Gán sự kiện onclick cho toàn bộ thẻ
 		gameElement.setAttribute('onclick', `startGame(${game.id})`);
 		
-		gameElement.className = `game-card bg-gradient-to-br ${colorClass} rounded-2xl p-5 text-white shadow-lg cursor-pointer`;
+		gameElement.className = `game-card bg-gradient-to-br ${colorClass} rounded-2xl p-5 text-white shadow-lg cursor-pointer lift-on-hover`;
 		gameElement.innerHTML = `
 			<div class="flex justify-between items-start mb-4">
 				<h4 class="text-lg font-bold">${game.name}</h4>
