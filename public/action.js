@@ -2693,25 +2693,9 @@ function speakWordForTool(word, lang, onEndCallback) {
 // ===== 13. LOGIC MENU NGƯỜI DÙNG (USER DROPDOWN MENU)
 // ===================================================================================
 
-document.addEventListener('DOMContentLoaded', function() {
-    const userMenuButton = document.getElementById('user-menu-button');
-    const userMenu = document.getElementById('user-menu');
-
-    if (userMenuButton && userMenu) {
-        // Mở/đóng menu khi nhấp vào avatar
-        userMenuButton.addEventListener('click', function(event) {
-            event.stopPropagation(); // Ngăn sự kiện click lan ra ngoài
-            userMenu.classList.toggle('hidden');
-        });
-
-        // Đóng menu khi nhấp ra ngoài
-        window.addEventListener('click', function() {
-            if (!userMenu.classList.contains('hidden')) {
-                userMenu.classList.add('hidden');
-            }
-        });
-    }
-});
+// ===================================================================================
+// ===== 13. LOGIC MENU NGƯỜI DÙNG (USER DROPDOWN MENU)
+// ===================================================================================
 
 // Hàm xử lý khi nhấp vào một mục trong menu
 function handleMenuLinkClick(tabId) {
@@ -2724,4 +2708,28 @@ function handleMenuLinkClick(tabId) {
         userMenu.classList.add('hidden');
     }
 }
+
+// Thêm các sự kiện cho menu khi trang đã tải xong
+document.addEventListener('DOMContentLoaded', function() {
+    const userMenuButton = document.getElementById('user-menu-button');
+    const userMenu = document.getElementById('user-menu');
+
+    // Chỉ thực thi nếu các phần tử tồn tại
+    if (userMenuButton && userMenu) {
+        
+        // Sự kiện Mở/Đóng menu khi nhấp vào avatar
+        userMenuButton.addEventListener('click', function(event) {
+            // Ngăn sự kiện click lan ra ngoài cửa sổ, tránh việc menu vừa mở đã bị đóng ngay
+            event.stopPropagation(); 
+            userMenu.classList.toggle('hidden');
+        });
+
+        // Sự kiện Đóng menu khi nhấp ra ngoài cửa sổ
+        window.addEventListener('click', function() {
+            if (!userMenu.classList.contains('hidden')) {
+                userMenu.classList.add('hidden');
+            }
+        });
+    }
+});
 
