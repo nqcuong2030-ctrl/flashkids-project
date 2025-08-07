@@ -1646,6 +1646,7 @@ function startReadingQuiz(words) {
 
 function handleReadingQuizOptionClick(button, selectedOption, correctOption, wordPool) {
     playSound('click');
+	button.blur();
     document.querySelectorAll('#reading-quiz-options-container button').forEach(btn => btn.disabled = true);
 
     if (selectedOption.id === correctOption.id) {
@@ -2641,7 +2642,6 @@ function handleDownloadRequest() {
     }
 }
 
-
 // Phiên bản sửa đổi của hàm speakWord để dùng cho công cụ này
 function speakWordForTool(word, lang, onEndCallback) {
     const cacheKey = `audio_${lang}_${word.toLowerCase()}`;
@@ -2688,3 +2688,40 @@ function speakWordForTool(word, lang, onEndCallback) {
             speakWordDefault(word, lang);
         });
 }
+
+// ===================================================================================
+// ===== 13. LOGIC MENU NGƯỜI DÙNG (USER DROPDOWN MENU)
+// ===================================================================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    const userMenuButton = document.getElementById('user-menu-button');
+    const userMenu = document.getElementById('user-menu');
+
+    if (userMenuButton && userMenu) {
+        // Mở/đóng menu khi nhấp vào avatar
+        userMenuButton.addEventListener('click', function(event) {
+            event.stopPropagation(); // Ngăn sự kiện click lan ra ngoài
+            userMenu.classList.toggle('hidden');
+        });
+
+        // Đóng menu khi nhấp ra ngoài
+        window.addEventListener('click', function() {
+            if (!userMenu.classList.contains('hidden')) {
+                userMenu.classList.add('hidden');
+            }
+        });
+    }
+});
+
+// Hàm xử lý khi nhấp vào một mục trong menu
+function handleMenuLinkClick(tabId) {
+    // 1. Chuyển đến tab được chỉ định (ở đây là 'settings')
+    changeTab(tabId);
+    
+    // 2. Đóng menu lại ngay lập tức
+    const userMenu = document.getElementById('user-menu');
+    if (userMenu) {
+        userMenu.classList.add('hidden');
+    }
+}
+

@@ -152,10 +152,15 @@
                         </svg>
                         <span class="text-sm" id="current-level-display">Level A1</span>
                     </div>
-                    <div class="relative">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/1/14/H%C6%B0%C6%A1u_cao_c%E1%BB%95.png" alt="User" class="h-10 w-10 rounded-full bg-white p-1 cursor-pointer">
-                        <div class="absolute top-0 right-0 h-3 w-3 bg-green-500 rounded-full border-2 border-white"></div>
-                    </div>
+                    <div class="relative" id="user-menu-button">
+						<img src="https://upload.wikimedia.org/wikipedia/commons/1/14/H%C6%B0%C6%A1u_cao_c%E1%BB%95.png" alt="User" class="h-10 w-10 rounded-full bg-white p-1 cursor-pointer">
+						<div class="absolute top-0 right-0 h-3 w-3 bg-green-500 rounded-full border-2 border-white"></div>
+						
+						<div id="user-menu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+							<a href="#" onclick="handleMenuLinkClick('settings')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Hồ sơ cá nhân</a>
+							<a href="#" onclick="handleMenuLinkClick('settings')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Cài đặt</a>
+						</div>
+					</div>
                 </div>
             </div>
         </header>
@@ -168,9 +173,9 @@
                     <button class="py-2 px-1 whitespace-nowrap" onclick="changeTab('flashcards')">Thẻ từ vựng</button>
                     <button class="py-2 px-1 whitespace-nowrap" onclick="changeTab('games')">Trò chơi</button>
                     <button class="py-2 px-1 whitespace-nowrap" onclick="changeTab('quiz')">Kiểm tra</button>
-                    <button class="py-2 px-1 whitespace-nowrap hidden" onclick="changeTab('rewards')">Phần thưởng</button>
+                    <button class="py-2 px-1 whitespace-nowrap" onclick="changeTab('rewards')">Phần thưởng</button>
                     <button class="py-2 px-1 whitespace-nowrap" onclick="changeTab('stats')">Thống kê</button>
-                    <button class="py-2 px-1 whitespace-nowrap" onclick="changeTab('settings')">Cài đặt</button>
+                    <button class="py-2 px-1 whitespace-nowrap hidden" onclick="changeTab('settings')">Cài đặt</button>
                 </div>
             </div>
         </nav>
