@@ -167,18 +167,18 @@
 
         <!-- Main Navigation -->
         <nav class="bg-white shadow-md">
-            <div class="container mx-auto">
-                <div class="flex overflow-x-auto py-2 px-4 space-x-6 text-gray-600 font-semibold no-scrollbar">
-                    <button class="tab-active py-2 px-1 whitespace-nowrap" onclick="changeTab('home')">Trang chủ</button>
-                    <button class="py-2 px-1 whitespace-nowrap" onclick="changeTab('flashcards')">Thẻ từ vựng</button>
-                    <button class="py-2 px-1 whitespace-nowrap" onclick="changeTab('games')">Trò chơi</button>
-                    <button class="py-2 px-1 whitespace-nowrap" onclick="changeTab('quiz')">Kiểm tra</button>
-                    <button class="py-2 px-1 whitespace-nowrap" onclick="changeTab('rewards')">Phần thưởng</button>
-                    <button class="py-2 px-1 whitespace-nowrap" onclick="changeTab('stats')">Thống kê</button>
-                    <button class="py-2 px-1 whitespace-nowrap hidden" onclick="changeTab('settings')">Cài đặt</button>
-                </div>
-            </div>
-        </nav>
+			<div class="container mx-auto">
+				<div class="flex overflow-x-auto py-2 px-4 space-x-6 text-gray-600 font-semibold no-scrollbar">
+					<button data-tab="home" class="tab-active py-2 px-1 whitespace-nowrap" onclick="changeTab('home')">Trang chủ</button>
+					<button data-tab="flashcards" class="py-2 px-1 whitespace-nowrap" onclick="navigateToFlashcardsTab()">Thẻ từ vựng</button>
+					<button data-tab="games" class="py-2 px-1 whitespace-nowrap" onclick="changeTab('games')">Trò chơi</button>
+					<button data-tab="quiz" class="py-2 px-1 whitespace-nowrap" onclick="changeTab('quiz')">Kiểm tra</button>
+					<button data-tab="rewards" class="py-2 px-1 whitespace-nowrap" onclick="changeTab('rewards')">Phần thưởng</button>
+					<button data-tab="stats" class="py-2 px-1 whitespace-nowrap" onclick="changeTab('stats')">Thống kê</button>
+					<button data-tab="settings" class="py-2 px-1 whitespace-nowrap hidden" onclick="changeTab('settings')">Cài đặt</button>
+				</div>
+			</div>
+		</nav>
 
         <!-- Main Content -->
         <main class="container mx-auto py-6 px-4">

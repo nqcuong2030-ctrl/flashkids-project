@@ -397,49 +397,51 @@ async function changeLevel(level, isUserAction = false) {
 }
 
 // Tab navigation
+// Hàm này để xử lý khi người dùng bấm trực tiếp vào tab "Thẻ từ vựng"
+function navigateToFlashcardsTab() {
+    currentCategoryId = 'cat1'; // Mặc định chọn chủ đề 'cat1'
+    currentCardIndex = 0;
+    changeTab('flashcards');
+}
+
+// Hàm chuyển tab chính, đã được sửa lại để ổn định hơn
 function changeTab(tabId) {
-	playSound('click'); // <-- Thêm âm thanh khi nhấn
+	playSound('click');
 	
-	// Ẩn tất cả nội dung tab
 	document.querySelectorAll('.tab-content').forEach(tab => {
 		tab.classList.add('hidden');
 	});
 	
-	// Hiển thị nội dung tab được chọn
-	document.getElementById(tabId).classList.remove('hidden');
+	// Thêm kiểm tra để đảm bảo phần tử tồn tại trước khi thao tác
+	const tabContent = document.getElementById(tabId);
+	if (tabContent) {
+	    tabContent.classList.remove('hidden');
+	} else {
+	    console.error(`Lỗi: Không tìm thấy nội dung cho tab có id="${tabId}"`);
+	    return; // Dừng hàm nếu không tìm thấy tab
+	}
 	
-	// Cập nhật kiểu cho nút tab đang hoạt động
+	// Cập nhật kiểu cho nút tab đang hoạt động bằng data-tab
 	document.querySelectorAll('nav button').forEach(button => {
 		button.classList.remove('tab-active');
 	});
-	const activeButton = Array.from(document.querySelectorAll('nav button')).find(button => {
-		return button.getAttribute('onclick') === `changeTab('${tabId}')`;
-	});
+	const activeButton = document.querySelector(`nav button[data-tab='${tabId}']`);
 	if (activeButton) {
 		activeButton.classList.add('tab-active');
 	}
 
 	isFlashcardsTabActive = (tabId === 'flashcards');
-
-	// === PHẦN SỬA LỖI ===
+	
 	if (isFlashcardsTabActive) {
-		// Bắt đầu đếm ngược khi người dùng vào tab thẻ từ vựng
 		startDailyTimer(); 
+        updateFlashcard();
+		updateCategoryFilters();
 	} else if (tabId !== 'games' && tabId !== 'quiz') {
-		// Tạm dừng đồng hồ nếu chuyển sang các tab không phải học tập
 		if (isTimerRunning) {
 			pauseDailyTimer();
 		}
 	}
-	// ======================
 	
-	// Cập nhật flashcard nếu chuyển sang tab flashcards
-	if (isFlashcardsTabActive) {
-		updateFlashcard();
-		updateCategoryFilters();
-	}
-	
-	// Cập nhật hiển thị tiến độ nếu chuyển sang tab thống kê
 	if (tabId === 'stats') {
 		updateCategoryProgressDisplay();
 	}
