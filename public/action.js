@@ -1903,6 +1903,9 @@ function updateLevelBadges(activeLevel) {
 }
 
 function loadCategories() {
+	const filteredCards = getFilteredCards();
+	const counter = document.getElementById('card-counter');
+	counter.textContent = filteredCards.length > 0
 	const container = document.getElementById('categories-container');
 	container.innerHTML = '';
 
@@ -1922,7 +1925,7 @@ function loadCategories() {
 		categoryElement.innerHTML = `
 			<div class="flex justify-between items-start mb-4">
 				<h4 class="text-lg font-bold">${category.name}</h4>
-				<span class="bg-white text-gray-700 text-xs font-bold px-2 py-1 rounded-full">${category.wordCount} từ</span>
+				<span class="bg-white text-gray-700 text-xs font-bold px-2 py-1 rounded-full">${filteredCards.length} từ</span>
 			</div>
 			<div class="flex justify-between items-end">
 				<div>
@@ -2700,7 +2703,7 @@ function speakWordForTool(word, lang, onEndCallback) {
 // ===================================================================================
 
 // Hàm xử lý khi nhấp vào một mục trong menu
-function handleMenuLinkClick(tabId) {
+function handleMenuLinkClick(event, tabId) {
 	event.stopPropagation();
     // 1. Chuyển đến tab được chỉ định (ở đây là 'settings')
     changeTab(tabId);
