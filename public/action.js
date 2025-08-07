@@ -74,6 +74,9 @@ let isTimerRunning = false;
 let flashcardActivityTimeout = null;
 const INACTIVITY_DELAY = 10000; // 10 giây
 
+// NEW
+let lastSpokenAudio = { lang: null, text: null }; 
+
 // Dữ liệu tĩnh
 const categoryColors = [
     'from-blue-400 to-blue-600', 'from-purple-400 to-purple-600', 'from-pink-400 to-pink-600',
@@ -2542,3 +2545,145 @@ function resetFlashcardInactivityTimer() {
 	}, INACTIVITY_DELAY);
 }
 
+// ===================================================================================
+// ===== 12. CÔNG CỤ ĐỌC VĂN BẢN (TEXT-TO-SPEECH TOOL)
+// ===================================================================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    const speakBtn = document.getElementById('speak-text-btn');
+    const downloadBtn = document.getElementById('download-speech-btn');
+    const input = document.getElementById('text-to-speech-input');
+
+    if (speakBtn) {
+        speakBtn.addEventListener('click', handleSpeakRequest);
+    }
+
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', handleDownloadRequest);
+    }
+    
+    if(input) {
+        input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                handleSpeakRequest();
+            }
+        });
+    }
+});
+
+function detectLanguage(text) {
+    // Sử dụng biểu thức chính quy đơn giản để phát hiện ngôn ngữ
+    // Tiếng Việt có nhiều dấu thanh, trong khi tiếng Anh thì không.
+    const vietnameseRegex = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i;
+    return vietnameseRegex.test(text) ? 'vi-VN' : 'en-US';
+}
+
+function handleSpeakRequest() {
+    const input = document.getElementById('text-to-speech-input');
+    const text = input.value.trim();
+    const downloadBtn = document.getElementById('download-speech-btn');
+
+    if (!text) {
+        alert("Vui lòng nhập văn bản để đọc.");
+        return;
+    }
+
+    const lang = detectLanguage(text);
+    
+    // Lưu lại thông tin để tải về sau
+    lastSpokenAudio = { lang: lang, text: text };
+
+    // Gọi hàm speakWord và hiển thị nút tải về khi hoàn thành
+    speakWordForTool(text, lang, () => {
+        downloadBtn.classList.remove('hidden');
+    });
+}
+
+function handleDownloadRequest() {
+    if (!lastSpokenAudio.text) return;
+
+    const { lang, text } = lastSpokenAudio;
+    const cacheKey = `audio_${lang}_${text.toLowerCase()}`;
+    const downloadBtn = document.getElementById('download-speech-btn');
+
+    // Lấy dữ liệu từ localStorage để tạo link tải
+    const cachedItem = localStorage.getItem(cacheKey);
+    if (cachedItem) {
+        try {
+            const data = JSON.parse(cachedItem);
+            const base64Audio = data.audioContent;
+
+            const link = document.createElement('a');
+            link.href = `data:audio/mp3;base64,${base64Audio}`;
+            link.download = `${text.substring(0, 20)}.mp3`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Ẩn nút tải về và xóa khỏi localStorage
+            downloadBtn.classList.add('hidden');
+            localStorage.removeItem(cacheKey);
+            console.log(`Đã xóa cache cho: ${cacheKey}`);
+
+        } catch (e) {
+            console.error("Lỗi khi xử lý tải audio:", e);
+            alert("Không thể tải file âm thanh.");
+        }
+    } else {
+        alert("Không tìm thấy dữ liệu âm thanh để tải. Vui lòng nhấn nút đọc lại.");
+        downloadBtn.classList.add('hidden');
+    }
+}
+
+
+// Phiên bản sửa đổi của hàm speakWord để dùng cho công cụ này
+function speakWordForTool(word, lang, onEndCallback) {
+    const cacheKey = `audio_${lang}_${word.toLowerCase()}`;
+    const cachedItem = localStorage.getItem(cacheKey);
+
+    if (cachedItem) {
+        try {
+            const data = JSON.parse(cachedItem);
+            const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
+            audio.play();
+            audio.onended = onEndCallback; // Gọi callback khi phát xong
+            return;
+        } catch (e) {
+            localStorage.removeItem(cacheKey);
+        }
+    }
+
+    fetch(`/.netlify/functions/text-to-speech?text=${encodeURIComponent(word)}&lang=${lang}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.audioContent) {
+                const itemToCache = {
+                    audioContent: data.audioContent,
+                    timestamp: Date.now()
+                };
+                
+                try {
+                    localStorage.setItem(cacheKey, JSON.stringify(itemToCache));
+                } catch (e) {
+                    if (e.name === 'QuotaExceededError') {
+                        pruneAudioCache();
+                        try {
+                            localStorage.setItem(cacheKey, JSON.stringify(itemToCache));
+                        } catch (e2) {
+                            console.error("Vẫn không thể lưu cache sau khi dọn dẹp.", e2);
+                        }
+                    }
+                }
+
+                const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
+                audio.play();
+                audio.onended = onEndCallback; // Gọi callback khi phát xong
+            } else {
+                speakWordDefault(word, lang); // Dùng giọng mặc định nếu API lỗi
+            }
+        })
+        .catch(error => {
+            console.error('Lỗi khi gọi Netlify Function:', error);
+            speakWordDefault(word, lang);
+        });
+}

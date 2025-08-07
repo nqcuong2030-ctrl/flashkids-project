@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-	<link rel="icon" type="image/png" href="https://upload.wikimedia.org/wikipedia/commons/1/14/H%C6%B0%C6%A1u_cao_c%E1%BB%95.png">
+	<link rel="icon" type="image/x-icon" href="favicon.png">
     <title>FlashKids - Học Từ Vựng Tiếng Anh</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -167,7 +167,7 @@
                     <button class="py-2 px-1 whitespace-nowrap" onclick="changeTab('quiz')">Kiểm tra</button>
                     <button class="py-2 px-1 whitespace-nowrap hidden" onclick="changeTab('rewards')">Phần thưởng</button>
                     <button class="py-2 px-1 whitespace-nowrap" onclick="changeTab('stats')">Thống kê</button>
-                    <button class="py-2 px-1 whitespace-nowrap hidden" onclick="changeTab('settings')">Cài đặt</button>
+                    <button class="py-2 px-1 whitespace-nowrap" onclick="changeTab('settings')">Cài đặt</button>
                 </div>
             </div>
         </nav>
@@ -451,6 +451,25 @@
                             <label for="sound-toggle" class="ml-2 text-gray-700">Bật âm thanh</label>
                         </div>
                     </div>
+					
+					<div class="bg-white rounded-2xl p-6 shadow-md mb-8">
+						<h3 class="text-lg font-bold text-gray-800 mb-4">Công cụ đọc văn bản</h3>
+						<div class="relative">
+							<input type="text" id="text-to-speech-input" class="shadow appearance-none border rounded w-full py-3 pl-3 pr-20 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Nhập câu hoặc từ để đọc...">
+							<div class="absolute inset-y-0 right-0 flex items-center pr-3">
+								<button id="speak-text-btn" class="text-gray-500 hover:text-blue-500">
+									<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+									</svg>
+								</button>
+								<button id="download-speech-btn" class="text-gray-500 hover:text-green-500 ml-2 hidden">
+									<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+									</svg>
+								</button>
+							</div>
+						</div>
+					</div>
                     
                     <button class="btn-primary text-white py-2 px-6 rounded-lg shadow-md" onclick="saveAppSettings()">Lưu cài đặt</button>
                 </div>
@@ -768,6 +787,5 @@
     </div>
 
     <script src="action.js"></script>
-	<script src="UI.js"></script>
 </body>
 </html>
