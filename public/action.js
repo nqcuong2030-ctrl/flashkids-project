@@ -2699,6 +2699,7 @@ function speakWordForTool(word, lang, onEndCallback) {
 
 // Hàm xử lý khi nhấp vào một mục trong menu
 function handleMenuLinkClick(tabId) {
+	event.stopPropagation();
     // 1. Chuyển đến tab được chỉ định (ở đây là 'settings')
     changeTab(tabId);
     
