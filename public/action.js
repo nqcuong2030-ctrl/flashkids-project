@@ -435,7 +435,8 @@ function changeTab(tabId) {
 	
 	// Cập nhật flashcard nếu chuyển sang tab flashcards
 	if (isFlashcardsTabActive) {
-		updateFlashcard();		
+		updateFlashcard();
+		updateCategoryFilters();
 	}
 	
 	// Cập nhật hiển thị tiến độ nếu chuyển sang tab thống kê
