@@ -864,11 +864,7 @@ function checkWordMatch() {
 			const categoryId = currentActivity.categoryId;
 			const score = 100; // Hoàn thành tất cả là 100 điểm
 			
-			updateGameProgress(gameId, categoryId, score);
-			
-			matchedPairs.forEach(wordId => {
-				markWordAsLearned(wordId);
-			});
+			updateGameProgress(gameId, categoryId, score);			
 			
 			closeModal('matchingGameModal');
 			showCompletionMessage(score, gameId, categoryId);
