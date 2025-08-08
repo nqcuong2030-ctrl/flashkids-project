@@ -348,30 +348,40 @@ function speakWordDefault(word, lang) {
 
 // Hàm speakWord chính - giờ đây sẽ quản lý đối tượng Audio
 function speakWord(word, lang) {
+    let filename = '';
+    const lowerCaseWord = word.toLowerCase();
+
+    // >>> LOGIC QUAN TRỌNG: Áp dụng đúng regex cho từng ngôn ngữ <<<
+    if (lang === 'en-US') {
+        // Logic nghiêm ngặt cho tiếng Anh, giống hệt generate_audio.js
+        filename = lowerCaseWord.replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '_');
+    } else { // Mặc định cho các ngôn ngữ khác (ví dụ: vi-VN)
+        // Logic cho phép ký tự có dấu, giống hệt generate_audio.js
+        filename = lowerCaseWord.replace(/[^a-z0-9\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/g, '').replace(/\s+/g, '_');
+    }
+
+    const audioUrl = `/audio/${lang}/${filename}.mp3`;
     const audio = new Audio();
-    
-    // Luôn gán các trình xử lý sự kiện trước
+
+    // Gán các trình xử lý sự kiện
     disableCardControls();
     audio.addEventListener('ended', enableCardControls);
 
     // Bắt đầu phát khi audio đã sẵn sàng
-    audio.addEventListener('canplaythrough', function() {
+    audio.addEventListener('canplaythrough', () => {
         audio.play().catch(e => {
             console.error("Lỗi khi phát audio:", e);
             enableCardControls();
         });
     });
 
-    // Nếu không tải được file cục bộ, gọi hàm dự phòng
+    // Nếu không tải được file cục bộ (lỗi 404), gọi hàm dự phòng Azure
     audio.onerror = function() {
-        speakWordViaAzure(word, lang, audio); // Quan trọng: Truyền đối tượng 'audio' vào hàm dự phòng
+        speakWordViaAzure(word, lang, lang === 'vi-VN' ? 'vi-VN-HoaiMyNeural' : 'en-US-JennyNeural');
     };
     
-    // Chuẩn hóa tên file và đặt nguồn để bắt đầu tải
-    const filename = word.toLowerCase()
-        .replace(/[^a-z0-9\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/g, '')
-        .replace(/\s+/g, '_');
-    audio.src = `/audio/${lang}/${filename}.mp3`;
+    // Bắt đầu tải file
+    audio.src = audioUrl;
 }
 
 // Hàm speakWordViaAzure - giờ đây sẽ nhận và sử dụng đối tượng Audio có sẵn
