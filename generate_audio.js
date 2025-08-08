@@ -7,7 +7,7 @@ require('dotenv').config(); // Tải các biến môi trường từ file .env
 const SPEECH_KEY = process.env.AZURE_SPEECH_KEY;
 const SPEECH_REGION = process.env.AZURE_SPEECH_REGION;
 const VOCAB_FILE = './data/flashcards-all.json'; // SỬA TÊN FILE NÀY NẾU CẦN
-const OUTPUT_DIR = 'audio'; // Tên thư mục đầu ra
+const OUTPUT_DIR = 'public/audio'; // Tên thư mục đầu ra
 
 /**
  * Hàm gọi Azure để tạo 1 file MP3.
