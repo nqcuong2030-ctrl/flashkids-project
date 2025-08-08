@@ -1,8 +1,13 @@
 [build]
-  publish = "public"
-  functions = "functions"
+  # Chỉ định thư mục deploy chính
+  publish = "public/"
 
 [functions]
+  # Dòng này là cú pháp mới, thay thế cho "functions = ..." ở [build]
+  directory = "functions/"
+  
+  # Giữ lại cấu hình bundler của bạn, nó rất tốt cho tốc độ
   node_bundler = "esbuild"
-  # Thêm dòng này để Netlify mang theo thư mục 'data'
+  
+  # Giữ lại dòng quan trọng này để function có thể đọc file data
   included_files = ["data/**"]
