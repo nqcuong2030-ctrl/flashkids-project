@@ -347,91 +347,81 @@ function speakWordDefault(word, lang) {
 // HÃY THAY THẾ TOÀN BỘ 2 HÀM NÀY
 
 // Hàm speakWord chính - giờ đây sẽ quản lý đối tượng Audio
-function speakWord(word, lang) {
+// Hàm speakWordViaAzure - giờ đây sẽ nhận và sử dụng đối tượng Audio có sẵn
+// HÃY XÓA CẢ 2 HÀM speakWord VÀ speakWordViaAzure CŨ VÀ THAY BẰNG HÀM NÀY
+async function speakWord(word, lang) {
+    disableCardControls();
+
+    // Bước 1: Chuẩn hóa tên file với logic ĐỒNG BỘ với generate_audio.js
     let filename = '';
     const lowerCaseWord = word.toLowerCase();
-
-    // >>> LOGIC QUAN TRỌNG: Áp dụng đúng regex cho từng ngôn ngữ <<<
     if (lang === 'en-US') {
-        // Logic nghiêm ngặt cho tiếng Anh, giống hệt generate_audio.js
         filename = lowerCaseWord.replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '_');
-    } else { // Mặc định cho các ngôn ngữ khác (ví dụ: vi-VN)
-        // Logic cho phép ký tự có dấu, giống hệt generate_audio.js
+    } else { // Mặc định cho vi-VN
         filename = lowerCaseWord.replace(/[^a-z0-9\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/g, '').replace(/\s+/g, '_');
     }
+    const localAudioUrl = `/audio/${lang}/${filename}.mp3`;
 
-    const audioUrl = `/audio/${lang}/${filename}.mp3`;
-    const audio = new Audio();
-
-    // Gán các trình xử lý sự kiện
-    disableCardControls();
-    audio.addEventListener('ended', enableCardControls);
-
-    // Bắt đầu phát khi audio đã sẵn sàng
-    audio.addEventListener('canplaythrough', () => {
-        audio.play().catch(e => {
-            console.error("Lỗi khi phát audio:", e);
-            enableCardControls();
-        });
-    });
-
-    // Nếu không tải được file cục bộ (lỗi 404), gọi hàm dự phòng Azure
-    audio.onerror = function() {
-        speakWordViaAzure(word, lang, lang === 'vi-VN' ? 'vi-VN-HoaiMyNeural' : 'en-US-JennyNeural');
-    };
-    
-    // Bắt đầu tải file
-    audio.src = audioUrl;
-}
-
-// Hàm speakWordViaAzure - giờ đây sẽ nhận và sử dụng đối tượng Audio có sẵn
-function speakWordViaAzure(word, lang, audioObject) {
-    console.warn(`Không tìm thấy file cục bộ cho "${word}". Đang gọi API Azure...`);
-    
-    const voiceName = lang === 'vi-VN' ? 'vi-VN-HoaiMyNeural' : 'en-US-JennyNeural';
-    const cacheKey = `audio_${lang}_${word.toLowerCase()}`;
-    const cachedItem = localStorage.getItem(cacheKey);
-
-    // 1. Kiểm tra cache
-    if (cachedItem) {
-        try {
-            console.log(`Đang phát "${word}" từ localStorage.`);
-            const data = JSON.parse(cachedItem);
-            audioObject.src = `data:audio/mp3;base64,${data.audioContent}`; // Gán nguồn cho đối tượng audio có sẵn
-            return;
-        } catch (e) {
-            localStorage.removeItem(cacheKey);
+    try {
+        // Bước 2: Thử fetch file cục bộ trước
+        const response = await fetch(localAudioUrl);
+        if (!response.ok) {
+            // Nếu không OK (ví dụ: 404 Not Found), sẽ nhảy vào khối catch
+            throw new Error(`File cục bộ không tồn tại: ${response.statusText}`);
         }
-    }
 
-    // 2. Nếu không có trong cache, gọi API
-    fetch(`/.netlify/functions/text-to-speech?text=${encodeURIComponent(word)}&lang=${lang}&voice=${voiceName}`)
-        .then(response => response.json())
-        .then(data => {
+        // Nếu file tồn tại, phát nó
+        const audio = new Audio(localAudioUrl);
+        audio.addEventListener('ended', enableCardControls);
+        await audio.play();
+
+    } catch (error) {
+        // Bước 3: Nếu fetch file cục bộ thất bại, chuyển sang phương án dự phòng
+        console.warn(`Không phát được file cục bộ cho "${word}". Chuyển sang Cache/API.`);
+        
+        const voiceName = lang === 'vi-VN' ? 'vi-VN-HoaiMyNeural' : 'en-US-JennyNeural';
+        const cacheKey = `audio_${lang}_${word.toLowerCase()}`;
+        const cachedItem = localStorage.getItem(cacheKey);
+
+        // Thử cache trước
+        if (cachedItem) {
+            try {
+                const data = JSON.parse(cachedItem);
+                const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
+                audio.addEventListener('ended', enableCardControls);
+                await audio.play();
+                return; // Thoát sau khi phát từ cache
+            } catch (e) {
+                localStorage.removeItem(cacheKey); // Xóa cache hỏng
+            }
+        }
+
+        // Nếu không có trong cache, gọi Netlify Function
+        try {
+            const funcResponse = await fetch(`/.netlify/functions/text-to-speech?text=${encodeURIComponent(word)}&lang=${lang}&voice=${voiceName}`);
+            const data = await funcResponse.json();
+
             if (data.audioContent) {
+                // Lưu vào cache
                 const itemToCache = { audioContent: data.audioContent, timestamp: Date.now() };
-                try {
-                    localStorage.setItem(cacheKey, JSON.stringify(itemToCache));
-                } catch (e) {
-                    if (e.name === 'QuotaExceededError') {
-                        pruneAudioCache();
-                        try {
-                            localStorage.setItem(cacheKey, JSON.stringify(itemToCache));
-                        } catch (e2) {
-                            console.error("Vẫn không thể lưu cache sau khi dọn dẹp.", e2);
-                        }
-                    }
-                }
-                audioObject.src = `data:audio/mp3;base64,${data.audioContent}`; // Gán nguồn cho đối tượng audio có sẵn
+                try { localStorage.setItem(cacheKey, JSON.stringify(itemToCache)); } catch (e) { /* Xử lý cache đầy */ }
+
+                // Phát âm thanh
+                const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
+                audio.addEventListener('ended', enableCardControls);
+                await audio.play();
             } else {
                 speakWordDefault(word, lang);
+                enableCardControls();
             }
-        })
-        .catch(error => {
-            console.error('Lỗi khi gọi Netlify Function:', error);
+        } catch (fetchError) {
+            console.error('Lỗi khi gọi Netlify Function:', fetchError);
             speakWordDefault(word, lang);
-        });
+            enableCardControls();
+        }
+    }
 }
+
 
 // ===================================================================================
 // ===== 5. ĐIỀU HƯỚNG & GIAO DIỆN CHÍNH
