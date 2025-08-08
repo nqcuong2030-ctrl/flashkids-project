@@ -351,19 +351,19 @@ function speakWordDefault(word, lang) {
 // Hàm speakWordViaAzure - giờ đây sẽ nhận và sử dụng đối tượng Audio có sẵn
 // HÃY XÓA CẢ 2 HÀM speakWord VÀ speakWordViaAzure CŨ VÀ THAY BẰNG HÀM NÀY
 async function speakWord(word, lang) {
-    // Dừng âm thanh cũ trước khi phát âm thanh mới
+    // >>> BƯỚC 1: Dừng âm thanh cũ nếu có <<<
     if (currentAudio) {
         currentAudio.pause();
-        currentAudio.src = '';
+        currentAudio.src = ''; // Hủy bỏ tải và giải phóng tài nguyên
     }
 
-    // Chuẩn hóa tên file với logic đồng bộ
+    // Chuẩn hóa tên file
     let filename = '';
     const lowerCaseWord = word.toLowerCase();
     if (lang === 'en-US') {
         filename = lowerCaseWord.replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '_');
     } else {
-        filename = slugifyVietnamese(lowerCaseWord); // Dùng hàm bỏ dấu cho tiếng Việt
+        filename = slugifyVietnamese(lowerCaseWord);
     }
     const localAudioUrl = `/audio/${lang}/${filename}.mp3`;
 
@@ -374,9 +374,8 @@ async function speakWord(word, lang) {
             throw new Error(`File cục bộ không tồn tại`);
         }
 
-        // Nếu file tồn tại, phát nó
-        currentAudio = new Audio(localAudioUrl);
-        //currentAudio.addEventListener('ended', enableCardControls);
+        // Nếu file tồn tại, phát nó và gán vào biến toàn cục
+        currentAudio = new Audio(localAudioUrl); // <<< BƯỚC 2: Gán âm thanh mới
         await currentAudio.play();
 
     } catch (error) {
@@ -412,12 +411,10 @@ async function speakWord(word, lang) {
         }
 
         if (audioSrc) {
-            currentAudio = new Audio(audioSrc);
-            //currentAudio.addEventListener('ended', enableCardControls);
+            currentAudio = new Audio(audioSrc); // <<< BƯỚC 2 (tương tự): Gán âm thanh mới
             await currentAudio.play();
         } else {
             speakWordDefault(word, lang);
-            //enableCardControls();
         }
     }
 }
