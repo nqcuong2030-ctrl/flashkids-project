@@ -345,22 +345,25 @@ function speakWordDefault(word, lang) {
 
 // Hàm mới gọi đến Netlify Function toàn bộ ứng dụng (Flashcard, Game, Quiz)
 function speakWord(word, lang) {
-    // 1. Chuẩn hóa tên file
-    const filename = word.toLowerCase()
-        .replace(/[^a-z0-9\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/g, '')
-        .replace(/\s+/g, '_');
-    
+    let filename = '';
+    const lowerCaseWord = word.toLowerCase();
+
+    // >>> LOGIC MỚI: Áp dụng đúng regex cho từng ngôn ngữ <<<
+    if (lang === 'en-US') {
+        filename = lowerCaseWord.replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '_');
+    } else { // Giả định còn lại là vi-VN
+        filename = lowerCaseWord.replace(/[^a-z0-9\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/g, '').replace(/\s+/g, '_');
+    }
+    // >>> KẾT THÚC LOGIC MỚI <<<
+
     const audioUrl = `/audio/${lang}/${filename}.mp3`;
     
-    const audio = new Audio(); // Tạo đối tượng Audio rỗng
+    const audio = new Audio();
 
-    // 2. Gán các trình xử lý sự kiện TRƯỚC KHI đặt nguồn
-    // Nếu xảy ra lỗi (file không tồn tại), gọi hàm dự phòng Azure
     audio.onerror = function() {
         speakWordViaAzure(word, lang, lang === 'vi-VN' ? 'vi-VN-HoaiMyNeural' : 'en-US-JennyNeural');
     };
 
-    // Nếu file tải thành công và có thể phát, các lệnh này sẽ chạy
     audio.oncanplaythrough = function() {
         disableCardControls();
         audio.play();
@@ -368,7 +371,6 @@ function speakWord(word, lang) {
 
     audio.addEventListener('ended', enableCardControls);
 
-    // 3. CUỐI CÙNG, gán nguồn audio. Thao tác này sẽ bắt đầu quá trình tải.
     audio.src = audioUrl;
 }
 
