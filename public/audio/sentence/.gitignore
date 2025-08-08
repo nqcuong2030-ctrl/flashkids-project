@@ -1,1 +1,8 @@
-"node_modules/" 
+# Bỏ qua các thư viện đã cài đặt
+node_modules
+
+# Bỏ qua file chứa khóa API bí mật
+.env
+
+# Bỏ qua thư mục chứa file CSS đã build (sẽ được tạo lại khi deploy)
+/dist

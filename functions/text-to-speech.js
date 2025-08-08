@@ -33,33 +33,23 @@ exports.handler = async (event) => {
             body: ssml,
         });
 
-        // --- LOG GỠ LỖI ---
-        console.log('>>> Azure Response Status:', response.status);
         const contentType = response.headers.get('content-type');
-        console.log('>>> Azure Response Content-Type:', contentType);
-        // --- KẾT THÚC LOG ---
-
+        
         if (!response.ok || !contentType || !contentType.startsWith('audio/mpeg')) {
             const errorBody = await response.text();
-            console.error('>>> Azure API Error (Body):', errorBody);
             return { statusCode: 500, body: JSON.stringify({ error: `Expected audio/mpeg but received ${contentType}.` }) };
         }
 
         const audioBuffer = await response.buffer();
         
-        // --- LOG GỠ LỖI ---
-        console.log('>>> Audio Buffer Length:', audioBuffer.length);
         const base64Audio = audioBuffer.toString('base64');
-        console.log('>>> Base64 String (first 50 chars):', base64Audio.substring(0, 50));
-        // --- KẾT THÚC LOG ---
-
+        
         return {
             statusCode: 200,
             body: JSON.stringify({ audioContent: base64Audio }),
         };
 
-    } catch (error) {
-        console.error('>>> Netlify Function Error:', error);
+    } catch (error) {        
         return { statusCode: 500, body: JSON.stringify({ error: 'Lỗi trong Netlify Function.' }) };
     }
 };
