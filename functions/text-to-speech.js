@@ -13,10 +13,7 @@ exports.handler = async (event) => {
     }
 
     const endpoint = `https://${SPEECH_REGION}.tts.speech.microsoft.com/cognitiveservices/v1`;
-
-    // Nếu không có giọng đọc được chỉ định, dùng giọng mặc định
-    let voiceName = voice || (lang === 'vi-VN' ? 'vi-VN-HoaiMyNeural' : 'en-US-JennyNeural');
-
+    const voiceName = voice || (lang === 'vi-VN' ? 'vi-VN-HoaiMyNeural' : 'en-US-JennyNeural');
     const ssml = `
         <speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='${lang}'>
             <voice name='${voiceName}'>
@@ -36,25 +33,25 @@ exports.handler = async (event) => {
             body: ssml,
         });
 
-        // >>> PHẦN SỬA LỖI BẮT ĐẦU <<<
-        // 1. Kiểm tra mã trạng thái trả về
-        if (!response.ok) {
-            const errorBody = await response.text();
-            console.error('Azure API Error (Status Code):', errorBody);
-            return { statusCode: response.status, body: JSON.stringify({ error: `Azure Error: ${errorBody}` }) };
-        }
-
-        // 2. Kiểm tra loại nội dung trả về. Nó phải là audio/mpeg.
+        // --- LOG GỠ LỖI ---
+        console.log('>>> Azure Response Status:', response.status);
         const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.startsWith('audio/mpeg')) {
+        console.log('>>> Azure Response Content-Type:', contentType);
+        // --- KẾT THÚC LOG ---
+
+        if (!response.ok || !contentType || !contentType.startsWith('audio/mpeg')) {
             const errorBody = await response.text();
-            console.error('Azure API Error (Invalid Content-Type):', errorBody);
-            return { statusCode: 500, body: JSON.stringify({ error: `Expected audio/mpeg but received ${contentType}. Response: ${errorBody}` }) };
+            console.error('>>> Azure API Error (Body):', errorBody);
+            return { statusCode: 500, body: JSON.stringify({ error: `Expected audio/mpeg but received ${contentType}.` }) };
         }
-        // >>> PHẦN SỬA LỖI KẾT THÚC <<<
 
         const audioBuffer = await response.buffer();
+        
+        // --- LOG GỠ LỖI ---
+        console.log('>>> Audio Buffer Length:', audioBuffer.length);
         const base64Audio = audioBuffer.toString('base64');
+        console.log('>>> Base64 String (first 50 chars):', base64Audio.substring(0, 50));
+        // --- KẾT THÚC LOG ---
 
         return {
             statusCode: 200,
@@ -62,7 +59,7 @@ exports.handler = async (event) => {
         };
 
     } catch (error) {
-        console.error('Netlify Function Error:', error);
+        console.error('>>> Netlify Function Error:', error);
         return { statusCode: 500, body: JSON.stringify({ error: 'Lỗi trong Netlify Function.' }) };
     }
 };
