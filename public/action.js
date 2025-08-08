@@ -349,8 +349,6 @@ function speakWordDefault(word, lang) {
 
 // Hàm speakWord chính - giờ đây sẽ quản lý đối tượng Audio
 // Hàm speakWordViaAzure - giờ đây sẽ nhận và sử dụng đối tượng Audio có sẵn
-// HÃY XÓA CẢ 2 HÀM speakWord VÀ speakWordViaAzure CŨ VÀ THAY BẰNG HÀM NÀY
-// Thay thế toàn bộ hàm speakWord cũ bằng hàm này
 async function speakWord(word, lang) {
     // >>> BƯỚC 1: Dừng bất kỳ âm thanh nào đang phát <<<
     if (currentAudio) {
@@ -364,7 +362,7 @@ async function speakWord(word, lang) {
     if (lang === 'en-US') {
         filename = lowerCaseWord.replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '_');
     } else {
-        filename = lowerCaseWord.replace(/[^a-z0-9\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/g, '').replace(/\s+/g, '_');
+        filename = slugifyVietnamese(word);
     }
     const localAudioUrl = `/audio/${lang}/${filename}.mp3`;
 
@@ -386,6 +384,21 @@ async function speakWord(word, lang) {
     audio.src = localAudioUrl;
 }
 
+function slugifyVietnamese(text) {
+    text = text.toLowerCase();
+    text = text.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a");
+    text = text.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, "e");
+    text = text.replace(/ì|í|ị|ỉ|ĩ/g, "i");
+    text = text.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, "o");
+    text = text.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, "u");
+    text = text.replace(/ỳ|ý|ỵ|ỷ|ỹ/g, "y");
+    text = text.replace(/đ/g, "d");
+    // Xóa các ký tự đặc biệt không mong muốn
+    text = text.replace(/[^a-z0-9\s]/g, '');
+    // Thay thế khoảng trắng bằng gạch dưới
+    text = text.replace(/\s+/g, '_');
+    return text;
+}
 
 // ===================================================================================
 // ===== 5. ĐIỀU HƯỚNG & GIAO DIỆN CHÍNH
