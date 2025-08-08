@@ -17,9 +17,4 @@
   "devDependencies": {
     "tailwindcss": "^4.1.11"
   }
-},
-
-"scripts": {
-  "tailwind:init": "tailwindcss init",
-  "tailwind:build": "tailwindcss -i ./src/input.css -o ./dist/style.css --watch"
 }
