@@ -332,13 +332,13 @@ function playSound(soundName) {
 // Hàm dự phòng, dùng giọng đọc của trình duyệt
 function speakWordDefault(word, lang) {
     if ('speechSynthesis' in window && soundEnabled) {
+        // >>> DỪNG TẤT CẢ ÂM THANH CŨ CỦA TRÌNH DUYỆT <<<
+        window.speechSynthesis.cancel(); 
+
         const utterance = new SpeechSynthesisUtterance(word);
         utterance.lang = lang;
-        disableCardControls();
-        utterance.onend = enableCardControls;
         utterance.onerror = (e) => {
             console.error("SpeechSynthesis Error:", e);
-            enableCardControls();
         };
         window.speechSynthesis.speak(utterance);
     }
@@ -349,70 +349,83 @@ function speakWordDefault(word, lang) {
 
 // Hàm speakWord chính - giờ đây sẽ quản lý đối tượng Audio
 // Hàm speakWordViaAzure - giờ đây sẽ nhận và sử dụng đối tượng Audio có sẵn
-// HÃY XÓA CẢ 2 HÀM speakWord VÀ speakWordViaAzure CŨ VÀ THAY BẰNG HÀM NÀY
 async function speakWord(word, lang) {
-    // >>> BƯỚC 1: Dừng âm thanh cũ nếu có <<<
+    // 1. Dừng âm thanh cũ (cả MP3 và giọng đọc trình duyệt) ngay lập tức
     if (currentAudio) {
         currentAudio.pause();
-        currentAudio.src = ''; // Hủy bỏ tải và giải phóng tài nguyên
+        currentAudio.src = '';
+    }
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
     }
 
-    // Chuẩn hóa tên file
+    // 2. Tạo một Promise để quản lý việc phát âm thanh
+    const playAudioPromise = (audioSrc) => {
+        return new Promise((resolve, reject) => {
+            const audio = new Audio(audioSrc);
+            currentAudio = audio; // Gán vào biến toàn cục ngay lập tức để lần click sau có thể dừng nó
+
+            // Khi audio sẵn sàng, phát và báo thành công (resolve)
+            audio.addEventListener('canplaythrough', () => {
+                audio.play().then(resolve).catch(reject);
+            });
+            
+            // Khi có lỗi (file không tồn tại), báo thất bại (reject)
+            audio.addEventListener('error', reject);
+        });
+    };
+
+    // 3. Chuẩn hóa tên file
     let filename = '';
-    const lowerCaseWord = word.toLowerCase();
     if (lang === 'en-US') {
-        filename = lowerCaseWord.replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '_');
+        filename = word.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '_');
     } else {
-        filename = slugifyVietnamese(lowerCaseWord);
+        filename = slugifyVietnamese(word.toLowerCase());
     }
     const localAudioUrl = `/audio/${lang}/${filename}.mp3`;
 
+    // 4. Bắt đầu luồng xử lý
     try {
-        // Thử fetch file cục bộ trước
-        const response = await fetch(localAudioUrl);
-        if (!response.ok) {
-            throw new Error(`File cục bộ không tồn tại`);
-        }
-
-        // Nếu file tồn tại, phát nó và gán vào biến toàn cục
-        currentAudio = new Audio(localAudioUrl); // <<< BƯỚC 2: Gán âm thanh mới
-        await currentAudio.play();
-
+        // Cố gắng phát file cục bộ
+        await playAudioPromise(localAudioUrl);
     } catch (error) {
-        // Nếu thất bại, chuyển sang phương án dự phòng Cache/API
-        console.warn(`Không phát được file cục bộ cho "${word}". Chuyển sang Cache/API.`);
+        // Nếu thất bại, chuyển sang fallback
+        console.warn(`File cục bộ "${filename}.mp3" thất bại, chuyển sang Cache/API.`);
         
         const voiceName = lang === 'vi-VN' ? 'vi-VN-HoaiMyNeural' : 'en-US-JennyNeural';
         const cacheKey = `audio_${lang}_${word.toLowerCase()}`;
-        const cachedItem = localStorage.getItem(cacheKey);
-
         let audioSrc = null;
 
+        // Thử cache
+        const cachedItem = localStorage.getItem(cacheKey);
         if (cachedItem) {
             try {
-                console.log(`Đang phát "${word}" từ localStorage.`);
                 audioSrc = `data:audio/mp3;base64,${JSON.parse(cachedItem).audioContent}`;
             } catch (e) { localStorage.removeItem(cacheKey); }
         }
         
+        // Nếu không có trong cache, gọi API
         if (!audioSrc) {
             try {
                 const funcResponse = await fetch(`/.netlify/functions/text-to-speech?text=${encodeURIComponent(word)}&lang=${lang}&voice=${voiceName}`);
                 const data = await funcResponse.json();
-
                 if (data.audioContent) {
                     audioSrc = `data:audio/mp3;base64,${data.audioContent}`;
+                    // Lưu vào cache
                     const itemToCache = { audioContent: data.audioContent, timestamp: Date.now() };
                     try { localStorage.setItem(cacheKey, JSON.stringify(itemToCache)); } catch (e) { /* Xử lý cache đầy */ }
                 }
-            } catch (fetchError) {
-                console.error('Lỗi khi gọi Netlify Function:', fetchError);
-            }
+            } catch (fetchError) { console.error('Lỗi khi gọi Netlify Function:', fetchError); }
         }
 
+        // Phát âm thanh từ fallback (nếu có)
         if (audioSrc) {
-            currentAudio = new Audio(audioSrc); // <<< BƯỚC 2 (tương tự): Gán âm thanh mới
-            await currentAudio.play();
+            try {
+                await playAudioPromise(audioSrc);
+            } catch (fallbackError) {
+                console.error("Lỗi khi phát âm thanh từ fallback:", fallbackError);
+                speakWordDefault(word, lang);
+            }
         } else {
             speakWordDefault(word, lang);
         }
