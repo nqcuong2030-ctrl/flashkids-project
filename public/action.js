@@ -356,7 +356,6 @@ async function speakWord(word, lang) {
         currentAudio.pause();
         currentAudio.src = '';
     }
-    disableCardControls();
 
     // Chuẩn hóa tên file với logic đồng bộ
     let filename = '';
@@ -377,7 +376,7 @@ async function speakWord(word, lang) {
 
         // Nếu file tồn tại, phát nó
         currentAudio = new Audio(localAudioUrl);
-        currentAudio.addEventListener('ended', enableCardControls);
+        //currentAudio.addEventListener('ended', enableCardControls);
         await currentAudio.play();
 
     } catch (error) {
@@ -414,11 +413,11 @@ async function speakWord(word, lang) {
 
         if (audioSrc) {
             currentAudio = new Audio(audioSrc);
-            currentAudio.addEventListener('ended', enableCardControls);
+            //currentAudio.addEventListener('ended', enableCardControls);
             await currentAudio.play();
         } else {
             speakWordDefault(word, lang);
-            enableCardControls();
+            //enableCardControls();
         }
     }
 }
