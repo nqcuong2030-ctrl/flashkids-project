@@ -345,28 +345,31 @@ function speakWordDefault(word, lang) {
 
 // Hàm mới gọi đến Netlify Function toàn bộ ứng dụng (Flashcard, Game, Quiz)
 function speakWord(word, lang) {
-    // 1. Chuẩn hóa tên file cho khớp với file đã tạo từ script
-    // (chữ thường, thay khoảng trắng bằng gạch dưới, xóa ký tự đặc biệt)
+    // 1. Chuẩn hóa tên file
     const filename = word.toLowerCase()
-                         .replace(/[^a-z0-9\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/g, '')
-                         .replace(/\s+/g, '_');
+        .replace(/[^a-z0-9\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/g, '')
+        .replace(/\s+/g, '_');
     
-    // 2. Tạo đường dẫn đến file MP3 cục bộ
     const audioUrl = `/audio/${lang}/${filename}.mp3`;
     
-    const audio = new Audio(audioUrl);
+    const audio = new Audio(); // Tạo đối tượng Audio rỗng
 
-    // 3. Xử lý lỗi: Nếu file không tồn tại (lỗi 404), trình duyệt sẽ kích hoạt sự kiện 'error'
+    // 2. Gán các trình xử lý sự kiện TRƯỚC KHI đặt nguồn
+    // Nếu xảy ra lỗi (file không tồn tại), gọi hàm dự phòng Azure
     audio.onerror = function() {
-        // Nếu không tải được file cục bộ, gọi phương án dự phòng là Azure
-        // Giọng mặc định sẽ được dùng trong hàm speakWordViaAzure
         speakWordViaAzure(word, lang, lang === 'vi-VN' ? 'vi-VN-HoaiMyNeural' : 'en-US-JennyNeural');
     };
 
-    // 4. Nếu file tải thành công, các lệnh này sẽ được thực thi
-    disableCardControls();
+    // Nếu file tải thành công và có thể phát, các lệnh này sẽ chạy
+    audio.oncanplaythrough = function() {
+        disableCardControls();
+        audio.play();
+    };
+
     audio.addEventListener('ended', enableCardControls);
-    audio.play();
+
+    // 3. CUỐI CÙNG, gán nguồn audio. Thao tác này sẽ bắt đầu quá trình tải.
+    audio.src = audioUrl;
 }
 
 /**
