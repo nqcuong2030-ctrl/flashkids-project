@@ -10,6 +10,16 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "dotenv": "^17.2.1",
+    "microsoft-cognitiveservices-speech-sdk": "^1.45.0",
     "node-fetch": "^2.7.0"
+  },
+  "devDependencies": {
+    "tailwindcss": "^4.1.11"
   }
+},
+
+"scripts": {
+  "tailwind:init": "tailwindcss init",
+  "tailwind:build": "tailwindcss -i ./src/input.css -o ./dist/style.css --watch"
 }

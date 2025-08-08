@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 	<link rel="icon" type="image/x-icon" href="favicon.png">
     <title>FlashKids - Học Từ Vựng Tiếng Anh</title>
+	<link href="./dist/style.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -188,7 +189,7 @@
                 <!-- Welcome Banner -->
                 <div class="bg-gradient-to-r from-yellow-400 to-orange-500 rounded-2xl p-6 mb-8 text-white shadow-lg flex items-center justify-between">
                     <div>
-                        <h2 class="text-3xl font-bold mb-2">Xin chào, Bạn nhỏ!</h2>
+                        <h2 id="welcome-message" class="text-3xl font-bold mb-2">Xin chào, Bạn nhỏ!</h2>
                         <p class="mb-4">Hôm nay bạn đã sẵn sàng học từ vựng mới chưa?</p>
                         <button class="bg-white text-orange-500 font-bold py-2 px-6 rounded-full shadow-md hover:shadow-lg transition duration-300 flex items-center" onclick="changeTab('flashcards')">
                             <span>Bắt đầu ngay</span>
@@ -429,6 +430,35 @@
                         </div>
                     </div>
                 </div>
+				
+				<div class="bg-white rounded-2xl p-6 shadow-md mb-8">
+					<h3 class="text-lg font-bold text-gray-800 mb-4">Tùy chỉnh ứng dụng</h3>
+					
+					<div class="mb-6">
+						<label for="daily-goal-slider" class="block text-gray-700 text-sm font-bold mb-2">
+							Mục tiêu hàng ngày: <span id="daily-goal-value" class="font-normal">20 từ</span>
+						</label>
+						<input type="range" id="daily-goal-slider" min="5" max="50" value="20" step="5" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+					</div>
+
+					<div class="mb-6">
+						<label for="voice-select" class="block text-gray-700 text-sm font-bold mb-2">Giọng đọc tiếng Anh</label>
+						<select id="voice-select" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+							<option value="en-US-JennyNeural">Giọng nữ - Jenny (Mặc định)</option>
+							<option value="en-US-ChristopherNeural">Giọng nam - Christopher</option>
+							<option value="en-GB-RyanNeural">Giọng Anh - Ryan</option>
+						</select>
+						<p class="text-xs text-gray-500 mt-1">Lưu ý: Chọn giọng đọc khác mặc định có thể làm chậm tốc độ phát âm.</p>
+					</div>
+					
+					<button class="btn-primary text-white py-2 px-6 rounded-lg shadow-md" onclick="saveAppSettings()">Lưu cài đặt</button>
+				</div>
+
+				<div class="bg-white rounded-2xl p-6 shadow-md mb-8">
+					<h3 class="text-lg font-bold text-gray-800 mb-4">Chọn Avatar của bạn</h3>
+					<div id="avatar-selection-grid" class="grid grid-cols-3 sm:grid-cols-4 gap-4">
+						</div>
+				</div>
                 
                 <!-- App Settings -->
                 <div class="bg-white rounded-2xl p-6 shadow-md mb-8">

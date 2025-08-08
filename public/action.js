@@ -2,7 +2,7 @@
 // ===== 0. VERSIONING & DATA MIGRATION
 // ===================================================================================
 
-const APP_VERSION = '1.1'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
+const APP_VERSION = '1.1_08082025'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
 
 function checkAppVersion() {
     const storedVersion = localStorage.getItem('flashkids_app_version');
@@ -125,6 +125,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	
 	// Initialize user progress from localStorage
 	initUserProgress();
+	updateWelcomeMessage();
 	changeLevel(currentLevel);
 	
 	// Set up flashcard click event
@@ -167,6 +168,58 @@ document.addEventListener('DOMContentLoaded', function() {
 			}
 		});
 	});
+	
+	// Công cụ đọc
+	const speakBtn = document.getElementById('speak-text-btn');
+    const downloadBtn = document.getElementById('download-speech-btn');
+    const input = document.getElementById('text-to-speech-input');
+
+	const speedSlider = document.getElementById('tts-speed-slider');
+    const speedValueDisplay = document.getElementById('tts-speed-value');
+
+    if (speedSlider && speedValueDisplay) {
+        speedSlider.addEventListener('input', function() {
+            speedValueDisplay.textContent = `${parseFloat(this.value).toFixed(1)}x`;
+        });
+    }
+
+    if (speakBtn) {
+        speakBtn.addEventListener('click', handleSpeakRequest);
+    }
+
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', handleDownloadRequest);
+    }
+    
+    if(input) {
+        input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                handleSpeakRequest();
+            }
+        });
+    }
+	
+	//USER DROPDOWN MENU
+	const userMenuButton = document.getElementById('user-menu-button');
+    const userMenu = document.getElementById('user-menu');
+
+    // Chỉ thực thi nếu các phần tử tồn tại
+    if (userMenuButton && userMenu) {
+        
+        // Sự kiện Mở/Đóng menu khi nhấp vào avatar
+        userMenuButton.addEventListener('click', function(event) {
+            // Ngăn sự kiện click lan ra ngoài cửa sổ, tránh việc menu vừa mở đã bị đóng ngay
+            event.stopPropagation(); 
+            userMenu.classList.toggle('hidden');
+        });
+
+        // Sự kiện Đóng menu khi nhấp ra ngoài cửa sổ
+        window.addEventListener('click', function() {
+            if (!userMenu.classList.contains('hidden')) {
+                userMenu.classList.add('hidden');
+            }
+        });
+    }
 	
 	// Load other UI elements
 	loadGames();
@@ -2003,46 +2056,6 @@ function updateDailyProgress() {
 	document.getElementById('daily-progress-bar').style.width = `${percent}%`;
 }
 
-// Load sample data
-function loadSampleData() {
-	// Sample data based on your JSON structure
-	const sampleData = {
-		categories: [
-			{ id: 1, name: "Gia đình & Con người", color: "blue", progress: 0, wordCount: 55 },
-			{ id: 14, name: "Danh từ chung", color: "grey", progress: 0, wordCount: 40 }
-		],
-		flashcards: [
-			{ id: 1, english: "Family", vietnamese: "Gia đình", phonetic: "/ˈfæməli/", categoryId: 1, image: "family" },
-			{ id: 2, english: "Father", vietnamese: "Bố", phonetic: "/ˈfɑːðər/", categoryId: 1, image: "father" },
-			{ id: 3, english: "Mother", vietnamese: "Mẹ", phonetic: "/ˈmʌðər/", categoryId: 1, image: "mother" },
-			{ id: 4, english: "Brother", vietnamese: "Anh trai/Em trai", phonetic: "/ˈbrʌðər/", categoryId: 1, image: "brother" },
-			{ id: 5, english: "Sister", vietnamese: "Chị gái/Em gái", phonetic: "/ˈsɪstər/", categoryId: 1, image: "sister" },
-			{ id: 6, english: "Book", vietnamese: "Sách", phonetic: "/bʊk/", categoryId: 14, image: "book" },
-			{ id: 7, english: "Pen", vietnamese: "Bút", phonetic: "/pen/", categoryId: 14, image: "pen" },
-			{ id: 8, english: "Table", vietnamese: "Bàn", phonetic: "/ˈteɪbəl/", categoryId: 14, image: "table" },
-			{ id: 9, english: "Chair", vietnamese: "Ghế", phonetic: "/tʃeər/", categoryId: 14, image: "chair" },
-			{ id: 10, english: "Window", vietnamese: "Cửa sổ", phonetic: "/ˈwɪndoʊ/", categoryId: 14, image: "window" }
-		]
-	};
-	
-	categories = sampleData.categories;
-	flashcards = sampleData.flashcards;
-	dataLoaded = true;
-	
-	// Assign random colors to categories
-	assignRandomColorsToCategories();
-	
-	// Update category progress
-	updateCategoryProgress();
-	
-	// Update UI
-	loadCategories();
-	loadCategoryFilters();
-	updateFlashcard();
-	updateCardCounter();
-	updateCategoryProgressDisplay();
-}
-
 function loadGames() {
 	const container = document.getElementById('games-container');
 	container.innerHTML = '';
@@ -2263,6 +2276,20 @@ function enableCardControls() {
 	isCardInteractable = true; // Dùng cờ để mở khóa thẻ
 	document.getElementById('prev-card').disabled = false;
 	document.getElementById('next-card').disabled = false;
+}
+
+function updateWelcomeMessage() {
+    const progress = getUserProgress();
+    const username = progress.userProfile.username;
+    const welcomeElement = document.getElementById('welcome-message');
+
+    if (welcomeElement) {
+        if (username && username.trim() !== '') {
+            welcomeElement.textContent = `Xin chào, ${username}!`;
+        } else {
+            welcomeElement.textContent = 'Xin chào, Bạn nhỏ!';
+        }
+    }
 }
 
 // ===================================================================================
@@ -2557,37 +2584,6 @@ function resetFlashcardInactivityTimer() {
 // ===== 12. CÔNG CỤ ĐỌC VĂN BẢN (TEXT-TO-SPEECH TOOL)
 // ===================================================================================
 
-document.addEventListener('DOMContentLoaded', function() {
-    const speakBtn = document.getElementById('speak-text-btn');
-    const downloadBtn = document.getElementById('download-speech-btn');
-    const input = document.getElementById('text-to-speech-input');
-
-	const speedSlider = document.getElementById('tts-speed-slider');
-    const speedValueDisplay = document.getElementById('tts-speed-value');
-
-    if (speedSlider && speedValueDisplay) {
-        speedSlider.addEventListener('input', function() {
-            speedValueDisplay.textContent = `${parseFloat(this.value).toFixed(1)}x`;
-        });
-    }
-
-    if (speakBtn) {
-        speakBtn.addEventListener('click', handleSpeakRequest);
-    }
-
-    if (downloadBtn) {
-        downloadBtn.addEventListener('click', handleDownloadRequest);
-    }
-    
-    if(input) {
-        input.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                handleSpeakRequest();
-            }
-        });
-    }
-});
-
 function detectLanguage(text) {
     // Sử dụng biểu thức chính quy đơn giản để phát hiện ngôn ngữ
     // Tiếng Việt có nhiều dấu thanh, trong khi tiếng Anh thì không.
@@ -2703,10 +2699,6 @@ function speakWordForTool(word, lang, onEndCallback) {
 // ===== 13. LOGIC MENU NGƯỜI DÙNG (USER DROPDOWN MENU)
 // ===================================================================================
 
-// ===================================================================================
-// ===== 13. LOGIC MENU NGƯỜI DÙNG (USER DROPDOWN MENU)
-// ===================================================================================
-
 // Hàm xử lý khi nhấp vào một mục trong menu
 function handleMenuLinkClick(event, tabId) {
 	event.stopPropagation();
@@ -2720,27 +2712,18 @@ function handleMenuLinkClick(event, tabId) {
     }
 }
 
-// Thêm các sự kiện cho menu khi trang đã tải xong
-document.addEventListener('DOMContentLoaded', function() {
-    const userMenuButton = document.getElementById('user-menu-button');
-    const userMenu = document.getElementById('user-menu');
+function saveUserProfile() {
+    const username = document.getElementById('username').value.trim();
+    const age = document.getElementById('age').value;
+    const progress = getUserProgress();
 
-    // Chỉ thực thi nếu các phần tử tồn tại
-    if (userMenuButton && userMenu) {
-        
-        // Sự kiện Mở/Đóng menu khi nhấp vào avatar
-        userMenuButton.addEventListener('click', function(event) {
-            // Ngăn sự kiện click lan ra ngoài cửa sổ, tránh việc menu vừa mở đã bị đóng ngay
-            event.stopPropagation(); 
-            userMenu.classList.toggle('hidden');
-        });
+    progress.userProfile.username = username;
+    progress.userProfile.age = age;
+    
+    saveUserProgress(progress);
+    updateWelcomeMessage(); // << THÊM DÒNG NÀY VÀO
 
-        // Sự kiện Đóng menu khi nhấp ra ngoài cửa sổ
-        window.addEventListener('click', function() {
-            if (!userMenu.classList.contains('hidden')) {
-                userMenu.classList.add('hidden');
-            }
-        });
-    }
-});
+    alert('Đã lưu hồ sơ thành công!');
+}
+
 
