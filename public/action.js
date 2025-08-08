@@ -38,6 +38,7 @@ let isFlashcardsTabActive = false;
 let currentLevel = 'a1'; // Default level is A1
 let lastFlipState = false; // Track the last flip state to determine which side is showing
 let currentActivity = null; // Track current activity (game or quiz)
+let currentAudio = null; // << THÊM DÒNG NÀY ĐỂ THEO DÕI ÂM THANH ĐANG PHÁT
 
 // Trạng thái game "Ghép từ"
 let selectedEnglishWord = null;
@@ -349,77 +350,40 @@ function speakWordDefault(word, lang) {
 // Hàm speakWord chính - giờ đây sẽ quản lý đối tượng Audio
 // Hàm speakWordViaAzure - giờ đây sẽ nhận và sử dụng đối tượng Audio có sẵn
 // HÃY XÓA CẢ 2 HÀM speakWord VÀ speakWordViaAzure CŨ VÀ THAY BẰNG HÀM NÀY
+// Thay thế toàn bộ hàm speakWord cũ bằng hàm này
 async function speakWord(word, lang) {
-    disableCardControls();
+    // >>> BƯỚC 1: Dừng bất kỳ âm thanh nào đang phát <<<
+    if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.src = ''; // Hủy bỏ tải (nếu có) và giải phóng tài nguyên
+    }
 
-    // Bước 1: Chuẩn hóa tên file với logic ĐỒNG BỘ với generate_audio.js
+    // Bước 2: Chuẩn hóa tên file (logic này giữ nguyên)
     let filename = '';
     const lowerCaseWord = word.toLowerCase();
     if (lang === 'en-US') {
         filename = lowerCaseWord.replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '_');
-    } else { // Mặc định cho vi-VN
+    } else {
         filename = lowerCaseWord.replace(/[^a-z0-9\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/g, '').replace(/\s+/g, '_');
     }
     const localAudioUrl = `/audio/${lang}/${filename}.mp3`;
 
-    try {
-        // Bước 2: Thử fetch file cục bộ trước
-        const response = await fetch(localAudioUrl);
-        if (!response.ok) {
-            // Nếu không OK (ví dụ: 404 Not Found), sẽ nhảy vào khối catch
-            throw new Error(`File cục bộ không tồn tại: ${response.statusText}`);
-        }
+    // >>> BƯỚC 3: Tạo và quản lý đối tượng Audio mới <<<
+    currentAudio = new Audio(); // Gán đối tượng audio mới vào biến toàn cục
+    const audio = currentAudio; // Tạo một tham chiếu cục bộ để sử dụng
 
-        // Nếu file tồn tại, phát nó
-        const audio = new Audio(localAudioUrl);
-        audio.addEventListener('ended', enableCardControls);
-        await audio.play();
+    // Bắt đầu phát khi audio đã sẵn sàng
+    audio.addEventListener('canplaythrough', () => {
+        audio.play().catch(e => console.error("Lỗi khi phát audio:", e));
+    });
 
-    } catch (error) {
-        // Bước 3: Nếu fetch file cục bộ thất bại, chuyển sang phương án dự phòng
-        console.warn(`Không phát được file cục bộ cho "${word}". Chuyển sang Cache/API.`);
-        
-        const voiceName = lang === 'vi-VN' ? 'vi-VN-HoaiMyNeural' : 'en-US-JennyNeural';
-        const cacheKey = `audio_${lang}_${word.toLowerCase()}`;
-        const cachedItem = localStorage.getItem(cacheKey);
-
-        // Thử cache trước
-        if (cachedItem) {
-            try {
-                const data = JSON.parse(cachedItem);
-                const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
-                audio.addEventListener('ended', enableCardControls);
-                await audio.play();
-                return; // Thoát sau khi phát từ cache
-            } catch (e) {
-                localStorage.removeItem(cacheKey); // Xóa cache hỏng
-            }
-        }
-
-        // Nếu không có trong cache, gọi Netlify Function
-        try {
-            const funcResponse = await fetch(`/.netlify/functions/text-to-speech?text=${encodeURIComponent(word)}&lang=${lang}&voice=${voiceName}`);
-            const data = await funcResponse.json();
-
-            if (data.audioContent) {
-                // Lưu vào cache
-                const itemToCache = { audioContent: data.audioContent, timestamp: Date.now() };
-                try { localStorage.setItem(cacheKey, JSON.stringify(itemToCache)); } catch (e) { /* Xử lý cache đầy */ }
-
-                // Phát âm thanh
-                const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
-                audio.addEventListener('ended', enableCardControls);
-                await audio.play();
-            } else {
-                speakWordDefault(word, lang);
-                enableCardControls();
-            }
-        } catch (fetchError) {
-            console.error('Lỗi khi gọi Netlify Function:', fetchError);
-            speakWordDefault(word, lang);
-            enableCardControls();
-        }
-    }
+    // Nếu không tải được file cục bộ, gọi hàm dự phòng
+    audio.onerror = function() {
+        speakWordViaAzure(word, lang, audio); // Truyền đối tượng audio vào hàm dự phòng
+    };
+    
+    // Bắt đầu tải file
+    audio.src = localAudioUrl;
 }
 
 
