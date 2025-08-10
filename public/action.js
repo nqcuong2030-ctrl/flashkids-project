@@ -2738,11 +2738,8 @@ function speakWordForTool(word, lang, onEndCallback) {
     function playAudio(base64Content) {
         const audio = new Audio(`data:audio/mp3;base64,${base64Content}`);
         audio.playbackRate = speed;
-        
-        // Gán vào biến toàn cục để có thể dừng
-        ttsToolAudio = audio;
+        ttsToolAudio = audio; // Gán vào biến toàn cục để có thể dừng
 
-        // Xử lý khi kết thúc hoặc lỗi
         audio.onended = onEndCallback;
         audio.onerror = () => {
             alert("Lỗi khi phát âm thanh.");
@@ -2753,34 +2750,42 @@ function speakWordForTool(word, lang, onEndCallback) {
     }
 
     if (cachedItem) {
-        // ... (phần xử lý cache giữ nguyên)
+        try {
+            const data = JSON.parse(cachedItem);
+            playAudio(data.audioContent);
+            return; // Dừng hàm lại vì đã phát từ cache
+        } catch (e) {
+            localStorage.removeItem(cacheKey); // Xóa cache hỏng và để code chạy xuống fetch
+        }
     }
 
+    // Nếu không có trong cache, gọi API qua POST
     fetch(`/.netlify/functions/text-to-speech`, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            text: word,
-            lang: lang,
-            // Chúng ta không cần gửi voice ở đây vì function đã có logic mặc định
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: word, lang: lang }),
     })
-        .then(response => response.json())
-        .then(data => {
-            if (data.audioContent) {
-                // ... (phần xử lý lưu cache giữ nguyên)
-                playAudio(data.audioContent);
-            } else {
-                speakWordDefault(word, lang);
-                onEndCallback(); // Vẫn gọi callback để reset UI
+    .then(response => response.json())
+    .then(data => {
+        if (data.audioContent) {
+            // Lưu vào cache
+            const itemToCache = { audioContent: data.audioContent, timestamp: Date.now() };
+            try {
+                localStorage.setItem(cacheKey, JSON.stringify(itemToCache));
+            } catch(e) {
+                // Xử lý cache đầy nếu cần
             }
-        })
-        .catch(error => {
-            console.error('Lỗi khi gọi Netlify Function:', error);
-            onEndCallback(); // Vẫn gọi callback để reset UI
-        });
+            // Phát âm thanh
+            playAudio(data.audioContent);
+        } else {
+            speakWordDefault(word, lang);
+            onEndCallback();
+        }
+    })
+    .catch(error => {
+        console.error('Lỗi khi gọi Netlify Function:', error);
+        onEndCallback();
+    });
 }
 
 // ===================================================================================
