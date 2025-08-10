@@ -431,7 +431,11 @@ async function speakWord(word, lang) {
         // Nếu không có trong cache, gọi API
         if (!audioSrc) {
             try {
-                const funcResponse = await fetch(`/.netlify/functions/text-to-speech?text=${encodeURIComponent(word)}&lang=${lang}&voice=${voiceName}`);
+                const funcResponse = await fetch(`/.netlify/functions/text-to-speech`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: word, lang: lang, voice: voiceName })
+                });
                 const data = await funcResponse.json();
                 if (data.audioContent) {
                     audioSrc = `data:audio/mp3;base64,${data.audioContent}`;
