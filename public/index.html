@@ -440,16 +440,6 @@
 						</label>
 						<input type="range" id="daily-goal-slider" min="5" max="50" value="20" step="5" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
 					</div>
-
-					<div class="mb-6">
-						<label for="voice-select" class="block text-gray-700 text-sm font-bold mb-2">Giọng đọc tiếng Anh</label>
-						<select id="voice-select" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-							<option value="en-US-JennyNeural">Giọng nữ - Jenny (Mặc định)</option>
-							<option value="en-US-ChristopherNeural">Giọng nam - Christopher</option>
-							<option value="en-GB-RyanNeural">Giọng Anh - Ryan</option>
-						</select>
-						<p class="text-xs text-gray-500 mt-1">Lưu ý: Chọn giọng đọc khác mặc định có thể làm chậm tốc độ phát âm.</p>
-					</div>
 					
 					<button class="btn-primary text-white py-2 px-6 rounded-lg shadow-md" onclick="saveAppSettings()">Lưu cài đặt</button>
 				</div>
@@ -462,20 +452,9 @@
                 
                 <!-- App Settings -->
                 <div class="bg-white rounded-2xl p-6 shadow-md mb-8">
-                    <h3 class="text-lg font-bold text-gray-800 mb-4">Tùy chỉnh ứng dụng</h3>
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Công cụ nâng cao</h3>                    
                     
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Chủ đề</label>
-                        <div class="flex space-x-4">
-                            <button class="w-8 h-8 rounded-full bg-blue-500 border-2 border-white shadow-md"></button>
-                            <button class="w-8 h-8 rounded-full bg-purple-500 border-2 border-white shadow-md"></button>
-                            <button class="w-8 h-8 rounded-full bg-pink-500 border-2 border-white shadow-md"></button>
-                            <button class="w-8 h-8 rounded-full bg-green-500 border-2 border-white shadow-md"></button>
-                            <button class="w-8 h-8 rounded-full bg-yellow-500 border-2 border-white shadow-md"></button>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-4">
+                    <div class="mb-4 hidden">
                         <label class="block text-gray-700 text-sm font-bold mb-2">Âm thanh</label>
                         <div class="flex items-center">
                             <input id="sound-toggle" type="checkbox" class="h-4 w-4 text-blue-600" checked>
@@ -517,37 +496,39 @@
 							<input type="range" id="tts-speed-slider" min="0.5" max="2" value="1" step="0.1" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
 						</div>
 					</div>
+					
+					<!-- Data Management -->
+					<div class="bg-white rounded-2xl p-6 shadow-md">
+						<h3 class="text-lg font-bold text-gray-800 mb-4">Quản lý dữ liệu</h3>
+						
+						<div class="flex space-x-4 mb-4">
+							<button class="btn-primary text-white py-2 px-6 rounded-lg shadow-md flex items-center" onclick="exportFlashcardsToJSON()">
+								<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+									<path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
+								</svg>
+								Xuất dữ liệu
+							</button>
+							
+							<button class="btn-warning text-white py-2 px-6 rounded-lg shadow-md flex items-center" onclick="openModal('jsonFileModal')">
+								<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+									<path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+								</svg>
+								Nhập dữ liệu
+							</button>
+						</div>
+						
+						<button class="text-red-500 py-2 px-6 rounded-lg border border-red-500 flex items-center mx-auto" onclick="confirmResetProgress()">
+							<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+								<path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+							</svg>
+							Xóa tất cả dữ liệu
+						</button>
+					</div>
                     
                     <button class="btn-primary text-white py-2 px-6 rounded-lg shadow-md" onclick="saveAppSettings()">Lưu cài đặt</button>
                 </div>
                 
-                <!-- Data Management -->
-                <div class="bg-white rounded-2xl p-6 shadow-md hidden">
-                    <h3 class="text-lg font-bold text-gray-800 mb-4">Quản lý dữ liệu</h3>
-                    
-                    <div class="flex space-x-4 mb-4">
-                        <button class="btn-primary text-white py-2 px-6 rounded-lg shadow-md flex items-center" onclick="exportFlashcardsToJSON()">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                            </svg>
-                            Xuất dữ liệu
-                        </button>
-                        
-                        <button class="btn-warning text-white py-2 px-6 rounded-lg shadow-md flex items-center" onclick="openModal('jsonFileModal')">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
-                            </svg>
-                            Nhập dữ liệu
-                        </button>
-                    </div>
-                    
-                    <button class="text-red-500 py-2 px-6 rounded-lg border border-red-500 flex items-center mx-auto" onclick="confirmResetProgress()">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                        </svg>
-                        Xóa tất cả dữ liệu
-                    </button>
-                </div>
+                
             </div>
         </main>
     </div>
