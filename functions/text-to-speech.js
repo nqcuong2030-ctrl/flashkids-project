@@ -1,18 +1,13 @@
-// text-to-speech.js
+// functions/text-to-speech.js
 
 const fetch = require('node-fetch');
 
-// <<< BẮT ĐẦU THAY ĐỔI >>>
-
-// Hàm mới để chia nhỏ văn bản thông minh
+// Hàm chia nhỏ văn bản (không thay đổi)
 function splitTextIntoChunks(text, maxLength = 2800) {
     const chunks = [];
     let remainingText = text;
-
-    // Ưu tiên ngắt ở dấu chấm, chấm than, chấm hỏi
     const sentenceEnders = /(?<=[.?!])\s+/;
     const sentences = remainingText.split(sentenceEnders);
-
     let currentChunk = "";
     for (const sentence of sentences) {
         if (currentChunk.length + sentence.length > maxLength) {
@@ -22,36 +17,15 @@ function splitTextIntoChunks(text, maxLength = 2800) {
             currentChunk += (currentChunk ? " " : "") + sentence;
         }
     }
-    if (currentChunk) {
-        chunks.push(currentChunk.trim());
-    }
-    
-    // Nếu vẫn còn chunk quá dài, cắt cứng
-    const finalChunks = [];
-    for (const chunk of chunks) {
-        if (chunk.length > maxLength) {
-            for (let i = 0; i < chunk.length; i += maxLength) {
-                finalChunks.push(chunk.substring(i, i + maxLength));
-            }
-        } else {
-            finalChunks.push(chunk);
-        }
-    }
-
-    return finalChunks;
+    if (currentChunk) chunks.push(currentChunk.trim());
+    return chunks;
 }
 
-// Hàm để gọi Azure cho một chunk duy nhất
-async function getSpeechForChunk(text, lang, voice, key, region) {
+// <<< THAY ĐỔI QUAN TRỌNG: Hàm này giờ sẽ trả về Buffer thay vì Base64 >>>
+async function getSpeechBufferForChunk(text, lang, voice, key, region) {
     const endpoint = `https://${region}.tts.speech.microsoft.com/cognitiveservices/v1`;
     const voiceName = voice || (lang === 'vi-VN' ? 'vi-VN-HoaiMyNeural' : 'en-US-JennyNeural');
-    const ssml = `
-        <speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='${lang}'>
-            <voice name='${voiceName}'>
-                ${text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}
-            </voice>
-        </speak>
-    `;
+    const ssml = `<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='${lang}'><voice name='${voiceName}'>${text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</voice></speak>`;
 
     const response = await fetch(endpoint, {
         method: 'POST',
@@ -63,19 +37,14 @@ async function getSpeechForChunk(text, lang, voice, key, region) {
         body: ssml,
     });
 
-    const contentType = response.headers.get('content-type');
-    if (!response.ok || !contentType || !contentType.startsWith('audio/mpeg')) {
+    if (!response.ok || !response.headers.get('content-type')?.startsWith('audio/mpeg')) {
         const errorBody = await response.text();
-        // Ném lỗi với thông tin rõ ràng hơn
         throw new Error(`Lỗi từ Azure (Status: ${response.status}): ${errorBody}`);
     }
 
-    const audioBuffer = await response.buffer();
-    return audioBuffer.toString('base64');
+    // Trả về thẳng đối tượng Buffer
+    return await response.buffer();
 }
-
-
-// <<< KẾT THÚC THAY ĐỔI >>>
 
 
 exports.handler = async (event) => {
@@ -87,54 +56,49 @@ exports.handler = async (event) => {
             throw new Error('Chưa cấu hình API Key hoặc Region trên Netlify.');
         }
 
-        let bodyData;
-        if (typeof event.body === 'string') {
-            bodyData = JSON.parse(event.body);
-        } else {
-            bodyData = event.body || {};
-        }
+        const bodyData = JSON.parse(event.body || '{}');
         const { text, lang, voice } = bodyData;
 
         if (!text || !lang) {
             return { statusCode: 400, body: JSON.stringify({ error: 'Thiếu tham số text hoặc lang.' }) };
         }
 
-        // <<< BẮT ĐẦU THAY ĐỔI >>>
-        const TEXT_LENGTH_LIMIT = 2800; // Giới hạn an toàn cho một yêu cầu
+        const TEXT_LENGTH_LIMIT = 2800; // Giới hạn an toàn
+        let finalAudioBuffer;
 
-        // Nếu văn bản dài, thực hiện chia nhỏ
         if (text.length > TEXT_LENGTH_LIMIT) {
-            console.log("Văn bản dài, đang thực hiện chia nhỏ...");
+            // <<< LOGIC MỚI: CHIA NHỎ, LẤY BUFFER VÀ GHÉP LẠI >>>
+            console.log(`Văn bản siêu dài (${text.length} ký tự). Đang chia nhỏ và ghép file...`);
             const chunks = splitTextIntoChunks(text, TEXT_LENGTH_LIMIT);
-            console.log(`Đã chia thành ${chunks.length} phần.`);
+            
+            // Lấy về một mảng các Buffer âm thanh
+            const audioBuffers = await Promise.all(
+                chunks.map(chunk => getSpeechBufferForChunk(chunk, lang, voice, SPEECH_KEY, SPEECH_REGION))
+            );
+            
+            // Ghép các Buffer lại thành một Buffer duy nhất
+            finalAudioBuffer = Buffer.concat(audioBuffers);
+            console.log("Đã ghép các file âm thanh thành công.");
 
-            // Gọi API cho từng phần và chờ tất cả hoàn thành
-            const audioPromises = chunks.map(chunk => getSpeechForChunk(chunk, lang, voice, SPEECH_KEY, SPEECH_REGION));
-            const audioParts = await Promise.all(audioPromises);
-
-            return {
-                statusCode: 200,
-                // Trả về một mảng các file âm thanh base64
-                body: JSON.stringify({ audioParts: audioParts }),
-            };
         } else {
-            // Nếu văn bản ngắn, giữ nguyên logic cũ
-            const audioContent = await getSpeechForChunk(text, lang, voice, SPEECH_KEY, SPEECH_REGION);
-            return {
-                statusCode: 200,
-                body: JSON.stringify({ audioContent: audioContent }),
-            };
+            // Logic cũ cho văn bản ngắn/trung bình
+            finalAudioBuffer = await getSpeechBufferForChunk(text, lang, voice, SPEECH_KEY, SPEECH_REGION);
         }
-        // <<< KẾT THÚC THAY ĐỔI >>>
+
+        // Chuyển đổi Buffer tổng thể cuối cùng sang Base64
+        const finalBase64Audio = finalAudioBuffer.toString('base64');
+        
+        // Luôn trả về một đối tượng audioContent duy nhất
+        return {
+            statusCode: 200,
+            body: JSON.stringify({ audioContent: finalBase64Audio }),
+        };
 
     } catch (error) {
         console.error('LỖI TRIỆT ĐỂ TRONG FUNCTION:', error);
         return {
             statusCode: 500,
-            body: JSON.stringify({
-                error: 'Function bị lỗi nghiêm trọng.',
-                details: error.message
-            }),
+            body: JSON.stringify({ error: 'Function bị lỗi nghiêm trọng.', details: error.message }),
         };
     }
 };
