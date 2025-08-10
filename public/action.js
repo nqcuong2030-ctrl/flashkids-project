@@ -116,144 +116,8 @@ const userData = {
 
 
 // ===================================================================================
-// ===== 2. KHỞI TẠO ỨNG DỤNG
+// ===== 2. KHỞI TẠO ỨNG DỤNG (ĐÃ DỜI XUỐNG DƯỚI CÙNG)
 // ===================================================================================
-
-document.addEventListener('DOMContentLoaded', function() {
-	// Tải cấp độ đã được lưu lần trước từ localStorage
-	const savedLevel = localStorage.getItem('flashkids_currentLevel');
-	if (savedLevel) {
-		currentLevel = savedLevel;
-	}
-	
-	// Initialize user progress from localStorage
-	initUserProgress();
-	updateWelcomeMessage();
-	changeLevel(currentLevel);
-	
-	// Set up flashcard click event
-	document.getElementById('current-flashcard').addEventListener('click', function() {
-		if (!isCardInteractable) return; // <-- Thêm dòng kiểm tra này
-
-		const wasFlipped = this.classList.contains('flipped');
-		this.classList.toggle('flipped');
-		lastFlipState = !wasFlipped;
-		
-		if (isFlashcardsTabActive && soundEnabled) {
-			setTimeout(() => {
-				if (!wasFlipped) {
-					speakCurrentWord('vietnamese');
-				} else {
-					speakCurrentWord('english');
-				}
-			}, 100);
-		}
-	});
-
-	// Set up navigation buttons
-	document.getElementById('prev-card').addEventListener('click', previousCard);
-	document.getElementById('next-card').addEventListener('click', nextCard);
-
-	// Set up sound toggle
-	document.getElementById('sound-toggle').addEventListener('change', function() {
-		soundEnabled = this.checked;
-		saveAppSettings();
-	});
-	
-	document.getElementById('toggle-timer-btn').addEventListener('click', toggleTimer);
-	updateTimerDisplay(); // Hiển thị thời gian ban đầu
-	
-	document.querySelectorAll('.modal').forEach(modal => {
-		modal.addEventListener('click', function(event) {
-			// Kiểm tra xem phần tử được bấm có phải là chính lớp nền modal hay không
-			if (event.target === this) {
-				closeModal(this.id);
-			}
-		});
-	});
-	
-	// Công cụ đọc
-	const speakBtn = document.getElementById('speak-text-btn');
-    const downloadBtn = document.getElementById('download-speech-btn');
-    const input = document.getElementById('text-to-speech-input');
-
-	const speedSlider = document.getElementById('tts-speed-slider');
-    const speedValueDisplay = document.getElementById('tts-speed-value');
-
-    if (speedSlider && speedValueDisplay) {
-        speedSlider.addEventListener('input', function() {
-            speedValueDisplay.textContent = `${parseFloat(this.value).toFixed(1)}x`;
-        });
-    }
-
-    if (speakBtn) {
-        speakBtn.addEventListener('click', handleSpeakRequest);
-    }
-
-    if (downloadBtn) {
-        downloadBtn.addEventListener('click', handleDownloadRequest);
-    }
-    
-    if(input) {
-        input.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                handleSpeakRequest();
-            }
-        });
-    }
-	
-	// >>> THÊM LOGIC NÚT CHUYỂN NGỮ VÀO ĐÂY <<<
-	const langToggleBtn = document.getElementById('tts-lang-toggle-btn');
-	if (langToggleBtn) {
-		langToggleBtn.dataset.lang = 'en-US';
-		langToggleBtn.textContent = 'Eng';
-
-		langToggleBtn.addEventListener('click', function() {
-			const currentLang = this.dataset.lang;
-			let nextLang = '';
-			let nextText = '';
-
-			if (currentLang === 'en-US') {
-				nextLang = 'vi-VN';
-				nextText = 'VN';
-			} else { // current is vi-VN
-				nextLang = 'en-US';
-				nextText = 'Eng';
-			}
-			this.dataset.lang = nextLang;
-			this.textContent = nextText;
-		});
-	}
-	
-	//USER DROPDOWN MENU
-	const userMenuButton = document.getElementById('user-menu-button');
-    const userMenu = document.getElementById('user-menu');
-
-    // Chỉ thực thi nếu các phần tử tồn tại
-    if (userMenuButton && userMenu) {
-        
-        // Sự kiện Mở/Đóng menu khi nhấp vào avatar
-        userMenuButton.addEventListener('click', function(event) {
-            // Ngăn sự kiện click lan ra ngoài cửa sổ, tránh việc menu vừa mở đã bị đóng ngay
-            event.stopPropagation(); 
-            userMenu.classList.toggle('hidden');
-        });
-
-        // Sự kiện Đóng menu khi nhấp ra ngoài cửa sổ
-        window.addEventListener('click', function() {
-            if (!userMenu.classList.contains('hidden')) {
-                userMenu.classList.add('hidden');
-            }
-        });
-    }
-	
-	// Load other UI elements
-	loadGames();
-	loadQuizTypes();
-	loadBadges();
-	updateUserStats();
-});
-
 
 // ===================================================================================
 // ===== 3. QUẢN LÝ DỮ LIỆU & CACHE
@@ -2875,3 +2739,142 @@ function saveUserProfile() {
 
     alert('Đã lưu hồ sơ thành công!');
 }
+
+// ===================================================================================
+// ===== 2. KHỞI TẠO ỨNG DỤNG
+// ===================================================================================
+
+document.addEventListener('DOMContentLoaded', function() {
+	// Tải cấp độ đã được lưu lần trước từ localStorage
+	const savedLevel = localStorage.getItem('flashkids_currentLevel');
+	if (savedLevel) {
+		currentLevel = savedLevel;
+	}
+	
+	// Initialize user progress from localStorage
+	initUserProgress();
+	updateWelcomeMessage();
+	changeLevel(currentLevel);
+	
+	// Set up flashcard click event
+	document.getElementById('current-flashcard').addEventListener('click', function() {
+		if (!isCardInteractable) return; // <-- Thêm dòng kiểm tra này
+
+		const wasFlipped = this.classList.contains('flipped');
+		this.classList.toggle('flipped');
+		lastFlipState = !wasFlipped;
+		
+		if (isFlashcardsTabActive && soundEnabled) {
+			setTimeout(() => {
+				if (!wasFlipped) {
+					speakCurrentWord('vietnamese');
+				} else {
+					speakCurrentWord('english');
+				}
+			}, 100);
+		}
+	});
+
+	// Set up navigation buttons
+	document.getElementById('prev-card').addEventListener('click', previousCard);
+	document.getElementById('next-card').addEventListener('click', nextCard);
+
+	// Set up sound toggle
+	document.getElementById('sound-toggle').addEventListener('change', function() {
+		soundEnabled = this.checked;
+		saveAppSettings();
+	});
+	
+	document.getElementById('toggle-timer-btn').addEventListener('click', toggleTimer);
+	updateTimerDisplay(); // Hiển thị thời gian ban đầu
+	
+	document.querySelectorAll('.modal').forEach(modal => {
+		modal.addEventListener('click', function(event) {
+			// Kiểm tra xem phần tử được bấm có phải là chính lớp nền modal hay không
+			if (event.target === this) {
+				closeModal(this.id);
+			}
+		});
+	});
+	
+	// Công cụ đọc
+	const speakBtn = document.getElementById('speak-text-btn');
+    const downloadBtn = document.getElementById('download-speech-btn');
+    const input = document.getElementById('text-to-speech-input');
+
+	const speedSlider = document.getElementById('tts-speed-slider');
+    const speedValueDisplay = document.getElementById('tts-speed-value');
+
+    if (speedSlider && speedValueDisplay) {
+        speedSlider.addEventListener('input', function() {
+            speedValueDisplay.textContent = `${parseFloat(this.value).toFixed(1)}x`;
+        });
+    }
+
+    if (speakBtn) {
+        speakBtn.addEventListener('click', handleSpeakRequest);
+    }
+
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', handleDownloadRequest);
+    }
+    
+    if(input) {
+        input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                handleSpeakRequest();
+            }
+        });
+    }
+	
+	// >>> THÊM LOGIC NÚT CHUYỂN NGỮ VÀO ĐÂY <<<
+	const langToggleBtn = document.getElementById('tts-lang-toggle-btn');
+	if (langToggleBtn) {
+		langToggleBtn.dataset.lang = 'en-US';
+		langToggleBtn.textContent = 'Eng';
+
+		langToggleBtn.addEventListener('click', function() {
+			const currentLang = this.dataset.lang;
+			let nextLang = '';
+			let nextText = '';
+
+			if (currentLang === 'en-US') {
+				nextLang = 'vi-VN';
+				nextText = 'VN';
+			} else { // current is vi-VN
+				nextLang = 'en-US';
+				nextText = 'Eng';
+			}
+			this.dataset.lang = nextLang;
+			this.textContent = nextText;
+		});
+	}
+	
+	//USER DROPDOWN MENU
+	const userMenuButton = document.getElementById('user-menu-button');
+    const userMenu = document.getElementById('user-menu');
+
+    // Chỉ thực thi nếu các phần tử tồn tại
+    if (userMenuButton && userMenu) {
+        
+        // Sự kiện Mở/Đóng menu khi nhấp vào avatar
+        userMenuButton.addEventListener('click', function(event) {
+            // Ngăn sự kiện click lan ra ngoài cửa sổ, tránh việc menu vừa mở đã bị đóng ngay
+            event.stopPropagation(); 
+            userMenu.classList.toggle('hidden');
+        });
+
+        // Sự kiện Đóng menu khi nhấp ra ngoài cửa sổ
+        window.addEventListener('click', function() {
+            if (!userMenu.classList.contains('hidden')) {
+                userMenu.classList.add('hidden');
+            }
+        });
+    }
+	
+	// Load other UI elements
+	loadGames();
+	loadQuizTypes();
+	loadBadges();
+	updateUserStats();
+});
