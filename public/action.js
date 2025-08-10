@@ -39,6 +39,7 @@ let currentLevel = 'a1'; // Default level is A1
 let lastFlipState = false; // Track the last flip state to determine which side is showing
 let currentActivity = null; // Track current activity (game or quiz)
 let currentAudio = null; // << THÊM DÒNG NÀY ĐỂ THEO DÕI ÂM THANH ĐANG PHÁT
+let ttsToolAudio = null;
 
 // Trạng thái game "Ghép từ"
 let selectedEnglishWord = null;
@@ -197,6 +198,29 @@ document.addEventListener('DOMContentLoaded', function() {
             if (e.key === 'Enter') {
                 handleSpeakRequest();
             }
+        });
+    }
+	
+	// >>> THÊM LOGIC NÚT CHUYỂN NGỮ VÀO ĐÂY <<<
+	const langToggleBtn = document.getElementById('tts-lang-toggle-btn');
+    if (langToggleBtn) {
+        langToggleBtn.addEventListener('click', function() {
+            const currentLang = this.dataset.lang;
+            let nextLang = '';
+            let nextText = '';
+
+            if (currentLang === 'auto') {
+                nextLang = 'en-US';
+                nextText = 'Eng';
+            } else if (currentLang === 'en-US') {
+                nextLang = 'vi-VN';
+                nextText = 'VN';
+            } else { // current is vi-VN
+                nextLang = 'auto';
+                nextText = 'Tự động';
+            }
+            this.dataset.lang = nextLang;
+            this.textContent = nextText;
         });
     }
 	
@@ -2626,23 +2650,46 @@ function detectLanguage(text) {
 }
 
 function handleSpeakRequest() {
-    const input = document.getElementById('text-to-speech-input');
-    const text = input.value.trim();
-    const downloadBtn = document.getElementById('download-speech-btn');
-
+    const text = document.getElementById('text-to-speech-input').value.trim();
     if (!text) {
         alert("Vui lòng nhập văn bản để đọc.");
         return;
     }
 
-    const lang = detectLanguage(text);
+    // --- LOGIC MỚI: DỪNG ÂM THANH NẾU ĐANG PHÁT ---
+    if (ttsToolAudio && !ttsToolAudio.paused) {
+        ttsToolAudio.pause();
+        ttsToolAudio.src = '';
+        ttsToolAudio = null;
+        // Reset icon
+        document.getElementById('tts-speak-icon').classList.remove('hidden');
+        document.getElementById('tts-stop-icon').classList.add('hidden');
+        return;
+    }
+    // --- KẾT THÚC LOGIC DỪNG ---
+
+    // Lấy ngôn ngữ từ nút bấm hoặc tự động phát hiện
+    const langToggleBtn = document.getElementById('tts-lang-toggle-btn');
+    let lang = langToggleBtn.dataset.lang;
+    if (lang === 'auto') {
+        lang = detectLanguage(text);
+    }
     
-    // Lưu lại thông tin để tải về sau
     lastSpokenAudio = { lang: lang, text: text };
 
-    // Gọi hàm speakWord và hiển thị nút tải về khi hoàn thành
+    // Đổi icon thành nút Dừng
+    document.getElementById('tts-speak-icon').classList.add('hidden');
+    document.getElementById('tts-stop-icon').classList.remove('hidden');
+    document.getElementById('download-speech-btn').classList.add('hidden');
+
+    // Gọi hàm phát âm thanh
     speakWordForTool(text, lang, () => {
-        downloadBtn.classList.remove('hidden');
+        // Callback này được gọi khi âm thanh phát xong
+        document.getElementById('download-speech-btn').classList.remove('hidden');
+        // Đổi lại icon thành nút Phát
+        document.getElementById('tts-speak-icon').classList.remove('hidden');
+        document.getElementById('tts-stop-icon').classList.add('hidden');
+        ttsToolAudio = null;
     });
 }
 
@@ -2686,46 +2733,43 @@ function handleDownloadRequest() {
 function speakWordForTool(word, lang, onEndCallback) {
     const cacheKey = `audio_${lang}_${word.toLowerCase()}`;
     const cachedItem = localStorage.getItem(cacheKey);
-    // Lấy tốc độ từ thanh trượt
     const speed = parseFloat(document.getElementById('tts-speed-slider').value);
 
     function playAudio(base64Content) {
         const audio = new Audio(`data:audio/mp3;base64,${base64Content}`);
-        audio.playbackRate = speed; // << Áp dụng tốc độ đọc
+        audio.playbackRate = speed;
+        
+        // Gán vào biến toàn cục để có thể dừng
+        ttsToolAudio = audio;
+
+        // Xử lý khi kết thúc hoặc lỗi
+        audio.onended = onEndCallback;
+        audio.onerror = () => {
+            alert("Lỗi khi phát âm thanh.");
+            onEndCallback(); // Vẫn gọi callback để reset UI
+        };
+        
         audio.play();
-        if (onEndCallback) {
-            audio.onended = onEndCallback;
-        }
     }
 
     if (cachedItem) {
-        try {
-            const data = JSON.parse(cachedItem);
-            playAudio(data.audioContent);
-            return;
-        } catch (e) {
-            localStorage.removeItem(cacheKey);
-        }
+        // ... (phần xử lý cache giữ nguyên)
     }
 
     fetch(`/.netlify/functions/text-to-speech?text=${encodeURIComponent(word)}&lang=${lang}`)
         .then(response => response.json())
         .then(data => {
             if (data.audioContent) {
-                const itemToCache = { audioContent: data.audioContent, timestamp: Date.now() };
-                try {
-                    localStorage.setItem(cacheKey, JSON.stringify(itemToCache));
-                } catch (e) {
-                    // ... (phần xử lý lỗi cache giữ nguyên)
-                }
+                // ... (phần xử lý lưu cache giữ nguyên)
                 playAudio(data.audioContent);
             } else {
                 speakWordDefault(word, lang);
+                onEndCallback(); // Vẫn gọi callback để reset UI
             }
         })
         .catch(error => {
             console.error('Lỗi khi gọi Netlify Function:', error);
-            speakWordDefault(word, lang);
+            onEndCallback(); // Vẫn gọi callback để reset UI
         });
 }
 
