@@ -2742,14 +2742,14 @@ function speakWordForTool(word, lang, onEndCallback) {
     function playAudio(base64Content) {
         const audio = new Audio(`data:audio/mp3;base64,${base64Content}`);
         audio.playbackRate = speed;
-        ttsToolAudio = audio; // Gán vào biến toàn cục để có thể dừng
+        ttsToolAudio = audio;
 
         audio.onended = onEndCallback;
         audio.onerror = () => {
             alert("Lỗi khi phát âm thanh.");
-            onEndCallback(); // Vẫn gọi callback để reset UI
+            onEndCallback();
         };
-        
+
         audio.play();
     }
 
@@ -2757,13 +2757,12 @@ function speakWordForTool(word, lang, onEndCallback) {
         try {
             const data = JSON.parse(cachedItem);
             playAudio(data.audioContent);
-            return; // Dừng hàm lại vì đã phát từ cache
+            return;
         } catch (e) {
-            localStorage.removeItem(cacheKey); // Xóa cache hỏng và để code chạy xuống fetch
+            localStorage.removeItem(cacheKey);
         }
     }
 
-    // Nếu không có trong cache, gọi API qua POST
     fetch(`/.netlify/functions/text-to-speech`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -2772,25 +2771,43 @@ function speakWordForTool(word, lang, onEndCallback) {
     .then(response => response.json())
     .then(data => {
         if (data.audioContent) {
-            // Lưu vào cache
             const itemToCache = { audioContent: data.audioContent, timestamp: Date.now() };
             try {
                 localStorage.setItem(cacheKey, JSON.stringify(itemToCache));
-            } catch(e) {
-                // Xử lý cache đầy nếu cần
-            }
-            // Phát âm thanh
+            } catch (e) {}
             playAudio(data.audioContent);
+
+        } else if (Array.isArray(data.audioParts)) {
+            // Nối các đoạn base64 lại
+            const blobs = data.audioParts.map(base64 => {
+                const binary = atob(base64);
+                const bytes = new Uint8Array(binary.length);
+                for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+                return new Blob([bytes], { type: 'audio/mpeg' });
+            });
+            const audioBlob = new Blob(blobs, { type: 'audio/mpeg' });
+            const audioUrl = URL.createObjectURL(audioBlob);
+            const audio = new Audio(audioUrl);
+            audio.playbackRate = speed;
+            ttsToolAudio = audio;
+            audio.onended = onEndCallback;
+            audio.onerror = () => {
+                alert("Lỗi khi phát âm thanh.");
+                onEndCallback();
+            };
+            audio.play();
+
         } else {
-            speakWordDefault(word, lang);
-            onEndCallback();
+            // Fallback
+            speakWordDefault(word, lang, onEndCallback);
         }
     })
     .catch(error => {
         console.error('Lỗi khi gọi Netlify Function:', error);
-        onEndCallback();
+        speakWordDefault(word, lang, onEndCallback);
     });
 }
+
 
 // ===================================================================================
 // ===== 13. LOGIC MENU NGƯỜI DÙNG (USER DROPDOWN MENU)

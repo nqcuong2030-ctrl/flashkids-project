@@ -14,15 +14,17 @@ exports.handler = async (event) => {
 
     const endpoint = `https://${SPEECH_REGION}.tts.speech.microsoft.com/cognitiveservices/v1`;
     const voiceName = voice || (lang === 'vi-VN' ? 'vi-VN-HoaiMyNeural' : 'en-US-JennyNeural');
-    const ssml = `
-        <speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='${lang}'>
-            <voice name='${voiceName}'>
-                ${text}
-            </voice>
-        </speak>
-    `;
 
-    try {
+    // Hàm gửi request 1 đoạn text
+    async function synthesizeChunk(chunkText) {
+        const ssml = `
+            <speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='${lang}'>
+                <voice name='${voiceName}'>
+                    ${chunkText}
+                </voice>
+            </speak>
+        `;
+
         const response = await fetch(endpoint, {
             method: 'POST',
             headers: {
@@ -34,33 +36,46 @@ exports.handler = async (event) => {
         });
 
         const contentType = response.headers.get('content-type');
-        
+
         if (!response.ok || !contentType || !contentType.startsWith('audio/mpeg')) {
-			const errorBody = await response.text();
-			console.error('Azure TTS error:', {
-				status: response.status,
-				headers: Object.fromEntries(response.headers),
-				body: errorBody
-			});
-			return { 
-				statusCode: 500, 
-				body: JSON.stringify({ 
-					error: `Azure TTS failed: ${response.status}`,
-					details: errorBody 
-				}) 
-			};
-		}
+            const errorBody = await response.text();
+            console.error('Azure TTS error:', {
+                status: response.status,
+                headers: Object.fromEntries(response.headers),
+                body: errorBody
+            });
+            throw new Error(`Azure TTS failed: ${response.status} - ${errorBody}`);
+        }
 
         const audioBuffer = await response.buffer();
-        
-        const base64Audio = audioBuffer.toString('base64');
-        
+        return audioBuffer.toString('base64');
+    }
+
+    try {
+        // Cắt văn bản nếu quá dài
+        const chunks = [];
+        const maxLen = 9000; // dưới ngưỡng 10.000 ký tự của Azure
+        let remainingText = text;
+
+        while (remainingText.length > 0) {
+            chunks.push(remainingText.slice(0, maxLen));
+            remainingText = remainingText.slice(maxLen);
+        }
+
+        // Gọi Azure cho từng chunk và ghép kết quả
+        const audioParts = [];
+        for (const chunk of chunks) {
+            const audioBase64 = await synthesizeChunk(chunk);
+            audioParts.push(audioBase64);
+        }
+
+        // Ghép Base64 lại (client sẽ xử lý nối file mp3)
         return {
             statusCode: 200,
-            body: JSON.stringify({ audioContent: base64Audio }),
+            body: JSON.stringify({ audioParts })
         };
 
-    } catch (error) {        
-        return { statusCode: 500, body: JSON.stringify({ error: 'Lỗi trong Netlify Function.' }) };
+    } catch (error) {
+        return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
     }
 };
