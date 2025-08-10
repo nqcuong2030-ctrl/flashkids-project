@@ -2560,9 +2560,11 @@ function handleSpeakRequest() {
 
 /**
  * PHIÊN BẢN HOÀN CHỈNH - HÀM TẢI FILE ÂM THANH
- * Tải file, sau đó xóa file khỏi cache download.
+ * Hoạt động độc lập, không ảnh hưởng đến việc phát âm thanh.
  */
 function handleDownloadRequest() {
+    // Hàm này giờ đây không dừng âm thanh hay thay đổi icon Loa/Stop nữa.
+    
     const downloadCacheKey = 'flashkids_last_tts_audio';
     const downloadBtn = document.getElementById('download-speech-btn');
 
@@ -2592,11 +2594,10 @@ function handleDownloadRequest() {
             link.click();
             document.body.removeChild(link);
 
-            // Xóa file khỏi cache sau khi tải thành công
+            // Xóa file khỏi cache download sau khi tải
             localStorage.removeItem(downloadCacheKey);
-            console.log(`Đã xóa cache download: ${downloadCacheKey}`);
             
-            // Ẩn nút download đi vì file đã được "tiêu thụ"
+            // Ẩn nút download đi vì đã được "tiêu thụ"
             downloadBtn.classList.add('hidden');
             
         } catch (e) {
