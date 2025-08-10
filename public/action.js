@@ -2710,11 +2710,9 @@ function handleSpeakRequest() {
     });
 }
 
-// action.js
-
 /**
- * PHIÊN BẢN CẬP NHẬT - HÀM TẢI FILE ÂM THANH
- * Lấy file từ cache download và đặt tên chuyên nghiệp.
+ * PHIÊN BẢN HOÀN CHỈNH - HÀM TẢI FILE ÂM THANH
+ * Tải file, sau đó xóa file khỏi cache download.
  */
 function handleDownloadRequest() {
     const downloadCacheKey = 'flashkids_last_tts_audio';
@@ -2729,25 +2727,29 @@ function handleDownloadRequest() {
             link.href = `data:audio/mp3;base64,${data.audioContent}`;
             
             // --- TẠO TÊN FILE CHUYÊN NGHIỆP ---
-            // 1. Lấy và làm sạch một phần văn bản gốc
             const textSnippet = (data.originalText || "audio")
                 .substring(0, 30)
-                .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Bỏ dấu tiếng Việt
-                .replace(/[^a-zA-Z0-9\s]/g, "") // Bỏ ký tự đặc biệt
+                .normalize("NFD").replace(/[\u0300-\u036f]/g, "") 
+                .replace(/[^a-zA-Z0-9\s]/g, "") 
                 .trim()
-                .replace(/\s+/g, '_'); // Thay khoảng trắng bằng gạch dưới
+                .replace(/\s+/g, '_');
 
-            // 2. Lấy và định dạng timestamp
             const now = new Date(data.timestamp);
             const pad = (num) => String(num).padStart(2, '0');
             const timestampStr = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
             
-            // 3. Kết hợp thành tên file hoàn chỉnh
-            link.download = `FlashKids-TTS-${textSnippet}-${timestampStr}.mp3`;
+            link.download = `FlashKids-TTS-${timestampStr}-${textSnippet}.mp3`;
             
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+
+            // <<< LOGIC MỚI: XÓA FILE KHỎI CACHE SAU KHI TẢI THÀNH CÔNG >>>
+            localStorage.removeItem(downloadCacheKey);
+            console.log(`Đã xóa cache download: ${downloadCacheKey}`);
+            
+            // Ẩn nút download đi vì file đã được "tiêu thụ"
+            downloadBtn.classList.add('hidden');
             
         } catch (e) {
             console.error("Lỗi khi xử lý tải audio:", e);
