@@ -2791,10 +2791,8 @@ function playAudioQueue(audioParts, speed, onEndCallback) {
 }
 
 /**
- * PHIÊN BẢN CẬP NHẬT - HÀM PHÁT ÂM THANH CHO CÔNG CỤ
- * Sử dụng hệ thống cache lai:
- * 1. Lưu vào cache nội dung để tăng tốc phát lại.
- * 2. Lưu vào cache download để phục vụ việc tải về.
+ * PHIÊN BẢN HOÀN CHỈNH - HÀM PHÁT ÂM THANH CHO CÔNG CỤ
+ * Cải tiến với logic lưu cache có điều kiện dựa trên độ dài văn bản.
  */
 function speakWordForTool(word, lang, onEndCallback) {
     // Key để cache theo nội dung (giúp tăng tốc)
@@ -2808,33 +2806,34 @@ function speakWordForTool(word, lang, onEndCallback) {
         ttsToolAudio = null;
     }
     
-    // Bước 1: Luôn ưu tiên kiểm tra cache nội dung trước để có tốc độ phản hồi nhanh nhất
-    const cachedItem = localStorage.getItem(textCacheKey);
-    if (cachedItem) {
-        console.log("Phát âm thanh từ cache nội dung (tốc độ cao)...");
-        try {
-            const data = JSON.parse(cachedItem);
-            // Khi phát từ cache, cũng cập nhật lại cache download
-            localStorage.setItem(downloadCacheKey, JSON.stringify(data));
-            
-            const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
-            audio.playbackRate = speed;
-            ttsToolAudio = audio;
-            audio.onended = onEndCallback;
-            audio.onerror = () => {
-                alert("Lỗi khi phát âm thanh từ cache.");
-                if (onEndCallback) onEndCallback();
-            };
-            audio.play();
-            return; // Dừng hàm tại đây vì đã xử lý xong
-        } catch (e) {
-            console.error("Dữ liệu cache bị lỗi, sẽ tiến hành gọi API.", e);
-            localStorage.removeItem(textCacheKey); // Xóa cache lỗi
+    // Bước 1: Kiểm tra cache hiệu năng trước (chỉ áp dụng cho câu ngắn)
+    if (word.length <= 50) {
+        const cachedItem = localStorage.getItem(textCacheKey);
+        if (cachedItem) {
+            console.log("Phát câu ngắn từ cache hiệu năng...");
+            try {
+                const data = JSON.parse(cachedItem);
+                localStorage.setItem(downloadCacheKey, JSON.stringify(data)); // Cập nhật cache download
+                
+                const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
+                audio.playbackRate = speed;
+                ttsToolAudio = audio;
+                audio.onended = onEndCallback;
+                audio.onerror = () => {
+                    alert("Lỗi khi phát âm thanh từ cache.");
+                    if (onEndCallback) onEndCallback();
+                };
+                audio.play();
+                return; // Dừng tại đây vì đã xử lý xong
+            } catch (e) {
+                console.error("Dữ liệu cache bị lỗi, sẽ gọi API.", e);
+                localStorage.removeItem(textCacheKey);
+            }
         }
     }
 
-    // Bước 2: Nếu không có trong cache, gọi API
-    console.log("Cache không có, đang gọi API...");
+    // Bước 2: Nếu không có trong cache hoặc câu quá dài, gọi API
+    console.log("Cache không có hoặc câu dài, đang gọi API...");
     fetch(`/.netlify/functions/text-to-speech`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -2847,21 +2846,31 @@ function speakWordForTool(word, lang, onEndCallback) {
         return response.json();
     })
     .then(data => {
-        if (data.audioContent) { // Xử lý văn bản ngắn
+        if (data.audioContent) { // Xử lý các câu không bị chia nhỏ
             const itemToCache = { 
                 audioContent: data.audioContent, 
-                originalText: word, // Lưu lại văn bản gốc để tạo tên file
+                originalText: word,
                 timestamp: Date.now() 
             };
 
-            // Lưu vào cả 2 cache
-            try {
-                 localStorage.setItem(textCacheKey, JSON.stringify(itemToCache));
-                 localStorage.setItem(downloadCacheKey, JSON.stringify(itemToCache));
-            } catch (e) {
-                console.warn("localStorage đầy! Tiến hành dọn dẹp cache cũ.", e);
-                pruneAudioCache();
+            // <<< LOGIC MỚI: LƯU CACHE CÓ ĐIỀU KIỆN >>>
+            // Luôn lưu vào cache download để người dùng có thể tải về
+            localStorage.setItem(downloadCacheKey, JSON.stringify(itemToCache));
+
+            // Chỉ lưu vào cache hiệu năng (để dùng lại) nếu câu ngắn
+            if (word.length <= 50) {
+                console.log(`Lưu câu ngắn (<= 50 ký tự) vào cache hiệu năng: ${textCacheKey}`);
+                try {
+                    localStorage.setItem(textCacheKey, JSON.stringify(itemToCache));
+                } catch (e) {
+                    console.warn("localStorage đầy! Tiến hành dọn dẹp cache cũ.", e);
+                    // Gọi hàm dọn dẹp có sẵn của bạn
+                    pruneAudioCache();
+                }
+            } else {
+                 console.log(`Câu dài (> 50 ký tự), chỉ lưu vào cache download, không lưu vào cache hiệu năng.`);
             }
+            // <<< KẾT THÚC LOGIC MỚI >>>
             
             const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
             audio.playbackRate = speed;
@@ -2873,9 +2882,9 @@ function speakWordForTool(word, lang, onEndCallback) {
             };
             audio.play();
 
-        } else if (data.audioParts) { // Xử lý văn bản dài
-            // Với văn bản dài, không cache, chỉ phát
-            localStorage.removeItem(downloadCacheKey); // Xóa file download cũ để tránh nhầm lẫn
+        } else if (data.audioParts) { // Xử lý văn bản dài (đã bị chia nhỏ)
+            // Logic này không đổi: không cache, chỉ phát
+            localStorage.removeItem(downloadCacheKey); 
             document.getElementById('download-speech-btn').classList.add('hidden');
             document.getElementById('download-speech-btn').dataset.disabledForLongText = 'true';
             playAudioQueue(data.audioParts, speed, onEndCallback);
@@ -2890,7 +2899,6 @@ function speakWordForTool(word, lang, onEndCallback) {
         if (onEndCallback) onEndCallback();
     });
 }
-
 
 // ===================================================================================
 // ===== 13. LOGIC MENU NGƯỜI DÙNG (USER DROPDOWN MENU)
