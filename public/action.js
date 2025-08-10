@@ -203,26 +203,26 @@ document.addEventListener('DOMContentLoaded', function() {
 	
 	// >>> THÊM LOGIC NÚT CHUYỂN NGỮ VÀO ĐÂY <<<
 	const langToggleBtn = document.getElementById('tts-lang-toggle-btn');
-    if (langToggleBtn) {
-        langToggleBtn.addEventListener('click', function() {
-            const currentLang = this.dataset.lang;
-            let nextLang = '';
-            let nextText = '';
+	if (langToggleBtn) {
+		langToggleBtn.dataset.lang = 'en-US';
+		langToggleBtn.textContent = 'Eng';
 
-            if (currentLang === 'auto') {
-                nextLang = 'en-US';
-                nextText = 'Eng';
-            } else if (currentLang === 'en-US') {
-                nextLang = 'vi-VN';
-                nextText = 'VN';
-            } else { // current is vi-VN
-                nextLang = 'auto';
-                nextText = 'Tự động';
-            }
-            this.dataset.lang = nextLang;
-            this.textContent = nextText;
-        });
-    }
+		langToggleBtn.addEventListener('click', function() {
+			const currentLang = this.dataset.lang;
+			let nextLang = '';
+			let nextText = '';
+
+			if (currentLang === 'en-US') {
+				nextLang = 'vi-VN';
+				nextText = 'VN';
+			} else { // current is vi-VN
+				nextLang = 'en-US';
+				nextText = 'Eng';
+			}
+			this.dataset.lang = nextLang;
+			this.textContent = nextText;
+		});
+	}
 	
 	//USER DROPDOWN MENU
 	const userMenuButton = document.getElementById('user-menu-button');
