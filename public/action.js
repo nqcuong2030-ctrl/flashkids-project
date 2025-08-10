@@ -2709,12 +2709,18 @@ function handleSpeakRequest() {
     });
 }
 
+// action.js
+
 function handleDownloadRequest() {
+    // Lấy thông tin từ lần đọc cuối cùng
     if (!lastSpokenAudio.text) return;
 
     const { lang, text } = lastSpokenAudio;
-    const cacheKey = `audio_${lang}_${text.toLowerCase()}`;
     const downloadBtn = document.getElementById('download-speech-btn');
+
+    // <<< SỬA LỖI Ở DÒNG NÀY >>>
+    // Đảm bảo key để TÌM và key để LƯU là GIỐNG HỆT nhau
+    const cacheKey = `audio_${lang}_${text.toLowerCase().substring(0, 50)}`;
 
     // Lấy dữ liệu từ localStorage để tạo link tải
     const cachedItem = localStorage.getItem(cacheKey);
@@ -2725,21 +2731,24 @@ function handleDownloadRequest() {
 
             const link = document.createElement('a');
             link.href = `data:audio/mp3;base64,${base64Audio}`;
-            link.download = `${text.substring(0, 20)}.mp3`;
+            
+            // Tạo tên file download thân thiện hơn
+            const friendlyFileName = text.replace(/[^a-zA-Z0-9\s]/g, '').trim().substring(0, 25);
+            link.download = `${friendlyFileName}.mp3`;
+            
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
 
-            // Ẩn nút tải về và xóa khỏi localStorage
-            downloadBtn.classList.add('hidden');
-            localStorage.removeItem(cacheKey);
-            console.log(`Đã xóa cache cho: ${cacheKey}`);
+            // Không cần xóa cache nữa, để người dùng có thể tải lại nếu muốn
+            // localStorage.removeItem(cacheKey);
 
         } catch (e) {
             console.error("Lỗi khi xử lý tải audio:", e);
-            alert("Không thể tải file âm thanh.");
+            alert("Không thể tải file âm thanh do dữ liệu lỗi.");
         }
     } else {
+        // Thông báo lỗi nếu không tìm thấy key trong localStorage
         alert("Không tìm thấy dữ liệu âm thanh để tải. Vui lòng nhấn nút đọc lại.");
         downloadBtn.classList.add('hidden');
     }
