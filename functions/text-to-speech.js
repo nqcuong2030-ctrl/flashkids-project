@@ -37,7 +37,8 @@ exports.handler = async (event) => {
         
         if (!response.ok || !contentType || !contentType.startsWith('audio/mpeg')) {
             const errorBody = await response.text();
-            return { statusCode: 500, body: JSON.stringify({ error: `Expected audio/mpeg but received ${contentType}.` }) };
+			console.error('Azure TTS error:', errorBody);
+			return { statusCode: 500, body: JSON.stringify({ error: errorBody }) };
         }
 
         const audioBuffer = await response.buffer();
