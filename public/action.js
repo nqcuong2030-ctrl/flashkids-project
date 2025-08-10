@@ -2734,33 +2734,42 @@ function handleDownloadRequest() {
 }
 
 // Phiên bản sửa đổi của hàm speakWord để dùng cho công cụ này
-function speakWordForTool(word, lang, onEndCallback) {
-    const cacheKey = `audio_${lang}_${word.toLowerCase()}`;
-    const cachedItem = localStorage.getItem(cacheKey);
-    const speed = parseFloat(document.getElementById('tts-speed-slider').value);
+// Hàm phụ mới để phát âm thanh tuần tự
+function playAudioQueue(audioParts, speed, onEndCallback) {
+    let currentIndex = 0;
 
-    function playAudio(base64Content) {
-        const audio = new Audio(`data:audio/mp3;base64,${base64Content}`);
+    function playNext() {
+        if (currentIndex >= audioParts.length) {
+            // Đã phát hết, gọi callback kết thúc
+            if (onEndCallback) onEndCallback();
+            return;
+        }
+
+        const audio = new Audio(`data:audio/mp3;base64,${audioParts[currentIndex]}`);
         audio.playbackRate = speed;
-        ttsToolAudio = audio;
+        ttsToolAudio = audio; // Gán vào biến toàn cục để nút Dừng hoạt động
 
-        audio.onended = onEndCallback;
+        audio.onended = playNext; // Tự động gọi lại hàm này khi phát xong
         audio.onerror = () => {
-            alert("Lỗi khi phát âm thanh.");
-            onEndCallback();
+            alert("Lỗi khi phát một phần âm thanh.");
+            if (onEndCallback) onEndCallback();
         };
 
         audio.play();
+        currentIndex++;
     }
 
-    if (cachedItem) {
-        try {
-            const data = JSON.parse(cachedItem);
-            playAudio(data.audioContent);
-            return;
-        } catch (e) {
-            localStorage.removeItem(cacheKey);
-        }
+    playNext(); // Bắt đầu phát phần đầu tiên
+}
+
+function speakWordForTool(word, lang, onEndCallback) {
+    const cacheKey = `audio_long_${lang}_${word.toLowerCase().substring(0, 50)}`; // Tạo key khác cho audio dài
+    const speed = parseFloat(document.getElementById('tts-speed-slider').value);
+
+    // Dừng âm thanh cũ (nếu có)
+    if (ttsToolAudio) {
+        ttsToolAudio.pause();
+        ttsToolAudio = null;
     }
 
     fetch(`/.netlify/functions/text-to-speech`, {
@@ -2768,43 +2777,42 @@ function speakWordForTool(word, lang, onEndCallback) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: word, lang: lang }),
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            // Ném lỗi nếu server trả về lỗi (như 500)
+            return response.json().then(err => { throw new Error(err.details || 'Lỗi không xác định từ server') });
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.audioContent) {
-            const itemToCache = { audioContent: data.audioContent, timestamp: Date.now() };
-            try {
-                localStorage.setItem(cacheKey, JSON.stringify(itemToCache));
-            } catch (e) {}
-            playAudio(data.audioContent);
-
-        } else if (Array.isArray(data.audioParts)) {
-            // Nối các đoạn base64 lại
-            const blobs = data.audioParts.map(base64 => {
-                const binary = atob(base64);
-                const bytes = new Uint8Array(binary.length);
-                for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-                return new Blob([bytes], { type: 'audio/mpeg' });
-            });
-            const audioBlob = new Blob(blobs, { type: 'audio/mpeg' });
-            const audioUrl = URL.createObjectURL(audioBlob);
-            const audio = new Audio(audioUrl);
+            // Logic cũ cho văn bản ngắn: phát một file duy nhất
+            const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
             audio.playbackRate = speed;
             ttsToolAudio = audio;
+
             audio.onended = onEndCallback;
             audio.onerror = () => {
                 alert("Lỗi khi phát âm thanh.");
-                onEndCallback();
+                if (onEndCallback) onEndCallback();
             };
             audio.play();
 
+        } else if (data.audioParts && Array.isArray(data.audioParts)) {
+            // Logic MỚI cho văn bản dài: phát tuần tự các phần
+            playAudioQueue(data.audioParts, speed, onEndCallback);
+
         } else {
-            // Fallback
-            speakWordDefault(word, lang, onEndCallback);
+            // Fallback nếu không có dữ liệu audio
+            alert("Không nhận được dữ liệu âm thanh hợp lệ.");
+            if (onEndCallback) onEndCallback();
         }
     })
     .catch(error => {
         console.error('Lỗi khi gọi Netlify Function:', error);
-        speakWordDefault(word, lang, onEndCallback);
+        alert(`Đã xảy ra lỗi: ${error.message}`);
+        // Đảm bảo gọi callback để reset UI
+        if (onEndCallback) onEndCallback();
     });
 }
 
