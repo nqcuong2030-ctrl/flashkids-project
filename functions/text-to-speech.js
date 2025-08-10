@@ -36,10 +36,20 @@ exports.handler = async (event) => {
         const contentType = response.headers.get('content-type');
         
         if (!response.ok || !contentType || !contentType.startsWith('audio/mpeg')) {
-            const errorBody = await response.text();
-			console.error('Azure TTS error:', errorBody);
-			return { statusCode: 500, body: JSON.stringify({ error: errorBody }) };
-        }
+			const errorBody = await response.text();
+			console.error('Azure TTS error:', {
+				status: response.status,
+				headers: Object.fromEntries(response.headers),
+				body: errorBody
+			});
+			return { 
+				statusCode: 500, 
+				body: JSON.stringify({ 
+					error: `Azure TTS failed: ${response.status}`,
+					details: errorBody 
+				}) 
+			};
+		}
 
         const audioBuffer = await response.buffer();
         
