@@ -40,6 +40,7 @@ let lastFlipState = false; // Track the last flip state to determine which side 
 let currentActivity = null; // Track current activity (game or quiz)
 let currentAudio = null; // << THÊM DÒNG NÀY ĐỂ THEO DÕI ÂM THANH ĐANG PHÁT
 let ttsToolAudio = null;
+let lastGeneratedAudioKey = null;
 
 // Trạng thái game "Ghép từ"
 let selectedEnglishWord = null;
@@ -2711,44 +2712,48 @@ function handleSpeakRequest() {
 
 // action.js
 
+/**
+ * PHIÊN BẢN CẬP NHẬT - HÀM TẢI FILE ÂM THANH
+ * Lấy file từ cache download và đặt tên chuyên nghiệp.
+ */
 function handleDownloadRequest() {
-    // Lấy thông tin từ lần đọc cuối cùng
-    if (!lastSpokenAudio.text) return;
-
-    const { lang, text } = lastSpokenAudio;
+    const downloadCacheKey = 'flashkids_last_tts_audio';
     const downloadBtn = document.getElementById('download-speech-btn');
 
-    // <<< SỬA LỖI Ở DÒNG NÀY >>>
-    // Đảm bảo key để TÌM và key để LƯU là GIỐNG HỆT nhau
-    const cacheKey = `audio_${lang}_${text.toLowerCase().substring(0, 50)}`;
+    const cachedItem = localStorage.getItem(downloadCacheKey);
 
-    // Lấy dữ liệu từ localStorage để tạo link tải
-    const cachedItem = localStorage.getItem(cacheKey);
     if (cachedItem) {
         try {
             const data = JSON.parse(cachedItem);
-            const base64Audio = data.audioContent;
-
             const link = document.createElement('a');
-            link.href = `data:audio/mp3;base64,${base64Audio}`;
+            link.href = `data:audio/mp3;base64,${data.audioContent}`;
             
-            // Tạo tên file download thân thiện hơn
-            const friendlyFileName = text.replace(/[^a-zA-Z0-9\s]/g, '').trim().substring(0, 25);
-            link.download = `${friendlyFileName}.mp3`;
+            // --- TẠO TÊN FILE CHUYÊN NGHIỆP ---
+            // 1. Lấy và làm sạch một phần văn bản gốc
+            const textSnippet = (data.originalText || "audio")
+                .substring(0, 30)
+                .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Bỏ dấu tiếng Việt
+                .replace(/[^a-zA-Z0-9\s]/g, "") // Bỏ ký tự đặc biệt
+                .trim()
+                .replace(/\s+/g, '_'); // Thay khoảng trắng bằng gạch dưới
+
+            // 2. Lấy và định dạng timestamp
+            const now = new Date(data.timestamp);
+            const pad = (num) => String(num).padStart(2, '0');
+            const timestampStr = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+            
+            // 3. Kết hợp thành tên file hoàn chỉnh
+            link.download = `FlashKids-TTS-${textSnippet}-${timestampStr}.mp3`;
             
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-
-            // Không cần xóa cache nữa, để người dùng có thể tải lại nếu muốn
-            // localStorage.removeItem(cacheKey);
-
+            
         } catch (e) {
             console.error("Lỗi khi xử lý tải audio:", e);
             alert("Không thể tải file âm thanh do dữ liệu lỗi.");
         }
     } else {
-        // Thông báo lỗi nếu không tìm thấy key trong localStorage
         alert("Không tìm thấy dữ liệu âm thanh để tải. Vui lòng nhấn nút đọc lại.");
         downloadBtn.classList.add('hidden');
     }
@@ -2783,22 +2788,51 @@ function playAudioQueue(audioParts, speed, onEndCallback) {
     playNext(); // Bắt đầu phát phần đầu tiên
 }
 
+/**
+ * PHIÊN BẢN CẬP NHẬT - HÀM PHÁT ÂM THANH CHO CÔNG CỤ
+ * Sử dụng hệ thống cache lai:
+ * 1. Lưu vào cache nội dung để tăng tốc phát lại.
+ * 2. Lưu vào cache download để phục vụ việc tải về.
+ */
 function speakWordForTool(word, lang, onEndCallback) {
-    // Chuẩn hóa cacheKey để cả 2 hàm đều dùng chung
-    const cacheKey = `audio_${lang}_${word.toLowerCase().substring(0, 50)}`; 
+    // Key để cache theo nội dung (giúp tăng tốc)
+    const textCacheKey = `audio_${lang}_${word.toLowerCase().substring(0, 50)}`;
+    // Key cố định để lưu file gần nhất cho việc download
+    const downloadCacheKey = 'flashkids_last_tts_audio'; 
     const speed = parseFloat(document.getElementById('tts-speed-slider').value);
-    const downloadBtn = document.getElementById('download-speech-btn');
-
-    // Dừng âm thanh cũ (nếu có)
+    
     if (ttsToolAudio) {
         ttsToolAudio.pause();
         ttsToolAudio = null;
     }
     
-    // Reset trạng thái nút download
-    downloadBtn.dataset.disabledForLongText = '';
+    // Bước 1: Luôn ưu tiên kiểm tra cache nội dung trước để có tốc độ phản hồi nhanh nhất
+    const cachedItem = localStorage.getItem(textCacheKey);
+    if (cachedItem) {
+        console.log("Phát âm thanh từ cache nội dung (tốc độ cao)...");
+        try {
+            const data = JSON.parse(cachedItem);
+            // Khi phát từ cache, cũng cập nhật lại cache download
+            localStorage.setItem(downloadCacheKey, JSON.stringify(data));
+            
+            const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
+            audio.playbackRate = speed;
+            ttsToolAudio = audio;
+            audio.onended = onEndCallback;
+            audio.onerror = () => {
+                alert("Lỗi khi phát âm thanh từ cache.");
+                if (onEndCallback) onEndCallback();
+            };
+            audio.play();
+            return; // Dừng hàm tại đây vì đã xử lý xong
+        } catch (e) {
+            console.error("Dữ liệu cache bị lỗi, sẽ tiến hành gọi API.", e);
+            localStorage.removeItem(textCacheKey); // Xóa cache lỗi
+        }
+    }
 
-
+    // Bước 2: Nếu không có trong cache, gọi API
+    console.log("Cache không có, đang gọi API...");
     fetch(`/.netlify/functions/text-to-speech`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -2811,23 +2845,25 @@ function speakWordForTool(word, lang, onEndCallback) {
         return response.json();
     })
     .then(data => {
-        if (data.audioContent) {
-            // Logic cũ cho văn bản ngắn: phát một file duy nhất
-            
-            // <<< SỬA LỖI 2, PHẦN 1: LƯU VÀO LOCALSTORAGE CHO VĂN BẢN NGẮN >>>
-            try {
-                 const itemToCache = { audioContent: data.audioContent, timestamp: Date.now() };
-                 localStorage.setItem(cacheKey, JSON.stringify(itemToCache));
-            } catch (e) {
-                console.warn("Lỗi khi lưu cache, có thể localStorage đã đầy.", e);
-                pruneAudioCache(); // Gọi hàm dọn dẹp cache
-            }
-            // <<< KẾT THÚC SỬA LỖI 2, PHẦN 1 >>>
+        if (data.audioContent) { // Xử lý văn bản ngắn
+            const itemToCache = { 
+                audioContent: data.audioContent, 
+                originalText: word, // Lưu lại văn bản gốc để tạo tên file
+                timestamp: Date.now() 
+            };
 
+            // Lưu vào cả 2 cache
+            try {
+                 localStorage.setItem(textCacheKey, JSON.stringify(itemToCache));
+                 localStorage.setItem(downloadCacheKey, JSON.stringify(itemToCache));
+            } catch (e) {
+                console.warn("localStorage đầy! Tiến hành dọn dẹp cache cũ.", e);
+                pruneAudioCache();
+            }
+            
             const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
             audio.playbackRate = speed;
             ttsToolAudio = audio;
-
             audio.onended = onEndCallback;
             audio.onerror = () => {
                 alert("Lỗi khi phát âm thanh.");
@@ -2835,16 +2871,12 @@ function speakWordForTool(word, lang, onEndCallback) {
             };
             audio.play();
 
-        } else if (data.audioParts && Array.isArray(data.audioParts)) {
-            // Logic MỚI cho văn bản dài: phát tuần tự các phần
-            
-            // <<< SỬA LỖI 2, PHẦN 2: ẨN NÚT DOWNLOAD KHI LÀ VĂN BẢN DÀI >>>
-            downloadBtn.classList.add('hidden');
-            downloadBtn.dataset.disabledForLongText = 'true'; // Đánh dấu để callback onended không hiện lại
-            // <<< KẾT THÚC SỬA LỖI 2, PHẦN 2 >>>
-
+        } else if (data.audioParts) { // Xử lý văn bản dài
+            // Với văn bản dài, không cache, chỉ phát
+            localStorage.removeItem(downloadCacheKey); // Xóa file download cũ để tránh nhầm lẫn
+            document.getElementById('download-speech-btn').classList.add('hidden');
+            document.getElementById('download-speech-btn').dataset.disabledForLongText = 'true';
             playAudioQueue(data.audioParts, speed, onEndCallback);
-
         } else {
             alert("Không nhận được dữ liệu âm thanh hợp lệ.");
             if (onEndCallback) onEndCallback();
