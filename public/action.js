@@ -2756,7 +2756,17 @@ function speakWordForTool(word, lang, onEndCallback) {
         // ... (phần xử lý cache giữ nguyên)
     }
 
-    fetch(`/.netlify/functions/text-to-speech?text=${encodeURIComponent(word)}&lang=${lang}`)
+    fetch(`/.netlify/functions/text-to-speech`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            text: word,
+            lang: lang,
+            // Chúng ta không cần gửi voice ở đây vì function đã có logic mặc định
+        }),
+    })
         .then(response => response.json())
         .then(data => {
             if (data.audioContent) {

@@ -3,7 +3,7 @@ const fetch = require('node-fetch');
 exports.handler = async (event) => {
     const SPEECH_KEY = process.env.AZURE_SPEECH_KEY;
     const SPEECH_REGION = process.env.AZURE_SPEECH_REGION;
-    const { text, lang, voice } = event.queryStringParameters;
+    const { text, lang, voice } = JSON.parse(event.body);
 
     if (!SPEECH_KEY || !SPEECH_REGION) {
         return { statusCode: 500, body: JSON.stringify({ error: 'Chưa cấu hình API Key hoặc Region trên Netlify.' }) };
