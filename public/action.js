@@ -2662,26 +2662,34 @@ function handleSpeakRequest() {
 
     // --- LOGIC MỚI: DỪNG ÂM THANH NẾU ĐANG PHÁT ---
     if (ttsToolAudio && !ttsToolAudio.paused) {
+        
+        // <<< SỬA LỖI 1: VÔ HIỆU HÓA TRÌNH XỬ LÝ LỖI TRƯỚC KHI DỪNG >>>
+        ttsToolAudio.onerror = null; 
+        ttsToolAudio.onended = null;
+        // <<< KẾT THÚC SỬA LỖI 1 >>>
+
         ttsToolAudio.pause();
         ttsToolAudio.src = '';
         ttsToolAudio = null;
+        
         // Reset icon
         document.getElementById('tts-speak-icon').classList.remove('hidden');
         document.getElementById('tts-stop-icon').classList.add('hidden');
+        document.getElementById('download-speech-btn').classList.add('hidden'); // Ẩn luôn nút download khi dừng
         return;
     }
     // --- KẾT THÚC LOGIC DỪNG ---
 
-    // Lấy ngôn ngữ từ nút bấm hoặc tự động phát hiện
     const langToggleBtn = document.getElementById('tts-lang-toggle-btn');
     let lang = langToggleBtn.dataset.lang;
     if (lang === 'auto') {
         lang = detectLanguage(text);
     }
     
+    // Cập nhật lại audio cuối cùng được yêu cầu, để nút download biết cần tải cái gì
     lastSpokenAudio = { lang: lang, text: text };
 
-    // Đổi icon thành nút Dừng
+    // Đổi icon thành nút Dừng, ẩn nút Tải
     document.getElementById('tts-speak-icon').classList.add('hidden');
     document.getElementById('tts-stop-icon').classList.remove('hidden');
     document.getElementById('download-speech-btn').classList.add('hidden');
@@ -2689,7 +2697,11 @@ function handleSpeakRequest() {
     // Gọi hàm phát âm thanh
     speakWordForTool(text, lang, () => {
         // Callback này được gọi khi âm thanh phát xong
-        document.getElementById('download-speech-btn').classList.remove('hidden');
+        // Chỉ hiện nút tải nếu đó là văn bản ngắn (không phải audio parts)
+        if (!document.getElementById('download-speech-btn').dataset.disabledForLongText) {
+             document.getElementById('download-speech-btn').classList.remove('hidden');
+        }
+       
         // Đổi lại icon thành nút Phát
         document.getElementById('tts-speak-icon').classList.remove('hidden');
         document.getElementById('tts-stop-icon').classList.add('hidden');
@@ -2763,14 +2775,20 @@ function playAudioQueue(audioParts, speed, onEndCallback) {
 }
 
 function speakWordForTool(word, lang, onEndCallback) {
-    const cacheKey = `audio_long_${lang}_${word.toLowerCase().substring(0, 50)}`; // Tạo key khác cho audio dài
+    // Chuẩn hóa cacheKey để cả 2 hàm đều dùng chung
+    const cacheKey = `audio_${lang}_${word.toLowerCase().substring(0, 50)}`; 
     const speed = parseFloat(document.getElementById('tts-speed-slider').value);
+    const downloadBtn = document.getElementById('download-speech-btn');
 
     // Dừng âm thanh cũ (nếu có)
     if (ttsToolAudio) {
         ttsToolAudio.pause();
         ttsToolAudio = null;
     }
+    
+    // Reset trạng thái nút download
+    downloadBtn.dataset.disabledForLongText = '';
+
 
     fetch(`/.netlify/functions/text-to-speech`, {
         method: 'POST',
@@ -2779,7 +2797,6 @@ function speakWordForTool(word, lang, onEndCallback) {
     })
     .then(response => {
         if (!response.ok) {
-            // Ném lỗi nếu server trả về lỗi (như 500)
             return response.json().then(err => { throw new Error(err.details || 'Lỗi không xác định từ server') });
         }
         return response.json();
@@ -2787,6 +2804,17 @@ function speakWordForTool(word, lang, onEndCallback) {
     .then(data => {
         if (data.audioContent) {
             // Logic cũ cho văn bản ngắn: phát một file duy nhất
+            
+            // <<< SỬA LỖI 2, PHẦN 1: LƯU VÀO LOCALSTORAGE CHO VĂN BẢN NGẮN >>>
+            try {
+                 const itemToCache = { audioContent: data.audioContent, timestamp: Date.now() };
+                 localStorage.setItem(cacheKey, JSON.stringify(itemToCache));
+            } catch (e) {
+                console.warn("Lỗi khi lưu cache, có thể localStorage đã đầy.", e);
+                pruneAudioCache(); // Gọi hàm dọn dẹp cache
+            }
+            // <<< KẾT THÚC SỬA LỖI 2, PHẦN 1 >>>
+
             const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
             audio.playbackRate = speed;
             ttsToolAudio = audio;
@@ -2800,10 +2828,15 @@ function speakWordForTool(word, lang, onEndCallback) {
 
         } else if (data.audioParts && Array.isArray(data.audioParts)) {
             // Logic MỚI cho văn bản dài: phát tuần tự các phần
+            
+            // <<< SỬA LỖI 2, PHẦN 2: ẨN NÚT DOWNLOAD KHI LÀ VĂN BẢN DÀI >>>
+            downloadBtn.classList.add('hidden');
+            downloadBtn.dataset.disabledForLongText = 'true'; // Đánh dấu để callback onended không hiện lại
+            // <<< KẾT THÚC SỬA LỖI 2, PHẦN 2 >>>
+
             playAudioQueue(data.audioParts, speed, onEndCallback);
 
         } else {
-            // Fallback nếu không có dữ liệu audio
             alert("Không nhận được dữ liệu âm thanh hợp lệ.");
             if (onEndCallback) onEndCallback();
         }
@@ -2811,7 +2844,6 @@ function speakWordForTool(word, lang, onEndCallback) {
     .catch(error => {
         console.error('Lỗi khi gọi Netlify Function:', error);
         alert(`Đã xảy ra lỗi: ${error.message}`);
-        // Đảm bảo gọi callback để reset UI
         if (onEndCallback) onEndCallback();
     });
 }
