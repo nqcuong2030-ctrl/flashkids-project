@@ -2513,65 +2513,8 @@ function detectLanguage(text) {
     return vietnameseRegex.test(text) ? 'vi-VN' : 'en-US';
 }
 
-function handleSpeakRequest() {
-    const text = document.getElementById('text-to-speech-input').value.trim();
-    if (!text) {
-        alert("Vui lòng nhập văn bản để đọc.");
-        return;
-    }
-
-    // --- LOGIC MỚI: DỪNG ÂM THANH NẾU ĐANG PHÁT ---
-    if (ttsToolAudio && !ttsToolAudio.paused) {
-        
-        // <<< SỬA LỖI 1: VÔ HIỆU HÓA TRÌNH XỬ LÝ LỖI TRƯỚC KHI DỪNG >>>
-        ttsToolAudio.onerror = null; 
-        ttsToolAudio.onended = null;
-        // <<< KẾT THÚC SỬA LỖI 1 >>>
-
-        ttsToolAudio.pause();
-        ttsToolAudio.src = '';
-        ttsToolAudio = null;
-        
-        // Reset icon
-        document.getElementById('tts-speak-icon').classList.remove('hidden');
-        document.getElementById('tts-stop-icon').classList.add('hidden');
-        document.getElementById('download-speech-btn').classList.add('hidden'); // Ẩn luôn nút download khi dừng
-        return;
-    }
-    // --- KẾT THÚC LOGIC DỪNG ---
-
-    const langToggleBtn = document.getElementById('tts-lang-toggle-btn');
-    let lang = langToggleBtn.dataset.lang;
-    if (lang === 'auto') {
-        lang = detectLanguage(text);
-    }
-    
-    // Cập nhật lại audio cuối cùng được yêu cầu, để nút download biết cần tải cái gì
-    lastSpokenAudio = { lang: lang, text: text };
-
-    // Đổi icon thành nút Dừng, ẩn nút Tải
-    document.getElementById('tts-speak-icon').classList.add('hidden');
-    document.getElementById('tts-stop-icon').classList.remove('hidden');
-    document.getElementById('download-speech-btn').classList.add('hidden');
-
-    // Gọi hàm phát âm thanh
-    speakWordForTool(text, lang, () => {
-        // Callback này được gọi khi âm thanh phát xong
-        // Chỉ hiện nút tải nếu đó là văn bản ngắn (không phải audio parts)
-        if (!document.getElementById('download-speech-btn').dataset.disabledForLongText) {
-             document.getElementById('download-speech-btn').classList.remove('hidden');
-        }
-       
-        // Đổi lại icon thành nút Phát
-        document.getElementById('tts-speak-icon').classList.remove('hidden');
-        document.getElementById('tts-stop-icon').classList.add('hidden');
-        ttsToolAudio = null;
-    });
-}
-
 /**
- * PHIÊN BẢN HOÀN CHỈNH - HÀM TẢI FILE ÂM THANH
- * Tải file, sau đó xóa file khỏi cache download.
+ * PHIÊN BẢN HOÀN CHỈNH - HÀM XỬ LÝ SỰ KIỆN NÚT ĐỌC/DỪNG
  */
 function handleSpeakRequest() {
     const text = document.getElementById('text-to-speech-input').value.trim();
@@ -2613,6 +2556,57 @@ function handleSpeakRequest() {
         document.getElementById('tts-stop-icon').classList.add('hidden');
         ttsToolAudio = null;
     });
+}
+
+/**
+ * PHIÊN BẢN HOÀN CHỈNH - HÀM TẢI FILE ÂM THANH
+ * Tải file, sau đó xóa file khỏi cache download.
+ */
+function handleDownloadRequest() {
+    const downloadCacheKey = 'flashkids_last_tts_audio';
+    const downloadBtn = document.getElementById('download-speech-btn');
+
+    const cachedItem = localStorage.getItem(downloadCacheKey);
+
+    if (cachedItem) {
+        try {
+            const data = JSON.parse(cachedItem);
+            const link = document.createElement('a');
+            link.href = `data:audio/mp3;base64,${data.audioContent}`;
+            
+            // Tạo tên file chuyên nghiệp
+            const textSnippet = (data.originalText || "audio")
+                .substring(0, 30)
+                .normalize("NFD").replace(/[\u0300-\u036f]/g, "") 
+                .replace(/[^a-zA-Z0-9\s]/g, "") 
+                .trim()
+                .replace(/\s+/g, '_');
+
+            const now = new Date(data.timestamp);
+            const pad = (num) => String(num).padStart(2, '0');
+            const timestampStr = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+            
+            link.download = `FlashKids-TTS-${textSnippet}-${timestampStr}.mp3`;
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Xóa file khỏi cache sau khi tải thành công
+            localStorage.removeItem(downloadCacheKey);
+            console.log(`Đã xóa cache download: ${downloadCacheKey}`);
+            
+            // Ẩn nút download đi vì file đã được "tiêu thụ"
+            downloadBtn.classList.add('hidden');
+            
+        } catch (e) {
+            console.error("Lỗi khi xử lý tải audio:", e);
+            alert("Không thể tải file âm thanh do dữ liệu lỗi.");
+        }
+    } else {
+        alert("Không tìm thấy dữ liệu âm thanh để tải. Vui lòng nhấn nút đọc lại.");
+        downloadBtn.classList.add('hidden');
+    }
 }
 
 /**
@@ -2812,7 +2806,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (downloadBtn) {
         downloadBtn.addEventListener('click', handleDownloadRequest);
-    }
+	}
     
     if(input) {
         input.addEventListener('keypress', function(e) {
