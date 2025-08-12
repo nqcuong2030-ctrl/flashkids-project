@@ -500,23 +500,48 @@ function renderActivityChart() {
 }
 
 function renderMasteryChart() {
-	console.log("LOG: Đang thực thi renderMasteryChart()...");
+    console.log("LOG: Đang thực thi renderMasteryChart()..."); // Log này sẽ giúp xác nhận hàm được gọi
     const progress = getUserProgress();
     const ctx = document.getElementById('mastery-chart')?.getContext('2d');
     if (!ctx) return;
 
-    // >>> LOGIC MỚI: Tự lấy danh sách từ vựng của level hiện tại từ cache <<<
     const currentLevelData = flashcardCache[currentLevel];
     if (!currentLevelData || !currentLevelData.flashcards) {
         console.warn("Chưa có dữ liệu từ vựng cho level hiện tại, không thể vẽ biểu đồ.");
         return;
     }
-    const totalWordsInLevel = currentLevelData.flashcards.length;
-    // >>> KẾT THÚC LOGIC MỚI <<<
+    
+    // =================================================================
+    // ===== BẮT ĐẦU PHẦN LOGIC ĐƯỢC SỬA LỖI ============================
+    // =================================================================
 
-    const masteredCount = Object.values(progress.masteryScores).filter(s => s >= MASTERY_THRESHOLD).length;
-    const learningCount = Object.values(progress.masteryScores).filter(s => s > 0 && s < MASTERY_THRESHOLD).length;
+    const totalWordsInLevel = currentLevelData.flashcards.length;
+    
+    // 1. Tạo một Set chứa ID của tất cả các từ trong level hiện tại để tra cứu nhanh
+    const wordIdsInCurrentLevel = new Set(currentLevelData.flashcards.map(word => word.id));
+
+    let masteredCount = 0;
+    let learningCount = 0;
+
+    // 2. Lặp qua tất cả các điểm đã lưu trong progress
+    for (const wordId in progress.masteryScores) {
+        // 3. Chỉ xử lý nếu wordId này thuộc về level hiện tại
+        if (wordIdsInCurrentLevel.has(parseInt(wordId))) {
+            const score = progress.masteryScores[wordId];
+            if (score >= MASTERY_THRESHOLD) {
+                masteredCount++;
+            } else if (score > 0) {
+                learningCount++;
+            }
+        }
+    }
+    
+    // 4. Tính toán số từ chưa học một cách chính xác
     const unlearnedCount = totalWordsInLevel - masteredCount - learningCount;
+
+    // =================================================================
+    // ===== KẾT THÚC PHẦN LOGIC ĐƯỢC SỬA LỖI ============================
+    // =================================================================
 
     if (masteryChartInstance) {
         masteryChartInstance.destroy();
@@ -527,6 +552,7 @@ function renderMasteryChart() {
         data: {
             labels: ['Thông thạo', 'Đang học', 'Chưa học'],
             datasets: [{
+                // 5. Cung cấp dữ liệu đã được tính toán chính xác
                 data: [masteredCount, learningCount, unlearnedCount],
                 backgroundColor: [ '#10B981', '#F59E0B', '#E5E7EB' ],
                 hoverOffset: 4
