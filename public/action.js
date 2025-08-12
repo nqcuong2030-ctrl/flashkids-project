@@ -2,7 +2,7 @@
 // ===== 0. VERSIONING & DATA MIGRATION
 // ===================================================================================
 
-const APP_VERSION = '1.1_12082025_3'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
+const APP_VERSION = '1.1_12082025_4'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
 const MASTERY_THRESHOLD = 3;
 
 function checkAppVersion() {
@@ -1656,27 +1656,43 @@ function handleReadingQuizOptionClick(button, selectedOption, correctOption, wor
 // ===================================================================================
 
 function initUserProgress() {
-	// Try to load user progress from localStorage
-	const savedProgress = localStorage.getItem('flashkids_progress');
-	if (savedProgress) {
-		return JSON.parse(savedProgress);
-	}
-	
-	// Create default progress object if none exists
-	return {
-		categories: {},
-		masteryScores: {},
-		completedGames: {},
-		completedQuizzes: {},
-		dailyActivities: 0,
-		lastActivityDate: new Date().toDateString(),
-		streakDays: 0,
-		userProfile: {
-			username: '',
-			age: '',
-			soundEnabled: true
-		}
-	};
+    // Tạo cấu trúc mặc định hoàn chỉnh
+    const defaultProgress = {
+        categories: {},
+        masteryScores: {},
+        completedGames: {},
+        completedQuizzes: {},
+        dailyActivities: 0,
+        lastActivityDate: new Date().toDateString(),
+        streakDays: 0,
+        userProfile: {
+            username: '',
+            age: '',
+            soundEnabled: true,
+            dailyGoal: 20,
+            avatar: 'https://upload.wikimedia.org/wikipedia/commons/1/14/H%C6%B0%C6%A1u_cao_c%E1%BB%95.png',
+            voice: 'en-US-JennyNeural'
+        }
+    };
+
+    const savedProgressString = localStorage.getItem('flashkids_progress');
+    if (savedProgressString) {
+        try {
+            const savedProgress = JSON.parse(savedProgressString);
+            // Kết hợp dữ liệu đã lưu với dữ liệu mặc định
+            // Điều này đảm bảo các thuộc tính mới sẽ luôn tồn tại
+            const combinedUserProfile = { ...defaultProgress.userProfile, ...savedProgress.userProfile };
+            const combinedProgress = { ...defaultProgress, ...savedProgress };
+            combinedProgress.userProfile = combinedUserProfile; // Ghi đè lại userProfile đã được kết hợp
+            return combinedProgress;
+        } catch (e) {
+            console.error("Lỗi khi đọc dữ liệu progress, sử dụng dữ liệu mặc định.", e);
+            return defaultProgress; // Trả về mặc định nếu dữ liệu lưu bị lỗi
+        }
+    }
+    
+    // Trả về mặc định nếu không có gì trong localStorage
+    return defaultProgress;
 }
 
 function saveUserProgress(progress) {
