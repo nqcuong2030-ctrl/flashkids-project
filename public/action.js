@@ -250,6 +250,7 @@ async function speakWord(word, lang) {
         filename = slugifyVietnamese(word.toLowerCase());
     }
     const localAudioUrl = `/audio/${lang}/${filename}.mp3`;
+	console.log(`Đang cố gắng tải file tại đường dẫn: ${localAudioUrl}`);
 
     // 3. TẠO ĐỐI TƯỢNG AUDIO VÀ GÁN SỰ KIỆN (LOGIC MỚI CHO DI ĐỘNG)
     const audio = new Audio();
