@@ -428,7 +428,7 @@ function changeTab(tabId) {
     // --- PHẦN SỬA LỖI NẰM Ở ĐÂY ---
 	if (tabId === 'stats') {
 		updateCategoryProgressDisplay();
-		renderActivityChart();
+		renderActivityHeatmap();
         renderMasteryChart();
 	}
 }
@@ -453,54 +453,7 @@ function updateMarkLearnedButton(wordId) {
     }
 }
 
-// Biểu đồ tab Thống kê
-function renderActivityChart() {
-	console.log("LOG: Đang thực thi renderActivityChart()...");
-    const progress = getUserProgress();
-    const ctx = document.getElementById('activity-chart')?.getContext('2d');
-    if (!ctx) return;
-
-    // Chuẩn bị dữ liệu cho 7 ngày qua
-    const labels = [];
-    const data = [];
-    for (let i = 6; i >= 0; i--) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        labels.push(`${d.getDate()}/${d.getMonth() + 1}`);
-        
-        // Đếm số hoạt động trong ngày đó
-        const activitiesOnDay = progress.dailyActivitiesHistory?.[d.toDateString()] || 0;
-        data.push(activitiesOnDay);
-    }
-
-    // Hủy biểu đồ cũ nếu tồn tại
-    if (activityChartInstance) {
-        activityChartInstance.destroy();
-    }
-
-    // Vẽ biểu đồ mới
-    activityChartInstance = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Hoạt động',
-                data: data,
-                backgroundColor: 'rgba(59, 130, 246, 0.5)',
-                borderColor: 'rgba(59, 130, 246, 1)',
-                borderWidth: 1,
-                borderRadius: 5,
-            }]
-        },
-        options: {
-            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
-            plugins: { legend: { display: false } }
-        }
-    });
-}
-
 function renderMasteryChart() {
-    console.log("LOG: Đang thực thi renderMasteryChart()..."); // Log này sẽ giúp xác nhận hàm được gọi
     const progress = getUserProgress();
     const ctx = document.getElementById('mastery-chart')?.getContext('2d');
     if (!ctx) return;
@@ -559,6 +512,45 @@ function renderMasteryChart() {
             }]
         }
     });
+}
+
+function renderActivityHeatmap() {
+    const container = document.getElementById('activity-heatmap');
+    if (!container) return;
+    container.innerHTML = ''; // Xóa nội dung cũ
+
+    const progress = getUserProgress();
+    const history = progress.dailyActivitiesHistory || {};
+    const daysToShow = 91; // Khoảng 3 tháng (13 tuần x 7 ngày)
+
+    for (let i = daysToShow - 1; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dateString = date.toDateString();
+
+        const activities = history[dateString] || 0;
+        let level = 0;
+        if (activities > 0 && activities <= 2) {
+            level = 1;
+        } else if (activities > 2 && activities <= 5) {
+            level = 2;
+        } else if (activities > 5 && activities <= 10) {
+            level = 3;
+        } else if (activities > 10) {
+            level = 4;
+        }
+
+        const dayElement = document.createElement('div');
+        dayElement.className = `heatmap-day heatmap-level-${level}`;
+
+        // Thêm tooltip để hiển thị thông tin chi tiết khi di chuột vào
+        const tooltipText = activities > 0 
+            ? `${activities} hoạt động - ${date.toLocaleDateString('vi-VN')}`
+            : `Không hoạt động - ${date.toLocaleDateString('vi-VN')}`;
+
+        dayElement.innerHTML = `<span class="tooltip">${tooltipText}</span>`;
+        container.appendChild(dayElement);
+    }
 }
 
 // ===================================================================================
@@ -2012,7 +2004,6 @@ function updateMasteryScore(wordId, pointsToAdd) {
     // Nếu người dùng đang ở tab 'stats', hãy cập nhật biểu đồ ngay lập tức
     if (activeButton && activeButton.dataset.tab === 'stats') {
         console.log("Đang ở tab Thống kê, cập nhật lại biểu đồ...");
-        renderActivityChart();
         renderMasteryChart();
     }
 }
