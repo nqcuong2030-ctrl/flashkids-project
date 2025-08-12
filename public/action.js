@@ -2,7 +2,7 @@
 // ===== 0. VERSIONING & DATA MIGRATION
 // ===================================================================================
 
-const APP_VERSION = '1.1_12082025_6'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
+const APP_VERSION = '1.1_12082025_1a'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
 
 function checkAppVersion() {
     const storedVersion = localStorage.getItem('flashkids_app_version');
@@ -245,7 +245,7 @@ async function speakWord(word, lang) {
     // 2. Chuẩn hóa tên file (Giữ nguyên)
     let filename = '';
     if (lang === 'en-US') {
-        filename = word.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '_');
+        filename = lowerCaseWord.replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '_');
     } else {
         filename = slugifyVietnamese(word.toLowerCase());
     }
