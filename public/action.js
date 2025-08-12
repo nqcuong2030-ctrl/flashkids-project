@@ -2,7 +2,7 @@
 // ===== 0. VERSIONING & DATA MIGRATION
 // ===================================================================================
 
-const APP_VERSION = '1.1_12082025_5'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
+const APP_VERSION = '1.1_12082025_6'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
 
 function checkAppVersion() {
     const storedVersion = localStorage.getItem('flashkids_app_version');
@@ -249,7 +249,7 @@ async function speakWord(word, lang) {
     } else {
         filename = slugifyVietnamese(word.toLowerCase());
     }
-    const localAudioUrl = `/audio/${lang}/${filename}.mp3`;
+    const localAudioUrl = `/public/audio/${lang}/${filename}.mp3`;
 	console.log(`Đang cố gắng tải file tại đường dẫn: ${localAudioUrl}`);
 
     // 3. TẠO ĐỐI TƯỢNG AUDIO VÀ GÁN SỰ KIỆN (LOGIC MỚI CHO DI ĐỘNG)
