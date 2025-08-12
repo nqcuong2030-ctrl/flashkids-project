@@ -2,7 +2,7 @@
 // ===== 0. VERSIONING & DATA MIGRATION
 // ===================================================================================
 
-const APP_VERSION = '1.1_12082025_6'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
+const APP_VERSION = '1.1_12082025_5'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
 const MASTERY_THRESHOLD = 3;
 
 function checkAppVersion() {
@@ -2268,8 +2268,6 @@ function updateUserStats() {
     // Tính tổng số từ đã thông thạo (score >= ngưỡng)
     const totalLearned = Object.values(progress.masteryScores).filter(score => score >= MASTERY_THRESHOLD).length;
     document.getElementById('words-learned').textContent = totalLearned;
-    
-    document.getElementById('study-time').textContent = userData.studyTime; // Giữ nguyên
     document.getElementById('streak-days').textContent = progress.streakDays || 0;
 }
 
