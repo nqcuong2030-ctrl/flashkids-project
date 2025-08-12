@@ -2997,7 +2997,7 @@ document.addEventListener('DOMContentLoaded', function() {
     updateWelcomeMessage(progress);
     loadUserSettings(progress);
     updateUserStats(progress);
-	updateXpDisplay(); // <-- THÊM DÒNG NÀY
+	updateXpDisplay(progress); // <-- THÊM DÒNG NÀY
 	changeLevel(currentLevel);
 	
 	// --- GÁN CÁC SỰ KIỆN CHO CÁC NÚT BẤM ---
@@ -3082,8 +3082,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // ===================================================================================
 
 // Hàm cập nhật giao diện thanh XP
-function updateXpDisplay() {
-    const progress = getUserProgress(); // Đã sửa ở các bước trước
+function updateXpDisplay(progress) {
     const profile = progress.userProfile;
 
     if (profile) {
@@ -3131,5 +3130,5 @@ function addXp(progress, amount) { // << THÊM "progress" VÀO THAM SỐ
     
     // Không cần lưu ở đây nữa vì hàm gọi nó sẽ lưu
     // saveUserProgress(progress); 
-    updateXpDisplay();
+    updateXpDisplay(progress);
 }
