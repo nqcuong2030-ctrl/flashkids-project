@@ -2860,126 +2860,76 @@ function saveUserProfile() {
 // ===================================================================================
 
 document.addEventListener('DOMContentLoaded', function() {
-	// Tải cấp độ đã được lưu lần trước từ localStorage
+	// --- TẢI DỮ LIỆU BAN ĐẦU ---
 	const savedLevel = localStorage.getItem('flashkids_currentLevel');
 	if (savedLevel) {
 		currentLevel = savedLevel;
 	}
-	
-	// Initialize user progress from localStorage
-	initUserProgress();
-	updateWelcomeMessage();
+	const progress = initUserProgress();
+    updateWelcomeMessage(progress);
+    loadUserSettings(progress);
+    updateUserStats(progress);
 	changeLevel(currentLevel);
 	
-	// Set up flashcard click event
-	document.getElementById('current-flashcard').addEventListener('click', function() {
-		if (!isCardInteractable) return; // <-- Thêm dòng kiểm tra này
+	// --- GÁN CÁC SỰ KIỆN CHO CÁC NÚT BẤM ---
 
-		const wasFlipped = this.classList.contains('flipped');
+	// Sự kiện cho thẻ từ vựng
+	document.getElementById('current-flashcard').addEventListener('click', function() {
+		if (!isCardInteractable) return;
 		this.classList.toggle('flipped');
-		lastFlipState = !wasFlipped;
-		
+		const card = getFilteredCards()[currentCardIndex];
 		if (isFlashcardsTabActive && soundEnabled) {
 			setTimeout(() => {
-				if (!wasFlipped) {
-					speakCurrentWord('vietnamese');
-				} else {
-					speakCurrentWord('english');
-				}
+				speakWord(this.classList.contains('flipped') ? card.vietnamese : card.vietnamese, this.classList.contains('flipped') ? 'vi-VN' : 'en-US');
 			}, 100);
 		}
 	});
 
-	// Set up navigation buttons
+	// Sự kiện cho các nút điều hướng thẻ
 	document.getElementById('prev-card').addEventListener('click', previousCard);
 	document.getElementById('next-card').addEventListener('click', nextCard);
-
-	// Set up sound toggle
-	document.getElementById('sound-toggle').addEventListener('change', function() {
-		soundEnabled = this.checked;
-		saveAppSettings();
-	});
 	
+	// Sự kiện cho đồng hồ
 	document.getElementById('toggle-timer-btn').addEventListener('click', toggleTimer);
-	updateTimerDisplay(); // Hiển thị thời gian ban đầu
+	updateTimerDisplay();
 	
+	// Sự kiện đóng modal khi bấm ra ngoài
 	document.querySelectorAll('.modal').forEach(modal => {
 		modal.addEventListener('click', function(event) {
-			// Kiểm tra xem phần tử được bấm có phải là chính lớp nền modal hay không
-			if (event.target === this) {
-				closeModal(this.id);
-			}
+			if (event.target === this) closeModal(this.id);
 		});
 	});
 	
-	// Công cụ đọc
-	const speakBtn = document.getElementById('speak-text-btn');
-    const downloadBtn = document.getElementById('download-speech-btn');
-    const input = document.getElementById('text-to-speech-input');
-
-	const speedSlider = document.getElementById('tts-speed-slider');
-    const speedValueDisplay = document.getElementById('tts-speed-value');
-
-    if (speedSlider && speedValueDisplay) {
-        speedSlider.addEventListener('input', function() {
-            speedValueDisplay.textContent = `${parseFloat(this.value).toFixed(1)}x`;
-        });
-    }
-
-    if (speakBtn) {
-        speakBtn.addEventListener('click', handleSpeakRequest);
-    }
-
-    if (downloadBtn) {
-        downloadBtn.addEventListener('click', handleDownloadRequest);
-	}
-    
-    if(input) {
-        input.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                handleSpeakRequest();
-            }
-        });
-    }
-	
-	// >>> THÊM LOGIC NÚT CHUYỂN NGỮ VÀO ĐÂY <<<
-	const langToggleBtn = document.getElementById('tts-lang-toggle-btn');
+	// Sự kiện cho Công cụ đọc văn bản
+	document.getElementById('speak-text-btn').addEventListener('click', handleSpeakRequest);
+    document.getElementById('download-speech-btn').addEventListener('click', handleDownloadRequest);
+    document.getElementById('text-to-speech-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') handleSpeakRequest();
+    });
+    document.getElementById('tts-speed-slider').addEventListener('input', function() {
+        document.getElementById('tts-speed-value').textContent = `${parseFloat(this.value).toFixed(1)}x`;
+    });
+    const langToggleBtn = document.getElementById('tts-lang-toggle-btn');
 	if (langToggleBtn) {
-		langToggleBtn.dataset.lang = 'en-US';
-		langToggleBtn.textContent = 'Eng';
-
 		langToggleBtn.addEventListener('click', function() {
-			const currentLang = this.dataset.lang;
-			let nextLang = '';
-			let nextText = '';
-
-			if (currentLang === 'en-US') {
-				nextLang = 'vi-VN';
-				nextText = 'VN';
-			} else { // current is vi-VN
-				nextLang = 'en-US';
-				nextText = 'Eng';
+			if (this.dataset.lang === 'en-US') {
+				this.dataset.lang = 'vi-VN';
+				this.textContent = 'VN';
+			} else {
+				this.dataset.lang = 'en-US';
+				this.textContent = 'Eng';
 			}
-			this.dataset.lang = nextLang;
-			this.textContent = nextText;
 		});
 	}
 	
-	//USER DROPDOWN MENU
+	// Sự kiện cho Menu người dùng
 	const userMenuButton = document.getElementById('user-menu-button');
     const userMenu = document.getElementById('user-menu');
-
-    // Chỉ thực thi nếu các phần tử tồn tại
     if (userMenuButton && userMenu) {
-        
-        // Sự kiện Mở/Đóng menu khi nhấp vào avatar
         userMenuButton.addEventListener('click', function(event) {
-            // Ngăn sự kiện click lan ra ngoài cửa sổ, tránh việc menu vừa mở đã bị đóng ngay
             event.stopPropagation(); 
             userMenu.classList.toggle('hidden');
         });
-
-        // Sự kiện Đóng menu khi nhấp ra ngoài cửa sổ
         window.addEventListener('click', function() {
             if (!userMenu.classList.contains('hidden')) {
                 userMenu.classList.add('hidden');
@@ -2987,9 +2937,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 	
-	// Load other UI elements
+	// --- TẢI CÁC GIAO DIỆN CỐ ĐỊNH ---
 	loadGames();
 	loadQuizTypes();
 	loadBadges();
-	updateUserStats();
-}); // << HÀM DOMContentLoaded KẾT THÚC ĐÚNG CÁCH Ở ĐÂY "});"
+    loadAvatarSelection();
+});
