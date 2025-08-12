@@ -3090,7 +3090,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Hàm cập nhật giao diện thanh XP
 function updateXpDisplay() {
-    const progress = getActiveProfileProgress(); // Đã sửa ở các bước trước
+    const progress = getUserProgress(); // Đã sửa ở các bước trước
     const profile = progress.userProfile;
 
     if (profile) {
@@ -3123,7 +3123,7 @@ function levelUp(profile) {
 
 // Hàm trung tâm để cộng XP
 function addXp(amount) {
-    const progress = getActiveProfileProgress();
+    const progress = getUserProgress();
     const profile = progress.userProfile;
 
     if (!profile) return;
@@ -3136,7 +3136,7 @@ function addXp(amount) {
         levelUp(profile);
     }
     
-    saveActiveProfileProgress(progress);
+    saveUserProgress(progress);
     updateXpDisplay();
 }
 
