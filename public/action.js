@@ -383,6 +383,7 @@ async function changeLevel(level, isUserAction = false) {
 // Tab navigation
 // Hàm này để xử lý khi người dùng bấm trực tiếp vào tab "Thẻ từ vựng"
 function navigateToFlashcardsTab() {
+	console.log(`Đang ở tab FlashCards!`);
     currentCategoryId = 'cat1'; // Mặc định chọn chủ đề 'cat1'
     currentCardIndex = 0;
     changeTab('flashcards');
