@@ -2,7 +2,7 @@
 // ===== 0. VERSIONING & DATA MIGRATION
 // ===================================================================================
 
-const APP_VERSION = '1.1_12082025_5'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
+const APP_VERSION = '1.1_12082025_6'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
 const MASTERY_THRESHOLD = 3;
 
 function checkAppVersion() {
@@ -504,18 +504,23 @@ function renderMasteryChart() {
     const ctx = document.getElementById('mastery-chart')?.getContext('2d');
     if (!ctx) return;
 
-    // Đếm số lượng từ theo từng trạng thái
+    // >>> LOGIC MỚI: Tự lấy danh sách từ vựng của level hiện tại từ cache <<<
+    const currentLevelData = flashcardCache[currentLevel];
+    if (!currentLevelData || !currentLevelData.flashcards) {
+        console.warn("Chưa có dữ liệu từ vựng cho level hiện tại, không thể vẽ biểu đồ.");
+        return;
+    }
+    const totalWordsInLevel = currentLevelData.flashcards.length;
+    // >>> KẾT THÚC LOGIC MỚI <<<
+
     const masteredCount = Object.values(progress.masteryScores).filter(s => s >= MASTERY_THRESHOLD).length;
     const learningCount = Object.values(progress.masteryScores).filter(s => s > 0 && s < MASTERY_THRESHOLD).length;
-    const totalWordsInLevel = flashcards.length;
     const unlearnedCount = totalWordsInLevel - masteredCount - learningCount;
 
-    // Hủy biểu đồ cũ nếu tồn tại
     if (masteryChartInstance) {
         masteryChartInstance.destroy();
     }
     
-    // Vẽ biểu đồ mới
     masteryChartInstance = new Chart(ctx, {
         type: 'doughnut',
         data: {
@@ -1746,6 +1751,7 @@ function initUserProgress() {
         dailyActivities: 0,
         lastActivityDate: new Date().toDateString(),
         streakDays: 0,
+		dailyActivitiesHistory: {}, // << BỔ SUNG DÒNG NÀY ĐỂ KHỞI TẠO LỊCH SỬ
         userProfile: {
             username: '',
             age: '',
