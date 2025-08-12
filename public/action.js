@@ -2,7 +2,7 @@
 // ===== 0. VERSIONING & DATA MIGRATION
 // ===================================================================================
 
-const APP_VERSION = '1.1_12082025_3a'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
+const APP_VERSION = '1.1_12082025_2a'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
 
 function checkAppVersion() {
     const storedVersion = localStorage.getItem('flashkids_app_version');
@@ -10,12 +10,22 @@ function checkAppVersion() {
     if (storedVersion !== APP_VERSION) {
         console.log(`Phiên bản cũ (${storedVersion}) được phát hiện. Đang cập nhật lên phiên bản ${APP_VERSION}.`);
         
-        // Xóa tất cả dữ liệu cũ để đảm bảo tương thích
-        localStorage.clear(); 
-        
-        // Lưu phiên bản mới
+        // Duyệt qua tất cả các mục trong localStorage để xóa cache một cách an toàn
+        // Vòng lặp phải đi ngược để tránh lỗi khi xóa item
+        for (let i = localStorage.length - 1; i >= 0; i--) {
+            const key = localStorage.key(i);
+            
+            // Chỉ xóa các key là cache (dữ liệu level và audio)
+            // Giữ lại tất cả các key khác, quan trọng nhất là 'flashkids_progress'
+            if (key.startsWith('flashkids_level_') || key.startsWith('audio_')) {
+                localStorage.removeItem(key);
+                console.log(`Đã xóa cache cũ: ${key}`);
+            }
+        }
+
+        // Sau khi dọn dẹp cache, chỉ cần cập nhật lại phiên bản
         localStorage.setItem('flashkids_app_version', APP_VERSION);
-        console.log('Đã xóa dữ liệu cũ và cập nhật phiên bản thành công.');
+        console.log('Đã cập nhật phiên bản thành công, tiến độ học được giữ lại.');
     }
 }
 
@@ -1320,67 +1330,59 @@ function checkSoundMatch() {
 // --- Quiz 1: Trắc nghiệm (Multiple Choice) ---
 // Thay thế hàm cũ bằng hàm này
 function startMultipleChoiceQuiz(words, quizId, categoryId) {
-	const progress = getUserProgress();
-	let wordsForQuiz;
-	let quizMode = 'Học mới';
+    const progress = getUserProgress();
+    const unlearnedWords = words.filter(word => !progress.completedWords[word.id]);
 
-	// Lọc ra các từ chưa học
-	const unlearnedWords = words.filter(word => !progress.completedWords[word.id]);
+    // SỬA LỖI 1: Chỉ thông báo khi đã học hết 100%
+    if (unlearnedWords.length === 0) {
+        alert("🎉 Chúc mừng! Bạn đã học hết tất cả các từ trong chủ đề này.");
+        // Tùy chọn: có thể bắt đầu chế độ ôn tập ở đây bằng cách dùng mảng `words`
+        return;
+    }
 
-	if (unlearnedWords.length === 0) {
-		// Nếu đã học hết 100%, vào chế độ ÔN TẬP (dùng tất cả các từ)
-		wordsForQuiz = words;
-		quizMode = 'Ôn tập';
-		console.log(`Chủ đề ${categoryId} đã hoàn thành. Bắt đầu chế độ ôn tập.`);
-	} else {
-		// Nếu còn từ chưa học, vào chế độ HỌC MỚI
-		wordsForQuiz = unlearnedWords;
-		console.log(`Chủ đề ${categoryId} còn ${unlearnedWords.length} từ chưa học.`);
-	}
+    // Kiểm tra xem tổng số từ trong chủ đề có đủ để tạo đáp án nhiễu không
+    if (words.length < 4) {
+        alert("Chủ đề này cần có ít nhất 4 từ vựng để tạo bài kiểm tra.");
+        return;
+    }
 
-	// Kiểm tra xem có đủ từ để tạo câu hỏi không (cần ít nhất 4 để có 1 câu hỏi và 3 đáp án nhiễu)
-	if (wordsForQuiz.length < 4) {
-		alert("🎉 Chúc mừng! Bạn đã học hết hoặc không còn đủ từ để tạo bài kiểm tra cho chủ đề này.");
-		return;
-	}
-
-    // Luôn chỉ lấy tối đa 10 câu hỏi mỗi lần
-	const quizWords = wordsForQuiz.sort(() => 0.5 - Math.random()).slice(0, 10);
-	
+    // SỬA LỖI 2: Tạo quiz với số từ chưa học còn lại (tối đa 10 từ mỗi lần)
+    const quizWords = unlearnedWords.sort(() => 0.5 - Math.random()).slice(0, 10);
+    
     const questionsContainer = document.getElementById('quiz-questions');
-	questionsContainer.innerHTML = '';
-	
-	quizWords.forEach((word, index) => {
-		const options = [word.vietnamese];
-		// Lấy các đáp án sai từ chính danh sách từ của bài quiz (ôn tập hoặc học mới)
-		const distractors = wordsForQuiz.filter(w => w.id !== word.id);
+    questionsContainer.innerHTML = '';
+    
+    quizWords.forEach((word, index) => {
+        const options = [word.vietnamese];
+        // Lấy các đáp án sai từ TẤT CẢ các từ trong chủ đề (bao gồm cả từ đã học)
+        const distractors = words.filter(w => w.id !== word.id);
 
-		while (options.length < 4 && distractors.length > 0) {
-			const randomDistractor = distractors.splice(Math.floor(Math.random() * distractors.length), 1)[0];
-			options.push(randomDistractor.vietnamese);
-		}
-		
-		const shuffledOptions = options.sort(() => 0.5 - Math.random());
-		const questionElement = document.createElement('div');
-		questionElement.className = 'bg-white p-4 rounded-lg shadow';
-		questionElement.setAttribute('data-word-id', word.id);
-		questionElement.setAttribute('data-correct', word.vietnamese);
-		
-		let questionHTML = `<h4 class="font-bold text-gray-800 mb-3">${index + 1}. ${word.english}</h4><div class="grid grid-cols-2 gap-3">`;
-		shuffledOptions.forEach((option) => {
-			questionHTML += `<div class="quiz-option p-2 border rounded-lg" data-value="${option}" onclick="selectQuizOption(this)"><label class="flex items-center cursor-pointer"><input type="radio" name="q${index}" value="${option}" class="mr-2 hidden"><span class="text-gray-700">${option}</span></label></div>`;
-		});
-		questionHTML += `</div>`;
-		questionElement.innerHTML = questionHTML;
-		questionsContainer.appendChild(questionElement);
-	});
-	
-	const submitButton = document.getElementById('submit-quiz');
-	submitButton.textContent = 'Nộp bài';
-	submitButton.disabled = false;
-	submitButton.onclick = () => checkQuizAnswers(quizId, categoryId);
-	
-	openModal('multipleChoiceQuizModal');
+        while (options.length < 4 && distractors.length > 0) {
+            const randomDistractor = distractors.splice(Math.floor(Math.random() * distractors.length), 1)[0];
+            options.push(randomDistractor.vietnamese);
+        }
+        
+        const shuffledOptions = options.sort(() => 0.5 - Math.random());
+        const questionElement = document.createElement('div');
+        questionElement.className = 'bg-white p-4 rounded-lg shadow';
+        questionElement.setAttribute('data-word-id', word.id);
+        questionElement.setAttribute('data-correct', word.vietnamese);
+        
+        let questionHTML = `<h4 class="font-bold text-gray-800 mb-3">${index + 1}. ${word.english}</h4><div class="grid grid-cols-2 gap-3">`;
+        shuffledOptions.forEach((option) => {
+            questionHTML += `<div class="quiz-option p-2 border rounded-lg" data-value="${option}" onclick="selectQuizOption(this)"><label class="flex items-center cursor-pointer"><input type="radio" name="q${index}" value="${option}" class="mr-2 hidden"><span class="text-gray-700">${option}</span></label></div>`;
+        });
+        questionHTML += `</div>`;
+        questionElement.innerHTML = questionHTML;
+        questionsContainer.appendChild(questionElement);
+    });
+    
+    const submitButton = document.getElementById('submit-quiz');
+    submitButton.textContent = 'Nộp bài';
+    submitButton.disabled = false;
+    submitButton.onclick = () => checkQuizAnswers(quizId, categoryId);
+    
+    openModal('multipleChoiceQuizModal');
 }
 
 function selectQuizOption(optionElement) {
