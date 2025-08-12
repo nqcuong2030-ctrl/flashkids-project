@@ -2,7 +2,7 @@
 // ===== 0. VERSIONING & DATA MIGRATION
 // ===================================================================================
 
-const APP_VERSION = '1.1_12082025_5'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
+const APP_VERSION = '1.1_13082025_1'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
 const MASTERY_THRESHOLD = 3;
 
 function checkAppVersion() {
@@ -94,6 +94,36 @@ let masteryChartInstance = null;
 
 // NEW
 let lastSpokenAudio = { lang: null, text: null }; 
+let audioContext;
+let isAudioUnlocked = false;
+
+// Cố gắng tạo một AudioContext để quản lý âm thanh
+try {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    // Nếu context bị tạm dừng, chúng ta cần người dùng tương tác để "resume" nó
+    if (audioContext.state === 'suspended') {
+        console.log("LOG: Audio Context đang bị tạm dừng, cần người dùng tương tác.");
+    }
+} catch (e) {
+    console.error("Web Audio API không được hỗ trợ trên trình duyệt này.");
+}
+
+// Hàm này sẽ được gọi một lần duy nhất ở cú click đầu tiên
+function unlockAudio() {
+    if (audioContext && !isAudioUnlocked && audioContext.state === 'suspended') {
+        audioContext.resume().then(() => {
+            isAudioUnlocked = true;
+            console.log("LOG: Audio Context đã được mở khóa bởi người dùng!");
+            // Không cần lắng nghe sự kiện này nữa
+            document.removeEventListener('click', unlockAudio);
+        }).catch(err => {
+            console.error("Lỗi khi mở khóa Audio Context:", err);
+        });
+    }
+}
+
+// Lắng nghe cú click đầu tiên trên toàn bộ trang để mở khóa âm thanh
+document.addEventListener('click', unlockAudio, { once: true });
 
 // Dữ liệu tĩnh
 const categoryColors = [
