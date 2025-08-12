@@ -1962,6 +1962,18 @@ function updateMasteryScore(wordId, pointsToAdd) {
     updateCategoryProgress(progress);
     saveUserProgress(progress);
     updateUserStats();
+
+    // ================================================================
+    // ===== PHẦN CẢI TIẾN: VẼ LẠI BIỂU ĐỒ NẾU ĐANG Ở TAB THỐNG KÊ =====
+    // ================================================================
+    // Lấy nút tab đang hoạt động để kiểm tra
+    const activeButton = document.querySelector('nav button.tab-active');
+    // Nếu người dùng đang ở tab 'stats', hãy cập nhật biểu đồ ngay lập tức
+    if (activeButton && activeButton.dataset.tab === 'stats') {
+        console.log("Đang ở tab Thống kê, cập nhật lại biểu đồ...");
+        renderActivityChart();
+        renderMasteryChart();
+    }
 }
 
 // ===================================================================================
