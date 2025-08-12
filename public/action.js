@@ -397,16 +397,14 @@ function changeTab(tabId) {
 		tab.classList.add('hidden');
 	});
 	
-	// Thêm kiểm tra để đảm bảo phần tử tồn tại trước khi thao tác
 	const tabContent = document.getElementById(tabId);
 	if (tabContent) {
 	    tabContent.classList.remove('hidden');
 	} else {
 	    console.error(`Lỗi: Không tìm thấy nội dung cho tab có id="${tabId}"`);
-	    return; // Dừng hàm nếu không tìm thấy tab
+	    return;
 	}
 	
-	// Cập nhật kiểu cho nút tab đang hoạt động bằng data-tab
 	document.querySelectorAll('nav button').forEach(button => {
 		button.classList.remove('tab-active');
 	});
@@ -427,10 +425,11 @@ function changeTab(tabId) {
 		}
 	}
 	
+    // --- PHẦN SỬA LỖI NẰM Ở ĐÂY ---
 	if (tabId === 'stats') {
 		updateCategoryProgressDisplay();
-		renderActivityChart(); // << THÊM DÒNG NÀY
-        renderMasteryChart(); // << THÊM DÒNG NÀY
+		renderActivityChart();
+        renderMasteryChart();
 	}
 }
 
