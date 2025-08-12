@@ -2991,4 +2991,4 @@ document.addEventListener('DOMContentLoaded', function() {
 	loadQuizTypes();
 	loadBadges();
 	updateUserStats();
-);
+}); // << HÀM DOMContentLoaded KẾT THÚC ĐÚNG CÁCH Ở ĐÂY "});"
