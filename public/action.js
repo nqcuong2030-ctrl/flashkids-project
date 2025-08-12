@@ -2,7 +2,7 @@
 // ===== 0. VERSIONING & DATA MIGRATION
 // ===================================================================================
 
-const APP_VERSION = '1.1_12082025_6'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
+const APP_VERSION = '1.1_12082025_3'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
 const MASTERY_THRESHOLD = 3;
 
 function checkAppVersion() {
@@ -429,30 +429,23 @@ function changeTab(tabId) {
 }
 
 function updateMarkLearnedButton(wordId) {
-	const progress = getUserProgress();
-	const button = document.getElementById('mark-learned-btn');
-	
-	if (progress.completedWords[wordId]) {
-		button.innerHTML = `
-			<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+    const progress = getUserProgress();
+    const button = document.getElementById('mark-learned-btn');
+    const score = progress.masteryScores[wordId] || 0;
+
+    if (score >= MASTERY_THRESHOLD) { // << KIỂM TRA ĐIỂM THAY VÌ TRUE/FALSE
+        button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
 				<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-			</svg>
-			Đã học
-		`;
-		button.disabled = true;
-		button.classList.remove('btn-success');
-		button.classList.add('bg-gray-400');
-	} else {
-		button.innerHTML = `
-			<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+			</svg>`; // (Giữ nguyên HTML của bạn)
+        button.disabled = true;
+        button.classList.add('bg-gray-400');
+    } else {
+        button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
 				<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-			</svg>
-			Đánh dấu đã học
-		`;
-		button.disabled = false;
-		button.classList.remove('bg-gray-400');
-		button.classList.add('btn-success');
-	}
+			</svg>`; // (Giữ nguyên HTML của bạn)
+        button.disabled = false;
+        button.classList.remove('bg-gray-400');
+    }
 }
 
 // ===================================================================================
@@ -1799,29 +1792,27 @@ function getCategoryProgress(categoryId) {
 	return Math.round((masteredCount / wordsInCat.length) * 100);
 }
 
-function updateCategoryProgress(progress) { // <-- Nhận 'progress' làm tham số
-	if (!progress) return; // Thoát nếu không có progress
+function updateCategoryProgress(progress) {
+    if (!progress) return;
 
-	// Chỉ tính toán cho các chủ đề của level hiện tại
-	categories.forEach(category => {
-		const wordsInCatForLevel = flashcards.filter(card => card.categoryId === category.id);
-		const totalWordsInCatForLevel = wordsInCatForLevel.length;
+    categories.forEach(category => {
+        const wordsInCat = flashcards.filter(card => card.categoryId === category.id);
+        if (wordsInCat.length === 0) {
+            progress.categories[`${currentLevel}_${category.id}`] = 0;
+            return;
+        }
 
-		if (totalWordsInCatForLevel === 0) return;
-
-		let learnedCount = 0;
-		wordsInCatForLevel.forEach(word => {
-			if (progress.completedWords[word.id]) {
-				learnedCount++;
-			}
-		});
-		
-		const percentComplete = Math.round((learnedCount / totalWordsInCatForLevel) * 100);
-		
-		// Cập nhật trực tiếp vào đối tượng progress được truyền vào
-		progress.categories[`${currentLevel}_${category.id}`] = percentComplete;
-	});
-	// Không còn saveUserProgress(progress) ở đây nữa
+        let masteredCount = 0;
+        wordsInCat.forEach(word => {
+            const score = progress.masteryScores[word.id] || 0; // << ĐỌC TỪ MASTERY SCORES
+            if (score >= MASTERY_THRESHOLD) {
+                masteredCount++;
+            }
+        });
+        
+        const percentComplete = Math.round((masteredCount / wordsInCat.length) * 100);
+        progress.categories[`${currentLevel}_${category.id}`] = percentComplete;
+    });
 }
 
 function updateDailyActivity() {
@@ -2123,18 +2114,18 @@ function loadBadges() {
 }
 
 function updateUserStats() {
-	const progress = getUserProgress();
-	
-	// Update user level and XP
+    const progress = getUserProgress();
+    
+    // Update user level and XP
 	document.getElementById('user-level').textContent = `Cấp ${userData.level}`;
 	document.getElementById('xp-progress').textContent = `${userData.xp}/${userData.xpToNextLevel} XP`;
 	document.getElementById('xp-bar').style.width = `${(userData.xp / userData.xpToNextLevel) * 100}%`;
-	
-	// Update learning stats
-	const totalLearned = Object.keys(progress.completedWords).length;
-	document.getElementById('words-learned').textContent = totalLearned;
+    
+    // Tính tổng số từ đã thông thạo
+    const totalLearned = Object.values(progress.masteryScores).filter(score => score >= MASTERY_THRESHOLD).length;
+    document.getElementById('words-learned').textContent = totalLearned;    
 	document.getElementById('study-time').textContent = userData.studyTime;
-	document.getElementById('streak-days').textContent = progress.streakDays || 0;
+    document.getElementById('streak-days').textContent = progress.streakDays || 0;
 }
 
 function updateCategoryProgressDisplay() {
