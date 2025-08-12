@@ -2991,4 +2991,4 @@ document.addEventListener('DOMContentLoaded', function() {
 	loadQuizTypes();
 	loadBadges();
 	updateUserStats();
-});
+);
