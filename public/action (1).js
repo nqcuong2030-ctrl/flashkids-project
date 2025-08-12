@@ -2,8 +2,7 @@
 // ===== 0. VERSIONING & DATA MIGRATION
 // ===================================================================================
 
-const APP_VERSION = '1.1_13082025_1'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
-const MASTERY_THRESHOLD = 3;
+const APP_VERSION = '1.1_08082025'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
 
 function checkAppVersion() {
     const storedVersion = localStorage.getItem('flashkids_app_version');
@@ -11,22 +10,12 @@ function checkAppVersion() {
     if (storedVersion !== APP_VERSION) {
         console.log(`Phiên bản cũ (${storedVersion}) được phát hiện. Đang cập nhật lên phiên bản ${APP_VERSION}.`);
         
-        // Duyệt qua tất cả các mục trong localStorage để xóa cache một cách an toàn
-        // Vòng lặp phải đi ngược để tránh lỗi khi xóa item
-        for (let i = localStorage.length - 1; i >= 0; i--) {
-            const key = localStorage.key(i);
-            
-            // Chỉ xóa các key là cache (dữ liệu level và audio)
-            // Giữ lại tất cả các key khác, quan trọng nhất là 'flashkids_progress'
-            if (key.startsWith('flashkids_level_') || key.startsWith('audio_')) {
-                localStorage.removeItem(key);
-                console.log(`Đã xóa cache cũ: ${key}`);
-            }
-        }
-
-        // Sau khi dọn dẹp cache, chỉ cần cập nhật lại phiên bản
+        // Xóa tất cả dữ liệu cũ để đảm bảo tương thích
+        localStorage.clear(); 
+        
+        // Lưu phiên bản mới
         localStorage.setItem('flashkids_app_version', APP_VERSION);
-        console.log('Đã cập nhật phiên bản thành công, tiến độ học được giữ lại.');
+        console.log('Đã xóa dữ liệu cũ và cập nhật phiên bản thành công.');
     }
 }
 
@@ -49,9 +38,6 @@ let isFlashcardsTabActive = false;
 let currentLevel = 'a1'; // Default level is A1
 let lastFlipState = false; // Track the last flip state to determine which side is showing
 let currentActivity = null; // Track current activity (game or quiz)
-let currentAudio = null; // << THÊM DÒNG NÀY ĐỂ THEO DÕI ÂM THANH ĐANG PHÁT
-let ttsToolAudio = null;
-let lastGeneratedAudioKey = null;
 
 // Trạng thái game "Ghép từ"
 let selectedEnglishWord = null;
@@ -88,64 +74,8 @@ let isTimerRunning = false;
 let flashcardActivityTimeout = null;
 const INACTIVITY_DELAY = 10000; // 10 giây
 
-// Các đối tượng biểu đồ tab Thống kê
-let activityChartInstance = null;
-let masteryChartInstance = null;
-
 // NEW
 let lastSpokenAudio = { lang: null, text: null }; 
-let audioContext;
-let isAudioUnlocked = false;
-
-// Cố gắng tạo một AudioContext để quản lý âm thanh
-try {
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    // Nếu context bị tạm dừng, chúng ta cần người dùng tương tác để "resume" nó
-    if (audioContext.state === 'suspended') {
-        console.log("LOG: Audio Context đang bị tạm dừng, cần người dùng tương tác.");
-    }
-} catch (e) {
-    console.error("Web Audio API không được hỗ trợ trên trình duyệt này.");
-}
-
-// Hàm này sẽ được gọi một lần duy nhất ở cú click đầu tiên
-function unlockAudio() {
-    if (audioContext && !isAudioUnlocked && audioContext.state === 'suspended') {
-        audioContext.resume().then(() => {
-            isAudioUnlocked = true;
-            console.log("LOG: Audio Context đã được mở khóa bởi người dùng!");
-            // Không cần lắng nghe sự kiện này nữa
-            document.removeEventListener('click', unlockAudio);
-        }).catch(err => {
-            console.error("Lỗi khi mở khóa Audio Context:", err);
-        });
-    }
-}
-
-// Trong action.js
-function saveUserSettings() {
-	const progress = getUserProgress();
-	
-	const settings = {
-		soundEnabled: document.getElementById('sound-toggle').checked,
-		ttsEnabled: document.getElementById('tts-toggle').checked,
-		autoNextEnabled: document.getElementById('autonext-toggle').checked,
-	};
-	
-	// Đảm bảo đối tượng settings tồn tại trước khi gán
-	if (!progress.userProfile.settings) {
-		progress.userProfile.settings = {};
-	}
-
-	progress.userProfile.settings = settings;
-	saveUserProgress(progress);
-
-    console.log("LOG: Đã lưu cài đặt người dùng!", settings);
-	playSound('click'); // Phát âm thanh để xác nhận đã lưu
-}
-
-// Lắng nghe cú click đầu tiên trên toàn bộ trang để mở khóa âm thanh
-document.addEventListener('click', unlockAudio, { once: true });
 
 // Dữ liệu tĩnh
 const categoryColors = [
@@ -165,9 +95,9 @@ const games = [
 ];
 
 const quizTypes = [
-    { id: 1, name: 'Trắc nghiệm (+1 điểm)', description: 'Chọn đáp án đúng cho từng câu hỏi.', time: 10, difficulty: 3, icon: 'document' },
-	{ id: 3, name: 'Đọc hiểu (+2 điểm)', description: 'Đọc câu và chọn từ đúng để điền vào chỗ trống.', time: 5, difficulty: 4, icon: 'book-open' },
-    { id: 2, name: 'Xếp chữ (+3 điểm)', description: 'Sắp xếp các chữ cái thành từ đúng.', time: 5, difficulty: 5, icon: 'question' }	
+    { id: 1, name: 'Trắc nghiệm', description: 'Chọn đáp án đúng cho từng câu hỏi', time: 10, difficulty: 3, icon: 'document' },
+    { id: 2, name: 'Xếp chữ', description: 'Sắp xếp các chữ cái thành từ đúng', time: 5, difficulty: 4, icon: 'question' },
+	{ id: 3, name: 'Đọc hiểu', description: 'Đọc câu và chọn từ đúng để điền vào chỗ trống', time: 5, difficulty: 5, icon: 'book-open' }
 ];
 
 const badges = [
@@ -181,8 +111,126 @@ const userData = {
     level: 2, xp: 65, xpToNextLevel: 100, wordsLearned: 85, studyTime: 120, streakDays: 7
 };
 
+
 // ===================================================================================
-// ===== 2. QUẢN LÝ DỮ LIỆU & CACHE
+// ===== 2. KHỞI TẠO ỨNG DỤNG
+// ===================================================================================
+
+document.addEventListener('DOMContentLoaded', function() {
+	// Tải cấp độ đã được lưu lần trước từ localStorage
+	const savedLevel = localStorage.getItem('flashkids_currentLevel');
+	if (savedLevel) {
+		currentLevel = savedLevel;
+	}
+	
+	// Initialize user progress from localStorage
+	initUserProgress();
+	updateWelcomeMessage();
+	changeLevel(currentLevel);
+	
+	// Set up flashcard click event
+	document.getElementById('current-flashcard').addEventListener('click', function() {
+		if (!isCardInteractable) return; // <-- Thêm dòng kiểm tra này
+
+		const wasFlipped = this.classList.contains('flipped');
+		this.classList.toggle('flipped');
+		lastFlipState = !wasFlipped;
+		
+		if (isFlashcardsTabActive && soundEnabled) {
+			setTimeout(() => {
+				if (!wasFlipped) {
+					speakCurrentWord('vietnamese');
+				} else {
+					speakCurrentWord('english');
+				}
+			}, 100);
+		}
+	});
+
+	// Set up navigation buttons
+	document.getElementById('prev-card').addEventListener('click', previousCard);
+	document.getElementById('next-card').addEventListener('click', nextCard);
+
+	// Set up sound toggle
+	document.getElementById('sound-toggle').addEventListener('change', function() {
+		soundEnabled = this.checked;
+		saveAppSettings();
+	});
+	
+	document.getElementById('toggle-timer-btn').addEventListener('click', toggleTimer);
+	updateTimerDisplay(); // Hiển thị thời gian ban đầu
+	
+	document.querySelectorAll('.modal').forEach(modal => {
+		modal.addEventListener('click', function(event) {
+			// Kiểm tra xem phần tử được bấm có phải là chính lớp nền modal hay không
+			if (event.target === this) {
+				closeModal(this.id);
+			}
+		});
+	});
+	
+	// Công cụ đọc
+	const speakBtn = document.getElementById('speak-text-btn');
+    const downloadBtn = document.getElementById('download-speech-btn');
+    const input = document.getElementById('text-to-speech-input');
+
+	const speedSlider = document.getElementById('tts-speed-slider');
+    const speedValueDisplay = document.getElementById('tts-speed-value');
+
+    if (speedSlider && speedValueDisplay) {
+        speedSlider.addEventListener('input', function() {
+            speedValueDisplay.textContent = `${parseFloat(this.value).toFixed(1)}x`;
+        });
+    }
+
+    if (speakBtn) {
+        speakBtn.addEventListener('click', handleSpeakRequest);
+    }
+
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', handleDownloadRequest);
+    }
+    
+    if(input) {
+        input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                handleSpeakRequest();
+            }
+        });
+    }
+	
+	//USER DROPDOWN MENU
+	const userMenuButton = document.getElementById('user-menu-button');
+    const userMenu = document.getElementById('user-menu');
+
+    // Chỉ thực thi nếu các phần tử tồn tại
+    if (userMenuButton && userMenu) {
+        
+        // Sự kiện Mở/Đóng menu khi nhấp vào avatar
+        userMenuButton.addEventListener('click', function(event) {
+            // Ngăn sự kiện click lan ra ngoài cửa sổ, tránh việc menu vừa mở đã bị đóng ngay
+            event.stopPropagation(); 
+            userMenu.classList.toggle('hidden');
+        });
+
+        // Sự kiện Đóng menu khi nhấp ra ngoài cửa sổ
+        window.addEventListener('click', function() {
+            if (!userMenu.classList.contains('hidden')) {
+                userMenu.classList.add('hidden');
+            }
+        });
+    }
+	
+	// Load other UI elements
+	loadGames();
+	loadQuizTypes();
+	loadBadges();
+	updateUserStats();
+});
+
+
+// ===================================================================================
+// ===== 3. QUẢN LÝ DỮ LIỆU & CACHE
 // ===================================================================================
 
 // Load data for a specific level
@@ -261,7 +309,7 @@ function pruneAudioCache(itemsToRemove = 50) {
 
 
 // ===================================================================================
-// ===== 3. ÂM THANH & PHÁT ÂM
+// ===== 4. ÂM THANH & PHÁT ÂM
 // ===================================================================================
 
 const soundEffects = {
@@ -283,118 +331,91 @@ function playSound(soundName) {
 // Hàm dự phòng, dùng giọng đọc của trình duyệt
 function speakWordDefault(word, lang) {
     if ('speechSynthesis' in window && soundEnabled) {
-        // >>> DỪNG TẤT CẢ ÂM THANH CŨ CỦA TRÌNH DUYỆT <<<
-        window.speechSynthesis.cancel(); 
-
         const utterance = new SpeechSynthesisUtterance(word);
         utterance.lang = lang;
+        disableCardControls();
+        utterance.onend = enableCardControls;
         utterance.onerror = (e) => {
             console.error("SpeechSynthesis Error:", e);
+            enableCardControls();
         };
         window.speechSynthesis.speak(utterance);
     }
 }
 
-// Hàm mới gọi đến Netlify Function toàn bộ ứng dụng (Flashcard, Game, Quiz)
-// HÃY THAY THẾ TOÀN BỘ 2 HÀM NÀY
+// Hàm mới gọi đến Netlify Function
+function speakWord(word, lang) {
+	const cacheKey = `audio_${lang}_${word.toLowerCase()}`;
+	const cachedItem = localStorage.getItem(cacheKey);
+	
+	// 1. Kiểm tra cache
+	if (cachedItem) {
+		try {
+			const data = JSON.parse(cachedItem);
+			console.log(`Đang phát âm thanh cho từ '${word}' từ cache.`);
+			const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
+			
+			disableCardControls();
+			audio.addEventListener('ended', enableCardControls);
+			audio.addEventListener('error', enableCardControls);
+			audio.play();
+			return;
+		} catch (e) {
+			// Nếu dữ liệu trong cache bị lỗi, hãy xóa nó đi
+			localStorage.removeItem(cacheKey);
+		}
+	}
 
-// Hàm speakWord chính - giờ đây sẽ quản lý đối tượng Audio
-async function speakWord(word, lang) {
-    // 1. Dừng âm thanh cũ (cả MP3 và giọng đọc trình duyệt) ngay lập tức
-    if (currentAudio) {
-        currentAudio.pause();
-        currentAudio.src = '';
-    }
-    if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-    }
+	// 2. Nếu không có trong cache, gọi API
+	console.log(`Đang tải âm thanh cho từ '${word}' từ server.`);
+	fetch(`/.netlify/functions/text-to-speech?text=${encodeURIComponent(word)}&lang=${lang}`)
+		.then(response => response.json())
+		.then(data => {
+			if (data.audioContent) {
+				// Tạo một đối tượng để lưu trữ, bao gồm cả timestamp
+				const itemToCache = {
+					audioContent: data.audioContent,
+					timestamp: Date.now() // Lưu thời gian hiện tại
+				};
 
-    // 2. Chuẩn hóa tên file
-    let filename = '';
-    const lowerCaseWord = word.toLowerCase();
-    if (lang === 'en-US') {
-        filename = lowerCaseWord.replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '_');
-    } else {
-        filename = slugifyVietnamese(lowerCaseWord);
-    }
-    const localAudioUrl = `/audio/${lang}/${filename}.mp3`;
+				// 3. Cố gắng lưu vào localStorage
+				try {
+					localStorage.setItem(cacheKey, JSON.stringify(itemToCache));
+				} catch (e) {
+					// 4. Nếu thất bại (do đầy bộ nhớ), hãy dọn dẹp và thử lại
+					if (e.name === 'QuotaExceededError') {
+						pruneAudioCache(50); // Gọi hàm dọn dẹp
+						try {
+							// Thử lưu lại một lần nữa
+							localStorage.setItem(cacheKey, JSON.stringify(itemToCache));
+						} catch (e2) {
+							console.error("Vẫn không thể lưu cache sau khi đã dọn dẹp.", e2);
+						}
+					} else {
+						console.error("Lỗi khi lưu cache âm thanh.", e);
+					}
+				}
 
-    // 3. Bắt đầu luồng xử lý chính
-    try {
-        // Cố gắng fetch file cục bộ trước để kiểm tra sự tồn tại
-        const response = await fetch(localAudioUrl);
-        if (!response.ok) {
-            // Nếu không OK (ví dụ: 404 Not Found), sẽ nhảy vào khối catch
-            throw new Error(`File cục bộ không tồn tại: ${response.statusText}`);
-        }
-
-        // Nếu file tồn tại, phát nó
-        currentAudio = new Audio(localAudioUrl);
-        await currentAudio.play();
-
-    } catch (error) {
-        // Nếu fetch file cục bộ thất bại, chuyển sang phương án dự phòng Cache/API
-        console.warn(`Không phát được file cục bộ cho "${word}". Chuyển sang Cache/API.`);
-        
-        const voiceName = lang === 'vi-VN' ? 'vi-VN-HoaiMyNeural' : 'en-US-JennyNeural';
-        const cacheKey = `audio_${lang}_${word.toLowerCase()}`;
-        const cachedItem = localStorage.getItem(cacheKey);
-
-        let audioSrc = null;
-
-        if (cachedItem) {
-            try {
-                console.log(`Đang phát "${word}" từ localStorage.`);
-                audioSrc = `data:audio/mp3;base64,${JSON.parse(cachedItem).audioContent}`;
-            } catch (e) { localStorage.removeItem(cacheKey); }
-        }
-        
-        if (!audioSrc) {
-            try {
-                const funcResponse = await fetch(`/.netlify/functions/text-to-speech`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text: word, lang: lang, voice: voiceName })
-                });
-                const data = await funcResponse.json();
-
-                if (data.audioContent) {
-                    audioSrc = `data:audio/mp3;base64,${data.audioContent}`;
-                    const itemToCache = { audioContent: data.audioContent, timestamp: Date.now() };
-                    try { localStorage.setItem(cacheKey, JSON.stringify(itemToCache)); } catch (e) { /* Xử lý cache đầy */ }
-                }
-            } catch (fetchError) {
-                console.error('Lỗi khi gọi Netlify Function:', fetchError);
-            }
-        }
-
-        if (audioSrc) {
-            currentAudio = new Audio(audioSrc);
-            await currentAudio.play();
-        } else {
-            speakWordDefault(word, lang);
-        }
-    }
+				// Phát âm thanh vừa tải về
+				const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
+				disableCardControls();
+				audio.addEventListener('ended', enableCardControls);
+				audio.addEventListener('error', enableCardControls);
+				audio.play();
+			} else {
+				console.error('Lỗi từ Netlify Function:', data);
+				speakWordDefault(word, lang);
+			}
+		})
+		.catch(error => {
+			console.error('Lỗi khi gọi Netlify Function:', error);
+			speakWordDefault(word, lang);
+		});
 }
 
-function slugifyVietnamese(text) {
-    text = text.toLowerCase();
-    text = text.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a");
-    text = text.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, "e");
-    text = text.replace(/ì|í|ị|ỉ|ĩ/g, "i");
-    text = text.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, "o");
-    text = text.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, "u");
-    text = text.replace(/ỳ|ý|ỵ|ỷ|ỹ/g, "y");
-    text = text.replace(/đ/g, "d");
-    // Xóa các ký tự đặc biệt không mong muốn
-    text = text.replace(/[^a-z0-9\s]/g, '');
-    // Thay thế khoảng trắng bằng gạch dưới
-    text = text.replace(/\s+/g, '_');
-    return text;
-}
 
 // ===================================================================================
-// ===== 4. ĐIỀU HƯỚNG & GIAO DIỆN CHÍNH
+// ===== 5. ĐIỀU HƯỚNG & GIAO DIỆN CHÍNH
 // ===================================================================================
 
 // Hàm changeLevel giờ chỉ cần gọi các hàm khác sau khi có dữ liệu
@@ -405,6 +426,7 @@ async function changeLevel(level, isUserAction = false) {
 	
 	currentLevel = level;
 
+	document.getElementById('current-level-display').textContent = `Level ${level.toUpperCase()}`;
 	localStorage.setItem('flashkids_currentLevel', level);
 	updateLevelBadges(level);
 
@@ -435,7 +457,6 @@ async function changeLevel(level, isUserAction = false) {
 // Tab navigation
 // Hàm này để xử lý khi người dùng bấm trực tiếp vào tab "Thẻ từ vựng"
 function navigateToFlashcardsTab() {
-	console.log(`Đang ở tab FlashCards!`);
     currentCategoryId = 'cat1'; // Mặc định chọn chủ đề 'cat1'
     currentCardIndex = 0;
     changeTab('flashcards');
@@ -449,14 +470,16 @@ function changeTab(tabId) {
 		tab.classList.add('hidden');
 	});
 	
+	// Thêm kiểm tra để đảm bảo phần tử tồn tại trước khi thao tác
 	const tabContent = document.getElementById(tabId);
 	if (tabContent) {
 	    tabContent.classList.remove('hidden');
 	} else {
 	    console.error(`Lỗi: Không tìm thấy nội dung cho tab có id="${tabId}"`);
-	    return;
+	    return; // Dừng hàm nếu không tìm thấy tab
 	}
 	
+	// Cập nhật kiểu cho nút tab đang hoạt động bằng data-tab
 	document.querySelectorAll('nav button').forEach(button => {
 		button.classList.remove('tab-active');
 	});
@@ -479,137 +502,38 @@ function changeTab(tabId) {
 	
 	if (tabId === 'stats') {
 		updateCategoryProgressDisplay();
-		renderActivityHeatmap();
-        renderMasteryChart();
-	}
-	
-	if (tabId === 'rewards') {
-		renderRewardsPath(); 
 	}
 }
 
 function updateMarkLearnedButton(wordId) {
-    const progress = getUserProgress();
-    const button = document.getElementById('mark-learned-btn');
-    const score = progress.masteryScores[wordId] || 0;
-
-    if (score >= MASTERY_THRESHOLD) { // << KIỂM TRA ĐIỂM THAY VÌ TRUE/FALSE
-        button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+	const progress = getUserProgress();
+	const button = document.getElementById('mark-learned-btn');
+	
+	if (progress.completedWords[wordId]) {
+		button.innerHTML = `
+			<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
 				<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-			</svg>`; // (Giữ nguyên HTML của bạn)
-        button.disabled = true;
-        button.classList.add('bg-gray-400');
-    } else {
-        button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+			</svg>
+			Đã học
+		`;
+		button.disabled = true;
+		button.classList.remove('btn-success');
+		button.classList.add('bg-gray-400');
+	} else {
+		button.innerHTML = `
+			<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
 				<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-			</svg>`; // (Giữ nguyên HTML của bạn)
-        button.disabled = false;
-        button.classList.remove('bg-gray-400');
-    }
-}
-
-function renderMasteryChart() {
-    const progress = getUserProgress();
-    const ctx = document.getElementById('mastery-chart')?.getContext('2d');
-    if (!ctx) return;
-
-    const currentLevelData = flashcardCache[currentLevel];
-    if (!currentLevelData || !currentLevelData.flashcards) {
-        console.warn("Chưa có dữ liệu từ vựng cho level hiện tại, không thể vẽ biểu đồ.");
-        return;
-    }
-    
-    // =================================================================
-    // ===== BẮT ĐẦU PHẦN LOGIC ĐƯỢC SỬA LỖI ============================
-    // =================================================================
-
-    const totalWordsInLevel = currentLevelData.flashcards.length;
-    
-    // 1. Tạo một Set chứa ID của tất cả các từ trong level hiện tại để tra cứu nhanh
-    const wordIdsInCurrentLevel = new Set(currentLevelData.flashcards.map(word => word.id));
-
-    let masteredCount = 0;
-    let learningCount = 0;
-
-    // 2. Lặp qua tất cả các điểm đã lưu trong progress
-    for (const wordId in progress.masteryScores) {
-        // 3. Chỉ xử lý nếu wordId này thuộc về level hiện tại
-        if (wordIdsInCurrentLevel.has(parseInt(wordId))) {
-            const score = progress.masteryScores[wordId];
-            if (score >= MASTERY_THRESHOLD) {
-                masteredCount++;
-            } else if (score > 0) {
-                learningCount++;
-            }
-        }
-    }
-    
-    // 4. Tính toán số từ chưa học một cách chính xác
-    const unlearnedCount = totalWordsInLevel - masteredCount - learningCount;
-
-    // =================================================================
-    // ===== KẾT THÚC PHẦN LOGIC ĐƯỢC SỬA LỖI ============================
-    // =================================================================
-
-    if (masteryChartInstance) {
-        masteryChartInstance.destroy();
-    }
-    
-    masteryChartInstance = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Thông thạo', 'Đang học', 'Chưa học'],
-            datasets: [{
-                // 5. Cung cấp dữ liệu đã được tính toán chính xác
-                data: [masteredCount, learningCount, unlearnedCount],
-                backgroundColor: [ '#10B981', '#F59E0B', '#E5E7EB' ],
-                hoverOffset: 4
-            }]
-        }
-    });
-}
-
-function renderActivityHeatmap() {
-    const container = document.getElementById('activity-heatmap');
-    if (!container) return;
-    container.innerHTML = ''; // Xóa nội dung cũ
-
-    const progress = getUserProgress();
-    const history = progress.dailyActivitiesHistory || {};
-    const daysToShow = 91; // Khoảng 3 tháng (13 tuần x 7 ngày)
-
-    for (let i = daysToShow - 1; i >= 0; i--) {
-        const date = new Date();
-        date.setDate(date.getDate() - i);
-        const dateString = date.toDateString();
-
-        const activities = history[dateString] || 0;
-        let level = 0;
-        if (activities > 0 && activities <= 2) {
-            level = 1;
-        } else if (activities > 2 && activities <= 5) {
-            level = 2;
-        } else if (activities > 5 && activities <= 10) {
-            level = 3;
-        } else if (activities > 10) {
-            level = 4;
-        }
-
-        const dayElement = document.createElement('div');
-        dayElement.className = `heatmap-day heatmap-level-${level}`;
-
-        // Thêm tooltip để hiển thị thông tin chi tiết khi di chuột vào
-        const tooltipText = activities > 0 
-            ? `${activities} hoạt động - ${date.toLocaleDateString('vi-VN')}`
-            : `Không hoạt động - ${date.toLocaleDateString('vi-VN')}`;
-
-        dayElement.innerHTML = `<span class="tooltip">${tooltipText}</span>`;
-        container.appendChild(dayElement);
-    }
+			</svg>
+			Đánh dấu đã học
+		`;
+		button.disabled = false;
+		button.classList.remove('bg-gray-400');
+		button.classList.add('btn-success');
+	}
 }
 
 // ===================================================================================
-// ===== 5. LOGIC THẺ TỪ VỰNG (FLASHCARDS)
+// ===== 6. LOGIC THẺ TỪ VỰNG (FLASHCARDS)
 // ===================================================================================
 
 function updateFlashcard() {
@@ -736,7 +660,7 @@ function previousCard() {
 }
 
 // ===================================================================================
-// ===== 6. LOGIC TRÒ CHƠI & KIỂM TRA
+// ===== 7. LOGIC TRÒ CHƠI & KIỂM TRA
 // ===================================================================================
 
 // --- Main Dispatchers ---
@@ -1483,65 +1407,65 @@ function checkSoundMatch() {
 
 // --- Quiz 1: Trắc nghiệm (Multiple Choice) ---
 function startMultipleChoiceQuiz(words, quizId, categoryId) {
-    const progress = getUserProgress();
-    const unlearnedWords = words.filter(word => (progress.masteryScores[word.id] || 0) < MASTERY_THRESHOLD);
-    let wordsForQuiz; // Biến này sẽ chứa các từ dùng cho bài quiz
+	let wordsForQuiz;
+	const progressPercent = getCategoryProgress(categoryId);
 
-    // --- LOGIC MỚI: TỰ ĐỘNG CHUYỂN CHẾ ĐỘ HỌC/ÔN TẬP ---
-    if (unlearnedWords.length > 0) {
-        // Nếu còn từ chưa học, vào chế độ "Học mới"
-        wordsForQuiz = unlearnedWords;
-        console.log(`Chủ đề ${categoryId}: Bắt đầu học ${unlearnedWords.length} từ còn lại.`);
-    } else {
-        // Nếu đã học hết 100%, vào chế độ "Ôn tập"
-        wordsForQuiz = words; // Dùng tất cả các từ trong chủ đề
-        console.log(`Chủ đề ${categoryId}: 100% hoàn thành. Bắt đầu chế độ ôn tập.`);
-    }
-    // --- KẾT THÚC LOGIC MỚI ---
+	// --- LOGIC TỰ ĐỘNG CHỌN CHẾ ĐỘ ---
+	if (progressPercent === 100) {
+		// Nếu đã học 100%, vào chế độ ÔN TẬP (dùng tất cả các từ)
+		wordsForQuiz = words;
+		console.log(`Chủ đề ${categoryId} đã hoàn thành. Bắt đầu chế độ ôn tập.`);
+	} else {
+		// Nếu chưa, vào chế độ HỌC MỚI (chỉ dùng các từ chưa học)
+		const progress = getUserProgress();
+		wordsForQuiz = words.filter(word => !progress.completedWords[word.id]);
+		console.log(`Chủ đề ${categoryId} chưa hoàn thành. Bắt đầu chế độ học mới.`);
+	}
+	// --- KẾT THÚC LOGIC MỚI ---
 
-    // Kiểm tra xem có đủ từ để tạo câu hỏi không
-    if (wordsForQuiz.length < 4) {
-        alert("Chủ đề này không có đủ 4 từ vựng để tạo bài kiểm tra.");
-        return;
-    }
+	// Kiểm tra xem có từ nào để học/ôn tập không
+	if (wordsForQuiz.length < 4) {
+		// Thông báo này giờ chỉ hiện khi thực sự không còn từ nào hoặc không đủ để chơi
+		alert("🎉 Chúc mừng! Bạn đã học hết tất cả các từ trong chủ đề này.");
+		closeModal('multipleChoiceQuizModal');
+		return;
+	}
 
-    // Luôn chỉ lấy tối đa 10 câu hỏi mỗi lần
-    const quizWords = wordsForQuiz.sort(() => 0.5 - Math.random()).slice(0, 10);
-    
-    const questionsContainer = document.getElementById('quiz-questions');
-    questionsContainer.innerHTML = '';
-    
-    quizWords.forEach((word, index) => {
-        const options = [word.vietnamese];
-        // Lấy các đáp án sai từ TẤT CẢ các từ trong chủ đề (để luôn đủ 4 đáp án)
-        const distractors = words.filter(w => w.id !== word.id);
+	const quizWords = wordsForQuiz.sort(() => 0.5 - Math.random()).slice(0, 10);
+	const questionsContainer = document.getElementById('quiz-questions');
+	questionsContainer.innerHTML = '';
+	
+	quizWords.forEach((word, index) => {
+		const options = [word.vietnamese];
+		// Lấy các đáp án sai từ chính danh sách từ sẽ dùng cho bài quiz
+		const distractors = wordsForQuiz.filter(w => w.id !== word.id);
 
-        while (options.length < 4 && distractors.length > 0) {
-            const randomDistractor = distractors.splice(Math.floor(Math.random() * distractors.length), 1)[0];
-            options.push(randomDistractor.vietnamese);
-        }
-        
-        const shuffledOptions = options.sort(() => 0.5 - Math.random());
-        const questionElement = document.createElement('div');
-        questionElement.className = 'bg-white p-4 rounded-lg shadow';
-        questionElement.setAttribute('data-word-id', word.id);
-        questionElement.setAttribute('data-correct', word.vietnamese);
-        
-        let questionHTML = `<h4 class="font-bold text-gray-800 mb-3">${index + 1}. ${word.english}</h4><div class="grid grid-cols-2 gap-3">`;
-        shuffledOptions.forEach((option) => {
-            questionHTML += `<div class="quiz-option p-2 border rounded-lg" data-value="${option}" onclick="selectQuizOption(this)"><label class="flex items-center cursor-pointer"><input type="radio" name="q${index}" value="${option}" class="mr-2 hidden"><span class="text-gray-700">${option}</span></label></div>`;
-        });
-        questionHTML += `</div>`;
-        questionElement.innerHTML = questionHTML;
-        questionsContainer.appendChild(questionElement);
-    });
-    
-    const submitButton = document.getElementById('submit-quiz');
-    submitButton.textContent = 'Nộp bài';
-    submitButton.disabled = false;
-    submitButton.onclick = () => checkQuizAnswers(quizId, categoryId);
-    
-    openModal('multipleChoiceQuizModal');
+		while (options.length < 4 && distractors.length > 0) {
+			const randomDistractor = distractors.splice(Math.floor(Math.random() * distractors.length), 1)[0];
+			options.push(randomDistractor.vietnamese);
+		}
+		
+		const shuffledOptions = options.sort(() => 0.5 - Math.random());
+		const questionElement = document.createElement('div');
+		questionElement.className = 'bg-white p-4 rounded-lg shadow';
+		questionElement.setAttribute('data-word-id', word.id);
+		questionElement.setAttribute('data-correct', word.vietnamese);
+		
+		let questionHTML = `<h4 class="font-bold text-gray-800 mb-3">${index + 1}. ${word.english}</h4><div class="grid grid-cols-2 gap-3">`;
+		shuffledOptions.forEach((option) => {
+			questionHTML += `<div class="quiz-option p-2 border rounded-lg" data-value="${option}" onclick="selectQuizOption(this)"><label class="flex items-center cursor-pointer"><input type="radio" name="q${index}" value="${option}" class="mr-2 hidden"><span class="text-gray-700">${option}</span></label></div>`;
+		});
+		questionHTML += `</div>`;
+		questionElement.innerHTML = questionHTML;
+		questionsContainer.appendChild(questionElement);
+	});
+	
+	const submitButton = document.getElementById('submit-quiz');
+	submitButton.textContent = 'Nộp bài';
+	submitButton.disabled = false;
+	submitButton.onclick = () => checkQuizAnswers(quizId, categoryId);
+	
+	openModal('multipleChoiceQuizModal');
 }
 
 function selectQuizOption(optionElement) {
@@ -1589,11 +1513,22 @@ function checkQuizAnswers(quizId, categoryId) {
 		}
 	});
 
-	// Cập nhật điểm thông thạo cho các từ trả lời đúng
+	// ... (Phần code cập nhật progress giữ nguyên) ...
 	if (correctlyAnsweredWordIds.length > 0) {
+		const progress = getUserProgress();
+		let newWordsLearnedCount = 0;
 		correctlyAnsweredWordIds.forEach(wordId => {
-			updateMasteryScore(wordId, 1); // << GỌI HÀM MỚI VỚI +1 ĐIỂM
+			if (!progress.completedWords[wordId]) {
+				newWordsLearnedCount++;
+			}
+			progress.completedWords[wordId] = true;
 		});
+		for (let i = 0; i < newWordsLearnedCount; i++) {
+			updateDailyActivity();
+		}
+		updateCategoryProgress(progress);
+		saveUserProgress(progress);
+		updateUserStats();
 	}
 
 	const submitButton = document.getElementById('submit-quiz');
@@ -1614,32 +1549,21 @@ function checkQuizAnswers(quizId, categoryId) {
 }
 
 // --- Quiz 2: Xếp chữ (Unscramble) ---
-// Thay thế hàm cũ bằng hàm này
 function startUnscrambleGame(words) {
-    if (words) unscrambleWordPool = words;
+    if (words) {
+        unscrambleWordPool = words;
+    }
     if (!unscrambleWordPool || unscrambleWordPool.length === 0) {
-        alert("Không có từ nào phù hợp!");
+        alert("Không có từ nào phù hợp để chơi!");
         return;
     }
-
-	const progress = getUserProgress();
-	let availableWords;
-
-	// Lọc ra các từ chưa học
-	const unlearnedWords = unscrambleWordPool.filter(word => (progress.masteryScores[word.id] || 0) < MASTERY_THRESHOLD);
-
-	if (unlearnedWords.length > 0) {
-		// Nếu còn từ chưa học, ưu tiên chúng
-		availableWords = unlearnedWords;
-		console.log("Xếp chữ: Ưu tiên các từ chưa học.");
-	} else {
-		// Nếu đã học hết, lấy ngẫu nhiên từ tất cả các từ trong chủ đề
-		availableWords = unscrambleWordPool;
-		console.log("Xếp chữ: Đã học hết, ôn tập ngẫu nhiên.");
-	}
-
-    // Chọn một từ ngẫu nhiên từ danh sách phù hợp
+	
+	let availableWords = unscrambleWordPool;
+    if (lastUnscrambleWordId && unscrambleWordPool.length > 1) {
+        availableWords = unscrambleWordPool.filter(word => word.id !== lastUnscrambleWordId);
+    }
     const randomWord = availableWords[Math.floor(Math.random() * availableWords.length)];
+    lastUnscrambleWordId = randomWord.id; // Lưu lại ID của từ mới
 
     unscrambleTargetWord = randomWord.english.toUpperCase();
     unscrambleTargetWordId = randomWord.id;
@@ -1647,6 +1571,7 @@ function startUnscrambleGame(words) {
     speakWord(randomWord.vietnamese, 'vi-VN');
 
     const scrambledLetters = unscrambleTargetWord.split('').sort(() => Math.random() - 0.5);
+    // THAY ĐỔI Ở ĐÂY: Sử dụng ID mới
     const answerArea = document.getElementById('unscramble-answer-area');
     const letterTilesArea = document.getElementById('unscramble-letter-tiles');
     answerArea.innerHTML = '';
@@ -1710,7 +1635,7 @@ function checkUnscrambleAnswer() {
     });
 
     if (userAnswer === unscrambleTargetWord) {
-        updateMasteryScore(unscrambleTargetWordId, 3);
+        markWordAsLearned(unscrambleTargetWordId);
         playSound('tada');
         speakWord(unscrambleTargetWord, 'en-US'); 
         const successIcon = document.getElementById('unscramble-success-feedback');
@@ -1787,7 +1712,7 @@ function handleReadingQuizOptionClick(button, selectedOption, correctOption, wor
     if (selectedOption.id === correctOption.id) {
         button.classList.add('correct');
         playSound('success_2');
-        updateMasteryScore(correctOption.id, 2)
+        markWordAsLearned(correctOption.id);
         const filledSentenceHTML = correctOption.exampleSentence.replace('___', `<span class="text-blue-600 font-bold mx-2">${correctOption.english}</span>`);
         document.getElementById('reading-quiz-sentence-container').innerHTML = filledSentenceHTML;
     } else {
@@ -1812,49 +1737,31 @@ function handleReadingQuizOptionClick(button, selectedOption, correctOption, wor
 }
 
 // ===================================================================================
-// ===== 7. QUẢN LÝ TIẾN ĐỘ NGƯỜI DÙNG
+// ===== 8. QUẢN LÝ TIẾN ĐỘ NGƯỜI DÙNG
 // ===================================================================================
 
 function initUserProgress() {
-    // Tạo cấu trúc mặc định hoàn chỉnh
-    const defaultProgress = {
-        categories: {},
-        masteryScores: {},
-        completedGames: {},
-        completedQuizzes: {},
-        dailyActivities: 0,
-        lastActivityDate: new Date().toDateString(),
-        streakDays: 0,
-		dailyActivitiesHistory: {}, // << BỔ SUNG DÒNG NÀY ĐỂ KHỞI TẠO LỊCH SỬ
-        userProfile: {
-            username: 'Hươu cao cổ',
-            age: '',
-            avatar: 'https://upload.wikimedia.org/wikipedia/commons/1/14/H%C6%B0%C6%A1u_cao_c%E1%BB%95.png',
-            // --- THÊM CÁC DÒNG NÀY VÀO ---
-            level: 1,
-            xp: 0,
-            xpToNextLevel: 100, // XP cần để lên level 2
-        }
-    };
-
-    const savedProgressString = localStorage.getItem('flashkids_progress');
-    if (savedProgressString) {
-        try {
-            const savedProgress = JSON.parse(savedProgressString);
-            // Kết hợp dữ liệu đã lưu với dữ liệu mặc định
-            // Điều này đảm bảo các thuộc tính mới sẽ luôn tồn tại
-            const combinedUserProfile = { ...defaultProgress.userProfile, ...savedProgress.userProfile };
-            const combinedProgress = { ...defaultProgress, ...savedProgress };
-            combinedProgress.userProfile = combinedUserProfile; // Ghi đè lại userProfile đã được kết hợp
-            return combinedProgress;
-        } catch (e) {
-            console.error("Lỗi khi đọc dữ liệu progress, sử dụng dữ liệu mặc định.", e);
-            return defaultProgress; // Trả về mặc định nếu dữ liệu lưu bị lỗi
-        }
-    }
-    
-    // Trả về mặc định nếu không có gì trong localStorage
-    return defaultProgress;
+	// Try to load user progress from localStorage
+	const savedProgress = localStorage.getItem('flashkids_progress');
+	if (savedProgress) {
+		return JSON.parse(savedProgress);
+	}
+	
+	// Create default progress object if none exists
+	return {
+		categories: {},
+		completedWords: {},
+		completedGames: {},
+		completedQuizzes: {},
+		dailyActivities: 0,
+		lastActivityDate: new Date().toDateString(),
+		streakDays: 0,
+		userProfile: {
+			username: '',
+			age: '',
+			soundEnabled: true
+		}
+	};
 }
 
 function saveUserProgress(progress) {
@@ -1956,112 +1863,60 @@ function updateQuizProgress(quizId, categoryId, score) {
 
 function getCategoryProgress(categoryId) {
 	const progress = getUserProgress();
-    const wordsInCat = flashcards.filter(card => card.categoryId === categoryId);
-    if (wordsInCat.length === 0) return 0;
-
-    let masteredCount = 0;
-    wordsInCat.forEach(word => {
-        const score = progress.masteryScores[word.id] || 0;
-        if (score >= MASTERY_THRESHOLD) {
-            masteredCount++;
-        }
-    });
-    
-	return Math.round((masteredCount / wordsInCat.length) * 100);
+	// Dữ liệu tiến độ vẫn được đọc từ localStorage
+	return progress.categories[`${currentLevel}_${categoryId}`] || 0;
 }
 
-function updateCategoryProgress(progress) {
-    if (!progress) return;
+function updateCategoryProgress(progress) { // <-- Nhận 'progress' làm tham số
+	if (!progress) return; // Thoát nếu không có progress
 
-    categories.forEach(category => {
-        const wordsInCat = flashcards.filter(card => card.categoryId === category.id);
-        if (wordsInCat.length === 0) {
-            progress.categories[`${currentLevel}_${category.id}`] = 0;
-            return;
-        }
+	// Chỉ tính toán cho các chủ đề của level hiện tại
+	categories.forEach(category => {
+		const wordsInCatForLevel = flashcards.filter(card => card.categoryId === category.id);
+		const totalWordsInCatForLevel = wordsInCatForLevel.length;
 
-        let masteredCount = 0;
-        wordsInCat.forEach(word => {
-            const score = progress.masteryScores[word.id] || 0; // << ĐỌC TỪ MASTERY SCORES
-            if (score >= MASTERY_THRESHOLD) {
-                masteredCount++;
-            }
-        });
-        
-        const percentComplete = Math.round((masteredCount / wordsInCat.length) * 100);
-        progress.categories[`${currentLevel}_${category.id}`] = percentComplete;
-    });
+		if (totalWordsInCatForLevel === 0) return;
+
+		let learnedCount = 0;
+		wordsInCatForLevel.forEach(word => {
+			if (progress.completedWords[word.id]) {
+				learnedCount++;
+			}
+		});
+		
+		const percentComplete = Math.round((learnedCount / totalWordsInCatForLevel) * 100);
+		
+		// Cập nhật trực tiếp vào đối tượng progress được truyền vào
+		progress.categories[`${currentLevel}_${category.id}`] = percentComplete;
+	});
+	// Không còn saveUserProgress(progress) ở đây nữa
 }
 
-// Cập nhật hàm này để lưu lại lịch sử hoạt động
-function updateDailyActivity(progress) {
-    const today = new Date().toDateString(); // Lấy ngày hôm nay dưới dạng chuỗi, ví dụ: "Tue Aug 12 2025"
-
-    // 1. Khởi tạo đối tượng lịch sử nếu nó chưa tồn tại
-    if (!progress.dailyActivitiesHistory) {
-        progress.dailyActivitiesHistory = {};
-    }
-
-    // 2. Lấy số hoạt động đã có của ngày hôm nay (mặc định là 0 nếu chưa có)
-    const currentActivities = progress.dailyActivitiesHistory[today] || 0;
-
-    // 3. Cộng thêm 1 vào số hoạt động của ngày hôm nay
-    progress.dailyActivitiesHistory[today] = currentActivities + 1;
-
-    // 4. Cập nhật ngày hoạt động cuối cùng để tính streak (chuỗi ngày học)
-    if (progress.lastActivityDate !== today) {
-        // Nếu ngày hoạt động cuối cùng không phải hôm nay, đây là ngày học mới trong chuỗi
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        
-        if (progress.lastActivityDate === yesterday.toDateString()) {
-            // Nếu ngày học cuối là hôm qua, tăng chuỗi lên
-            progress.streakDays = (progress.streakDays || 0) + 1;
-			addXp(progress, 50); // <-- THÊM DÒNG NÀY: +50 XP KHI DUY TRÌ CHUỖI
-        } else {
-            // Nếu không, reset chuỗi về 1
-            progress.streakDays = 1;
-        }
-        progress.lastActivityDate = today;
-    }
-
-    // 5. Lưu lại toàn bộ tiến trình
-    console.log(`Đã ghi nhận hoạt động mới. Hôm nay có: ${progress.dailyActivitiesHistory[today]} hoạt động.`);
+function updateDailyActivity() {
+	const progress = getUserProgress();
+	const today = new Date().toDateString();
+	
+	// Check if this is a new day
+	if (progress.lastActivityDate !== today) {
+		// If consecutive day, increase streak
+		if (new Date(progress.lastActivityDate).getTime() === new Date(today).getTime() - 86400000) {
+			progress.streakDays++;
+		} else {
+			progress.streakDays = 1;
+		}
+		
+		progress.lastActivityDate = today;
+		progress.dailyActivities = 1;
+	} else {
+		progress.dailyActivities++;
+	}
+	
+	// Save progress
+	saveUserProgress(progress);
 }
-
-function updateMasteryScore(wordId, pointsToAdd) {
-    const progress = getUserProgress(); // Đọc progress 1 lần duy nhất ở đây
-    const oldScore = progress.masteryScores[wordId] || 0;
-
-    // Chỉ cộng điểm nếu từ đó chưa đạt ngưỡng thông thạo
-    if (oldScore < MASTERY_THRESHOLD) {
-        const newScore = Math.min(MASTERY_THRESHOLD, oldScore + pointsToAdd);
-        progress.masteryScores[wordId] = newScore;
-        console.log(`Từ ${wordId}: ${oldScore} -> ${newScore} điểm.`);
-
-        // Nếu từ đó LẦN ĐẦU TIÊN đạt ngưỡng, tính là một hoạt động mới
-        if (newScore >= MASTERY_THRESHOLD && oldScore < MASTERY_THRESHOLD) {
-            updateDailyActivity(progress); // << SỬA LẠI: Truyền "progress" vào đây
-            console.log(`Từ ${wordId} đã đạt mức thông thạo!`);
-			addXp(progress, 20); // << SỬA LẠI: Truyền "progress" và số XP vào đây
-        }
-    }
-
-    updateCategoryProgress(progress);
-    saveUserProgress(progress); // Chỉ cần lưu 1 lần ở cuối hàm
-    updateUserStats();
-
-    // Lấy nút tab đang hoạt động để kiểm tra
-    const activeButton = document.querySelector('nav button.tab-active');
-    // Nếu người dùng đang ở tab 'stats', hãy cập nhật biểu đồ ngay lập tức
-    if (activeButton && activeButton.dataset.tab === 'stats') {
-        console.log("Đang ở tab Thống kê, cập nhật lại biểu đồ...");
-        renderMasteryChart();
-    }
-}
-
+		
 // ===================================================================================
-// ===== 8. CẬP NHẬT GIAO DIỆN PHỤ (UI HELPERS)
+// ===== 9. CẬP NHẬT GIAO DIỆN PHỤ (UI HELPERS)
 // ===================================================================================
 
 function showLoading() {
@@ -2263,74 +2118,68 @@ function loadQuizTypes() {
 	});
 }
 
-function renderRewardsPath() {
-    const container = document.getElementById('rewards-path-container');
-    if (!container) return;
-    container.innerHTML = ''; // Xóa nội dung cũ
-
-    const progress = getUserProgress();
-
-    // Định nghĩa các cột mốc và điều kiện để mở khóa
-    const milestones = [
-        { 
-            title: 'Khởi Đầu Thuận Lợi', 
-            description: 'Học thông thạo 10 từ vựng đầu tiên.',
-            icon: 'badge',
-            color: 'green',
-            isUnlocked: (p) => Object.values(p.masteryScores).filter(s => s >= MASTERY_THRESHOLD).length >= 10
-        },
-        { 
-            title: 'Nhà Vô Địch Quiz', 
-            description: 'Hoàn thành 5 bài kiểm tra bất kỳ.',
-            icon: 'play',
-            color: 'blue',
-            isUnlocked: (p) => Object.keys(p.completedQuizzes).length >= 5
-        },
-        { 
-            title: 'Siêu Sao Bền Bỉ', 
-            description: 'Duy trì chuỗi 7 ngày học liên tục.',
-            icon: 'star',
-            color: 'yellow',
-            isUnlocked: (p) => (p.streakDays || 0) >= 7
-        },
-        { 
-            title: 'Nhà Từ Vựng Học', 
-            description: 'Chinh phục 100 từ vựng thông thạo.',
-            icon: 'book',
-            color: 'purple',
-            isUnlocked: (p) => Object.values(p.masteryScores).filter(s => s >= MASTERY_THRESHOLD).length >= 100
-        }
-    ];
-
-    // Tạo HTML cho từng cột mốc
-    milestones.forEach(milestone => {
-        const unlocked = milestone.isUnlocked(progress);
-        const statusClass = unlocked ? 'unlocked' : 'locked';
-
-        const milestoneElement = document.createElement('div');
-        milestoneElement.className = `milestone ${statusClass}`;
-        milestoneElement.innerHTML = `
-            <div class="milestone-content">
-                <h4 class="font-bold text-lg text-gray-800">${milestone.title}</h4>
-                <p class="text-gray-600">${milestone.description}</p>
-            </div>
-            <div class="milestone-node">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                    ${getBadgeIcon(milestone.icon)}
-                </svg>
-            </div>
-        `;
-        container.appendChild(milestoneElement);
-    });
+function loadBadges() {
+	const container = document.getElementById('badges-container');
+	container.innerHTML = '';
+	
+	// Update badge status based on user progress
+	const progress = getUserProgress();
+	
+	// Update streak badge
+	badges[0].achieved = progress.streakDays >= 7;
+	
+	// Update words learned badge
+	const totalLearned = Object.keys(progress.completedWords).length;
+	badges[1].achieved = totalLearned >= 100;
+	if (!badges[1].achieved) {
+		badges[1].progress = `${totalLearned}/100`;
+	}
+	
+	// Update quiz completion badges
+	const completedQuizzes = Object.keys(progress.completedQuizzes).length;
+	badges[2].achieved = completedQuizzes >= 5;
+	badges[3].achieved = completedQuizzes >= 10;
+	if (!badges[2].achieved) {
+		badges[2].progress = `${Math.min(completedQuizzes, 5)}/5`;
+	}
+	if (!badges[3].achieved) {
+		badges[3].progress = `${Math.min(completedQuizzes, 10)}/10`;
+	}
+	
+	badges.forEach(badge => {
+		const badgeElement = document.createElement('div');
+		badgeElement.className = 'bg-white rounded-2xl p-5 shadow-md text-center';
+		badgeElement.innerHTML = `
+			<div class="w-20 h-20 mx-auto rounded-full bg-${badge.color}-100 flex items-center justify-center mb-4 ${badge.achieved ? 'badge' : ''}">
+				<svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-${badge.color}-500" viewBox="0 0 20 20" fill="currentColor">
+					${getBadgeIcon(badge.icon)}
+				</svg>
+			</div>
+			<h4 class="text-lg font-bold text-gray-800 mb-1">${badge.name}</h4>
+			<p class="text-gray-600 text-sm mb-2">${badge.description}</p>
+			${badge.achieved 
+				? `<span class="bg-green-100 text-green-600 text-xs font-bold px-2 py-1 rounded-full">Đã đạt</span>`
+				: `<span class="bg-gray-100 text-gray-600 text-xs font-bold px-2 py-1 rounded-full">${badge.progress}</span>`
+			}
+		`;
+		
+		container.appendChild(badgeElement);
+	});
 }
 
 function updateUserStats() {
-    const progress = getUserProgress();
-    
-    // Tính tổng số từ đã thông thạo (score >= ngưỡng)
-    const totalLearned = Object.values(progress.masteryScores).filter(score => score >= MASTERY_THRESHOLD).length;
-    document.getElementById('words-learned').textContent = totalLearned;
-    document.getElementById('streak-days').textContent = progress.streakDays || 0;
+	const progress = getUserProgress();
+	
+	// Update user level and XP
+	document.getElementById('user-level').textContent = `Cấp ${userData.level}`;
+	document.getElementById('xp-progress').textContent = `${userData.xp}/${userData.xpToNextLevel} XP`;
+	document.getElementById('xp-bar').style.width = `${(userData.xp / userData.xpToNextLevel) * 100}%`;
+	
+	// Update learning stats
+	const totalLearned = Object.keys(progress.completedWords).length;
+	document.getElementById('words-learned').textContent = totalLearned;
+	document.getElementById('study-time').textContent = userData.studyTime;
+	document.getElementById('streak-days').textContent = progress.streakDays || 0;
 }
 
 function updateCategoryProgressDisplay() {
@@ -2345,9 +2194,7 @@ function updateCategoryProgressDisplay() {
 	categories.forEach(category => {
 		const progress = getCategoryProgress(category.id);
 		const colorClass = category.colorClass || getCategoryColorClass(category.color);
-		
-        // === DÒNG SỬA LỖI NẰM Ở ĐÂY ===
-		const baseColor = colorClass.split(' ')[0].split('-')[1]; // SỬA DÒNG NÀY
+		const baseColor = colorClass.split(' ')[0].replace('from-', '');
 		
 		const categoryElement = document.createElement('div');
 		categoryElement.className = 'mb-4';
@@ -2446,7 +2293,7 @@ function updateWelcomeMessage() {
 }
 
 // ===================================================================================
-// ===== 9. HÀM TIỆN ÍCH (UTILITIES)
+// ===== 10. HÀM TIỆN ÍCH (UTILITIES)
 // ===================================================================================
 
 function assignRandomColorsToCategories() {
@@ -2666,7 +2513,7 @@ function shuffleArray(array) {
 }
 
 // ===================================================================================
-// ===== 10. ĐỒNG HỒ ĐẾM NGƯỢC
+// ===== 11. ĐỒNG HỒ ĐẾM NGƯỢC
 // ===================================================================================
 function updateTimerDisplay() {
 	const minutes = Math.floor(timeRemaining / 60);
@@ -2734,7 +2581,7 @@ function resetFlashcardInactivityTimer() {
 }
 
 // ===================================================================================
-// ===== 11. CÔNG CỤ ĐỌC VĂN BẢN (TEXT-TO-SPEECH TOOL)
+// ===== 12. CÔNG CỤ ĐỌC VĂN BẢN (TEXT-TO-SPEECH TOOL)
 // ===================================================================================
 
 function detectLanguage(text) {
@@ -2744,96 +2591,56 @@ function detectLanguage(text) {
     return vietnameseRegex.test(text) ? 'vi-VN' : 'en-US';
 }
 
-/**
- * PHIÊN BẢN HOÀN CHỈNH - HÀM XỬ LÝ SỰ KIỆN NÚT ĐỌC/DỪNG
- */
 function handleSpeakRequest() {
-    const text = document.getElementById('text-to-speech-input').value.trim();
+    const input = document.getElementById('text-to-speech-input');
+    const text = input.value.trim();
+    const downloadBtn = document.getElementById('download-speech-btn');
+
     if (!text) {
         alert("Vui lòng nhập văn bản để đọc.");
         return;
     }
 
-    if (ttsToolAudio && !ttsToolAudio.paused) {
-        ttsToolAudio.onerror = null; 
-        ttsToolAudio.onended = null;
-        ttsToolAudio.pause();
-        ttsToolAudio.src = '';
-        ttsToolAudio = null;
-        
-        document.getElementById('tts-speak-icon').classList.remove('hidden');
-        document.getElementById('tts-stop-icon').classList.add('hidden');
-        document.getElementById('download-speech-btn').classList.add('hidden');
-        return;
-    }
-
-    const langToggleBtn = document.getElementById('tts-lang-toggle-btn');
-    let lang = langToggleBtn.dataset.lang;
-    if (lang === 'auto') {
-        lang = detectLanguage(text);
-    }
+    const lang = detectLanguage(text);
     
+    // Lưu lại thông tin để tải về sau
     lastSpokenAudio = { lang: lang, text: text };
 
-    document.getElementById('tts-speak-icon').classList.add('hidden');
-    document.getElementById('tts-stop-icon').classList.remove('hidden');
-    document.getElementById('download-speech-btn').classList.add('hidden');
-
-    // <<< THAY ĐỔI Ở ĐÂY >>>
-    // Gọi hàm phát âm thanh với callback đã được tối giản.
-    // Callback này giờ chỉ có nhiệm vụ reset icon khi phát xong.
+    // Gọi hàm speakWord và hiển thị nút tải về khi hoàn thành
     speakWordForTool(text, lang, () => {
-        document.getElementById('tts-speak-icon').classList.remove('hidden');
-        document.getElementById('tts-stop-icon').classList.add('hidden');
-        ttsToolAudio = null;
+        downloadBtn.classList.remove('hidden');
     });
 }
 
-/**
- * PHIÊN BẢN HOÀN CHỈNH - HÀM TẢI FILE ÂM THANH
- * Hoạt động độc lập, không ảnh hưởng đến việc phát âm thanh.
- */
 function handleDownloadRequest() {
-    // Hàm này giờ đây không dừng âm thanh hay thay đổi icon Loa/Stop nữa.
-    
-    const downloadCacheKey = 'flashkids_last_tts_audio';
+    if (!lastSpokenAudio.text) return;
+
+    const { lang, text } = lastSpokenAudio;
+    const cacheKey = `audio_${lang}_${text.toLowerCase()}`;
     const downloadBtn = document.getElementById('download-speech-btn');
 
-    const cachedItem = localStorage.getItem(downloadCacheKey);
-
+    // Lấy dữ liệu từ localStorage để tạo link tải
+    const cachedItem = localStorage.getItem(cacheKey);
     if (cachedItem) {
         try {
             const data = JSON.parse(cachedItem);
-            const link = document.createElement('a');
-            link.href = `data:audio/mp3;base64,${data.audioContent}`;
-            
-            // Tạo tên file chuyên nghiệp
-            const textSnippet = (data.originalText || "audio")
-                .substring(0, 30)
-                .normalize("NFD").replace(/[\u0300-\u036f]/g, "") 
-                .replace(/[^a-zA-Z0-9\s]/g, "") 
-                .trim()
-                .replace(/\s+/g, '_');
+            const base64Audio = data.audioContent;
 
-            const now = new Date(data.timestamp);
-            const pad = (num) => String(num).padStart(2, '0');
-            const timestampStr = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-            
-            link.download = `FlashKids-TTS-${textSnippet}-${timestampStr}.mp3`;
-            
+            const link = document.createElement('a');
+            link.href = `data:audio/mp3;base64,${base64Audio}`;
+            link.download = `${text.substring(0, 20)}.mp3`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
 
-            // Xóa file khỏi cache download sau khi tải
-            localStorage.removeItem(downloadCacheKey);
-            
-            // Ẩn nút download đi vì đã được "tiêu thụ"
+            // Ẩn nút tải về và xóa khỏi localStorage
             downloadBtn.classList.add('hidden');
-            
+            localStorage.removeItem(cacheKey);
+            console.log(`Đã xóa cache cho: ${cacheKey}`);
+
         } catch (e) {
             console.error("Lỗi khi xử lý tải audio:", e);
-            alert("Không thể tải file âm thanh do dữ liệu lỗi.");
+            alert("Không thể tải file âm thanh.");
         }
     } else {
         alert("Không tìm thấy dữ liệu âm thanh để tải. Vui lòng nhấn nút đọc lại.");
@@ -2841,97 +2648,59 @@ function handleDownloadRequest() {
     }
 }
 
-/**
- * PHIÊN BẢN TỐI GIẢN - HÀM PHÁT ÂM THANH CHO CÔNG CỤ
- * Server giờ đây luôn trả về 1 file duy nhất, không cần xử lý audioParts nữa.
- */
+// Phiên bản sửa đổi của hàm speakWord để dùng cho công cụ này
 function speakWordForTool(word, lang, onEndCallback) {
-    const textCacheKey = `audio_${lang}_${word.toLowerCase().substring(0, 50)}`;
-    const downloadCacheKey = 'flashkids_last_tts_audio'; 
+    const cacheKey = `audio_${lang}_${word.toLowerCase()}`;
+    const cachedItem = localStorage.getItem(cacheKey);
+    // Lấy tốc độ từ thanh trượt
     const speed = parseFloat(document.getElementById('tts-speed-slider').value);
-    const downloadBtn = document.getElementById('download-speech-btn'); // Lấy tham chiếu đến nút download
-    
-    if (ttsToolAudio) {
-        ttsToolAudio.pause();
-        ttsToolAudio = null;
-    }
-    
-    // Bước 1: Kiểm tra cache hiệu năng (áp dụng cho câu ngắn)
-    if (word.length <= 50) {
-        const cachedItem = localStorage.getItem(textCacheKey);
-        if (cachedItem) {
-            console.log("Phát câu ngắn từ cache hiệu năng...");
-            try {
-                const data = JSON.parse(cachedItem);
-                localStorage.setItem(downloadCacheKey, JSON.stringify(data));
-                
-                // <<< THAY ĐỔI Ở ĐÂY: HIỆN NÚT DOWNLOAD NGAY LẬP TỨC >>>
-                downloadBtn.classList.remove('hidden');
-                
-                const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
-                audio.playbackRate = speed;
-                ttsToolAudio = audio;
-                audio.onended = onEndCallback;
-                audio.play();
-                return;
-            } catch (e) {
-                console.error("Dữ liệu cache bị lỗi, sẽ gọi API.", e);
-                localStorage.removeItem(textCacheKey);
-            }
-        }
-    }
 
-    // Bước 2: Nếu không có trong cache hoặc câu dài, gọi API
-    console.log("Đang gọi API để tạo file âm thanh...");
-    fetch(`/.netlify/functions/text-to-speech`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: word, lang: lang }),
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.audioContent) {
-            const itemToCache = { 
-                audioContent: data.audioContent, 
-                originalText: word,
-                timestamp: Date.now() 
-            };
-
-            localStorage.setItem(downloadCacheKey, JSON.stringify(itemToCache));
-
-            if (word.length <= 50) {
-                try {
-                    localStorage.setItem(textCacheKey, JSON.stringify(itemToCache));
-                } catch (e) {
-                    pruneAudioCache();
-                }
-            }
-            
-            // <<< THAY ĐỔI Ở ĐÂY: HIỆN NÚT DOWNLOAD NGAY LẬP TỨC >>>
-            downloadBtn.classList.remove('hidden');
-
-            const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
-            audio.playbackRate = speed;
-            ttsToolAudio = audio;
+    function playAudio(base64Content) {
+        const audio = new Audio(`data:audio/mp3;base64,${base64Content}`);
+        audio.playbackRate = speed; // << Áp dụng tốc độ đọc
+        audio.play();
+        if (onEndCallback) {
             audio.onended = onEndCallback;
-            audio.onerror = () => {
-                alert("Lỗi khi phát âm thanh.");
-                if (onEndCallback) onEndCallback();
-            };
-            audio.play();
-        } else {
-            throw new Error(data.error || 'Không nhận được dữ liệu âm thanh hợp lệ.');
         }
-    })
-    .catch(error => {
-        console.error('Lỗi khi gọi hoặc xử lý âm thanh:', error);
-        alert(`Đã xảy ra lỗi: ${error.message}`);
-        if (onEndCallback) onEndCallback();
-    });
+    }
+
+    if (cachedItem) {
+        try {
+            const data = JSON.parse(cachedItem);
+            playAudio(data.audioContent);
+            return;
+        } catch (e) {
+            localStorage.removeItem(cacheKey);
+        }
+    }
+
+    fetch(`/.netlify/functions/text-to-speech?text=${encodeURIComponent(word)}&lang=${lang}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.audioContent) {
+                const itemToCache = { audioContent: data.audioContent, timestamp: Date.now() };
+                try {
+                    localStorage.setItem(cacheKey, JSON.stringify(itemToCache));
+                } catch (e) {
+                    // ... (phần xử lý lỗi cache giữ nguyên)
+                }
+                playAudio(data.audioContent);
+            } else {
+                speakWordDefault(word, lang);
+            }
+        })
+        .catch(error => {
+            console.error('Lỗi khi gọi Netlify Function:', error);
+            speakWordDefault(word, lang);
+        });
 }
 
 // ===================================================================================
-// ===== 12. LOGIC MENU NGƯỜI DÙNG (USER DROPDOWN MENU)
+// ===== 13. LOGIC MENU NGƯỜI DÙNG (USER DROPDOWN MENU)
+// ===================================================================================
+
+// ===================================================================================
+// ===== 13. LOGIC MENU NGƯỜI DÙNG (USER DROPDOWN MENU)
 // ===================================================================================
 
 // Hàm xử lý khi nhấp vào một mục trong menu
@@ -2947,247 +2716,4 @@ function handleMenuLinkClick(event, tabId) {
     }
 }
 
-function saveUserProfile() {
-    const username = document.getElementById('username').value.trim();
-    const age = document.getElementById('age').value;
-    const progress = getUserProgress();
 
-    progress.userProfile.username = username;
-    progress.userProfile.age = age;
-    
-    saveUserProgress(progress);
-    updateWelcomeMessage(); // << THÊM DÒNG NÀY VÀO
-
-    alert('Đã lưu hồ sơ thành công!');
-}
-
-function loadUserSettings(progress) {
-    if (!progress || !progress.userProfile) return;
-
-    const settings = progress.userProfile;
-
-    // Tải mục tiêu hàng ngày
-    const dailyGoalSlider = document.getElementById('daily-goal-slider');
-    const dailyGoalValue = document.getElementById('daily-goal-value');
-    if (dailyGoalSlider && dailyGoalValue && settings.dailyGoal) {
-        dailyGoalSlider.value = settings.dailyGoal;
-        dailyGoalValue.textContent = `${settings.dailyGoal} từ`;
-    }
-
-    // Tải giọng đọc đã chọn
-    const voiceSelect = document.getElementById('voice-select');
-    if (voiceSelect && settings.voice) {
-        voiceSelect.value = settings.voice;
-    }
-
-    // Tải avatar đã chọn
-    const avatarImg = document.querySelector('#user-menu-button img');
-    if (avatarImg && settings.avatar) {
-        avatarImg.src = settings.avatar;
-    }
-    
-    // Tải trạng thái bật/tắt âm thanh
-    const soundToggle = document.getElementById('sound-toggle');
-    if (soundToggle) {
-        soundToggle.checked = settings.soundEnabled;
-        soundEnabled = settings.soundEnabled; // Cập nhật biến toàn cục
-    }
-}
-
-function loadAvatarSelection() {
-    const grid = document.getElementById('avatar-selection-grid');
-    if (!grid) return;
-    grid.innerHTML = '';
-    const progress = getUserProgress();
-    const currentAvatar = progress.userProfile.avatar;
-
-    availableAvatars.forEach(avatarUrl => {
-        const avatarElement = document.createElement('div');
-        // Thêm viền xanh nếu đây là avatar đang được chọn
-        const borderClass = (avatarUrl === currentAvatar) ? 'border-blue-500' : 'border-transparent';
-        avatarElement.className = `relative p-2 border-2 ${borderClass} rounded-full cursor-pointer hover:border-blue-500 transition-colors`;
-        avatarElement.innerHTML = `<img src="${avatarUrl}" alt="Avatar" class="w-full h-full rounded-full">`;
-        
-        // Gán sự kiện onclick để chọn avatar
-        avatarElement.onclick = () => selectAvatar(avatarUrl, avatarElement);
-        
-        grid.appendChild(avatarElement);
-    });
-}
-
-function selectAvatar(avatarUrl, selectedElement) {
-    // Cập nhật avatar ở header
-    const headerAvatar = document.querySelector('#user-menu-button img');
-    if (headerAvatar) {
-        headerAvatar.src = avatarUrl;
-    }
-
-    // Lưu lựa chọn vào localStorage
-    const progress = getUserProgress();
-    progress.userProfile.avatar = avatarUrl;
-    saveUserProgress(progress);
-
-    // Cập nhật giao diện (xóa viền xanh ở các avatar khác và thêm vào avatar được chọn)
-    document.querySelectorAll('#avatar-selection-grid > div').forEach(el => {
-        el.classList.remove('border-blue-500');
-        el.classList.add('border-transparent');
-    });
-    selectedElement.classList.remove('border-transparent');
-    selectedElement.classList.add('border-blue-500');
-}
-
-// ===================================================================================
-// ===== 13. KHỞI TẠO ỨNG DỤNG
-// ===================================================================================
-
-document.addEventListener('DOMContentLoaded', function() {
-	// --- TẢI DỮ LIỆU BAN ĐẦU ---
-	const savedLevel = localStorage.getItem('flashkids_currentLevel');
-	if (savedLevel) {
-		currentLevel = savedLevel;
-	}
-	const progress = initUserProgress();
-    updateWelcomeMessage(progress);
-    loadUserSettings(progress);
-    updateUserStats(progress);
-	updateXpDisplay(progress); // <-- THÊM DÒNG NÀY
-	changeLevel(currentLevel);
-	
-	// --- GÁN CÁC SỰ KIỆN CHO CÁC NÚT BẤM ---
-
-	// Sự kiện cho thẻ từ vựng
-	document.getElementById('current-flashcard').addEventListener('click', function() {
-		if (!isCardInteractable) return;
-		this.classList.toggle('flipped');
-		const card = getFilteredCards()[currentCardIndex];
-		if (isFlashcardsTabActive && soundEnabled) {
-			setTimeout(() => {
-				const langToSpeak = this.classList.contains('flipped') ? 'vi-VN' : 'en-US';
-                const wordToSpeak = this.classList.contains('flipped') ? card.vietnamese : card.english;
-				speakWord(wordToSpeak, langToSpeak);
-			}, 100);
-		}
-	});
-
-	// Sự kiện cho các nút điều hướng thẻ
-	document.getElementById('prev-card').addEventListener('click', previousCard);
-	document.getElementById('next-card').addEventListener('click', nextCard);
-	
-	// Sự kiện cho đồng hồ
-	document.getElementById('toggle-timer-btn').addEventListener('click', toggleTimer);
-	updateTimerDisplay();
-	
-	// Set up sound toggle
-	document.getElementById('sound-toggle').addEventListener('change', function() {
-		soundEnabled = this.checked;
-		saveAppSettings();
-	});
-	
-	// Sự kiện đóng modal khi bấm ra ngoài
-	document.querySelectorAll('.modal').forEach(modal => {
-		modal.addEventListener('click', function(event) {
-			if (event.target === this) closeModal(this.id);
-		});
-	});
-	
-	// Sự kiện cho Công cụ đọc văn bản
-	document.getElementById('speak-text-btn').addEventListener('click', handleSpeakRequest);
-    document.getElementById('download-speech-btn').addEventListener('click', handleDownloadRequest);
-    document.getElementById('text-to-speech-input').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') handleSpeakRequest();
-    });
-    document.getElementById('tts-speed-slider').addEventListener('input', function() {
-        document.getElementById('tts-speed-value').textContent = `${parseFloat(this.value).toFixed(1)}x`;
-    });
-    const langToggleBtn = document.getElementById('tts-lang-toggle-btn');
-	if (langToggleBtn) {
-        // Mặc định là tiếng Anh
-        langToggleBtn.dataset.lang = 'en-US';
-        langToggleBtn.textContent = 'Eng';
-		langToggleBtn.addEventListener('click', function() {
-			if (this.dataset.lang === 'en-US') {
-				this.dataset.lang = 'vi-VN';
-				this.textContent = 'VN';
-			} else {
-				this.dataset.lang = 'en-US';
-				this.textContent = 'Eng';
-			}
-		});
-	}
-	
-	// Sự kiện cho Menu người dùng
-	const userMenuButton = document.getElementById('user-menu-button');
-    const userMenu = document.getElementById('user-menu');
-    if (userMenuButton && userMenu) {
-        userMenuButton.addEventListener('click', function(event) {
-            event.stopPropagation(); 
-            userMenu.classList.toggle('hidden');
-        });
-        window.addEventListener('click', function() {
-            if (!userMenu.classList.contains('hidden')) {
-                userMenu.classList.add('hidden');
-            }
-        });
-    }
-	
-	// --- TẢI CÁC GIAO DIỆN CỐ ĐỊNH ---
-	loadGames();
-	loadQuizTypes();
-    loadAvatarSelection();
-});
-
-// ===================================================================================
-// ===== 14. HỆ THỐNG XP/LEVEL
-// ===================================================================================
-
-// Hàm cập nhật giao diện thanh XP
-function updateXpDisplay(progress) {
-    const profile = progress.userProfile;
-
-    if (profile) {
-        const percent = Math.round((profile.xp / profile.xpToNextLevel) * 100);
-        document.getElementById('xp-level').textContent = profile.level;
-        document.getElementById('xp-text').textContent = `${profile.xp}/${profile.xpToNextLevel}`;
-        document.getElementById('xp-bar').style.width = `${percent}%`;
-    }
-}
-
-// Hàm xử lý khi người dùng lên cấp
-function levelUp(profile) {
-    playSound('tada');
-    createConfetti();
-    
-    profile.level += 1;
-    profile.xp -= profile.xpToNextLevel; // Giữ lại XP thừa
-    profile.xpToNextLevel = profile.level * 100; // Công thức tính XP cho level tiếp theo
-    
-    // Hiển thị thông báo chúc mừng
-    const completionTitle = document.getElementById('completion-title');
-    const completionMessage = document.getElementById('completion-message');
-    
-    completionTitle.textContent = `🎉 Lên Cấp! 🎉`;
-    completionMessage.textContent = `Chúc mừng bạn đã đạt đến Cấp độ ${profile.level}! Hãy tiếp tục phát huy nhé!`;
-    openModal('completionModal');
-
-    console.log(`LÊN CẤP! Level mới: ${profile.level}. Cần ${profile.xpToNextLevel} XP để lên cấp tiếp theo.`);
-}
-
-// Hàm trung tâm để cộng XP
-function addXp(progress, amount) { // << THÊM "progress" VÀO THAM SỐ
-    // const progress = getUserProgress(); // << XÓA DÒNG NÀY
-    const profile = progress.userProfile;
-
-    if (!profile) return;
-
-    profile.xp += amount;
-    console.log(`Đã nhận được ${amount} XP. Tổng XP: ${profile.xp}/${profile.xpToNextLevel}`);
-
-    // Kiểm tra nếu đủ XP để lên cấp
-    if (profile.xp >= profile.xpToNextLevel) {
-        levelUp(profile);
-    }
-    
-    // Không cần lưu ở đây nữa vì hàm gọi nó sẽ lưu
-    // saveUserProgress(progress); 
-    updateXpDisplay(progress);
-}
