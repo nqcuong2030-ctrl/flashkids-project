@@ -2,7 +2,8 @@
 // ===== 0. VERSIONING & DATA MIGRATION
 // ===================================================================================
 
-const APP_VERSION = '1.1_12082025_2a'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
+const APP_VERSION = '1.1_12082025_6'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
+const MASTERY_THRESHOLD = 3;
 
 function checkAppVersion() {
     const storedVersion = localStorage.getItem('flashkids_app_version');
@@ -109,8 +110,8 @@ const games = [
 
 const quizTypes = [
     { id: 1, name: 'Trắc nghiệm', description: 'Chọn đáp án đúng cho từng câu hỏi', time: 10, difficulty: 3, icon: 'document' },
-    { id: 2, name: 'Xếp chữ', description: 'Sắp xếp các chữ cái thành từ đúng', time: 5, difficulty: 4, icon: 'question' },
-	{ id: 3, name: 'Đọc hiểu', description: 'Đọc câu và chọn từ đúng để điền vào chỗ trống', time: 5, difficulty: 5, icon: 'book-open' }
+	{ id: 3, name: 'Đọc hiểu', description: 'Đọc câu và chọn từ đúng để điền vào chỗ trống', time: 5, difficulty: 4, icon: 'book-open' },
+    { id: 2, name: 'Xếp chữ', description: 'Sắp xếp các chữ cái thành từ đúng', time: 5, difficulty: 5, icon: 'question' }	
 ];
 
 const badges = [
@@ -1328,33 +1329,38 @@ function checkSoundMatch() {
 }
 
 // --- Quiz 1: Trắc nghiệm (Multiple Choice) ---
-// Thay thế hàm cũ bằng hàm này
 function startMultipleChoiceQuiz(words, quizId, categoryId) {
     const progress = getUserProgress();
-    const unlearnedWords = words.filter(word => !progress.completedWords[word.id]);
+    const unlearnedWords = words.filter(word => (progress.masteryScores[word.id] || 0) < MASTERY_THRESHOLD);
+    let wordsForQuiz; // Biến này sẽ chứa các từ dùng cho bài quiz
 
-    // SỬA LỖI 1: Chỉ thông báo khi đã học hết 100%
-    if (unlearnedWords.length === 0) {
-        alert("🎉 Chúc mừng! Bạn đã học hết tất cả các từ trong chủ đề này.");
-        // Tùy chọn: có thể bắt đầu chế độ ôn tập ở đây bằng cách dùng mảng `words`
+    // --- LOGIC MỚI: TỰ ĐỘNG CHUYỂN CHẾ ĐỘ HỌC/ÔN TẬP ---
+    if (unlearnedWords.length > 0) {
+        // Nếu còn từ chưa học, vào chế độ "Học mới"
+        wordsForQuiz = unlearnedWords;
+        console.log(`Chủ đề ${categoryId}: Bắt đầu học ${unlearnedWords.length} từ còn lại.`);
+    } else {
+        // Nếu đã học hết 100%, vào chế độ "Ôn tập"
+        wordsForQuiz = words; // Dùng tất cả các từ trong chủ đề
+        console.log(`Chủ đề ${categoryId}: 100% hoàn thành. Bắt đầu chế độ ôn tập.`);
+    }
+    // --- KẾT THÚC LOGIC MỚI ---
+
+    // Kiểm tra xem có đủ từ để tạo câu hỏi không
+    if (wordsForQuiz.length < 4) {
+        alert("Chủ đề này không có đủ 4 từ vựng để tạo bài kiểm tra.");
         return;
     }
 
-    // Kiểm tra xem tổng số từ trong chủ đề có đủ để tạo đáp án nhiễu không
-    if (words.length < 4) {
-        alert("Chủ đề này cần có ít nhất 4 từ vựng để tạo bài kiểm tra.");
-        return;
-    }
-
-    // SỬA LỖI 2: Tạo quiz với số từ chưa học còn lại (tối đa 10 từ mỗi lần)
-    const quizWords = unlearnedWords.sort(() => 0.5 - Math.random()).slice(0, 10);
+    // Luôn chỉ lấy tối đa 10 câu hỏi mỗi lần
+    const quizWords = wordsForQuiz.sort(() => 0.5 - Math.random()).slice(0, 10);
     
     const questionsContainer = document.getElementById('quiz-questions');
     questionsContainer.innerHTML = '';
     
     quizWords.forEach((word, index) => {
         const options = [word.vietnamese];
-        // Lấy các đáp án sai từ TẤT CẢ các từ trong chủ đề (bao gồm cả từ đã học)
+        // Lấy các đáp án sai từ TẤT CẢ các từ trong chủ đề (để luôn đủ 4 đáp án)
         const distractors = words.filter(w => w.id !== word.id);
 
         while (options.length < 4 && distractors.length > 0) {
@@ -1430,22 +1436,11 @@ function checkQuizAnswers(quizId, categoryId) {
 		}
 	});
 
-	// ... (Phần code cập nhật progress giữ nguyên) ...
+	// Cập nhật điểm thông thạo cho các từ trả lời đúng
 	if (correctlyAnsweredWordIds.length > 0) {
-		const progress = getUserProgress();
-		let newWordsLearnedCount = 0;
 		correctlyAnsweredWordIds.forEach(wordId => {
-			if (!progress.completedWords[wordId]) {
-				newWordsLearnedCount++;
-			}
-			progress.completedWords[wordId] = true;
+			updateMasteryScore(wordId, 1); // << GỌI HÀM MỚI VỚI +1 ĐIỂM
 		});
-		for (let i = 0; i < newWordsLearnedCount; i++) {
-			updateDailyActivity();
-		}
-		updateCategoryProgress(progress);
-		saveUserProgress(progress);
-		updateUserStats();
 	}
 
 	const submitButton = document.getElementById('submit-quiz');
@@ -1468,11 +1463,9 @@ function checkQuizAnswers(quizId, categoryId) {
 // --- Quiz 2: Xếp chữ (Unscramble) ---
 // Thay thế hàm cũ bằng hàm này
 function startUnscrambleGame(words) {
-    if (words) {
-        unscrambleWordPool = words;
-    }
+    if (words) unscrambleWordPool = words;
     if (!unscrambleWordPool || unscrambleWordPool.length === 0) {
-        alert("Không có từ nào phù hợp để chơi!");
+        alert("Không có từ nào phù hợp!");
         return;
     }
 
@@ -1480,7 +1473,7 @@ function startUnscrambleGame(words) {
 	let availableWords;
 
 	// Lọc ra các từ chưa học
-	const unlearnedWords = unscrambleWordPool.filter(word => !progress.completedWords[word.id]);
+	const unlearnedWords = unscrambleWordPool.filter(word => (progress.masteryScores[word.id] || 0) < MASTERY_THRESHOLD);
 
 	if (unlearnedWords.length > 0) {
 		// Nếu còn từ chưa học, ưu tiên chúng
@@ -1564,7 +1557,7 @@ function checkUnscrambleAnswer() {
     });
 
     if (userAnswer === unscrambleTargetWord) {
-        markWordAsLearned(unscrambleTargetWordId);
+        updateMasteryScore(unscrambleTargetWordId, 3);
         playSound('tada');
         speakWord(unscrambleTargetWord, 'en-US'); 
         const successIcon = document.getElementById('unscramble-success-feedback');
@@ -1641,7 +1634,7 @@ function handleReadingQuizOptionClick(button, selectedOption, correctOption, wor
     if (selectedOption.id === correctOption.id) {
         button.classList.add('correct');
         playSound('success_2');
-        markWordAsLearned(correctOption.id);
+        updateMasteryScore(correctOption.id, 2)
         const filledSentenceHTML = correctOption.exampleSentence.replace('___', `<span class="text-blue-600 font-bold mx-2">${correctOption.english}</span>`);
         document.getElementById('reading-quiz-sentence-container').innerHTML = filledSentenceHTML;
     } else {
@@ -1679,7 +1672,7 @@ function initUserProgress() {
 	// Create default progress object if none exists
 	return {
 		categories: {},
-		completedWords: {},
+		masteryScores: {},
 		completedGames: {},
 		completedQuizzes: {},
 		dailyActivities: 0,
@@ -1792,8 +1785,18 @@ function updateQuizProgress(quizId, categoryId, score) {
 
 function getCategoryProgress(categoryId) {
 	const progress = getUserProgress();
-	// Dữ liệu tiến độ vẫn được đọc từ localStorage
-	return progress.categories[`${currentLevel}_${categoryId}`] || 0;
+    const wordsInCat = flashcards.filter(card => card.categoryId === categoryId);
+    if (wordsInCat.length === 0) return 0;
+
+    let masteredCount = 0;
+    wordsInCat.forEach(word => {
+        const score = progress.masteryScores[word.id] || 0;
+        if (score >= MASTERY_THRESHOLD) {
+            masteredCount++;
+        }
+    });
+    
+	return Math.round((masteredCount / wordsInCat.length) * 100);
 }
 
 function updateCategoryProgress(progress) { // <-- Nhận 'progress' làm tham số
@@ -1843,7 +1846,30 @@ function updateDailyActivity() {
 	// Save progress
 	saveUserProgress(progress);
 }
-		
+
+function updateMasteryScore(wordId, pointsToAdd) {
+    const progress = getUserProgress();
+    const oldScore = progress.masteryScores[wordId] || 0;
+
+    // Chỉ cộng điểm nếu từ đó chưa đạt ngưỡng thông thạo
+    if (oldScore < MASTERY_THRESHOLD) {
+        const newScore = Math.min(MASTERY_THRESHOLD, oldScore + pointsToAdd);
+        progress.masteryScores[wordId] = newScore;
+
+        console.log(`Từ ${wordId}: ${oldScore} -> ${newScore} điểm.`);
+
+        // Nếu từ đó LẦN ĐẦU TIÊN đạt ngưỡng, tính là một hoạt động mới
+        if (newScore >= MASTERY_THRESHOLD && oldScore < MASTERY_THRESHOLD) {
+            updateDailyActivity();
+            console.log(`Từ ${wordId} đã đạt mức thông thạo!`);
+        }
+    }
+
+    updateCategoryProgress(progress);
+    saveUserProgress(progress);
+    updateUserStats();
+}
+
 // ===================================================================================
 // ===== 8. CẬP NHẬT GIAO DIỆN PHỤ (UI HELPERS)
 // ===================================================================================
