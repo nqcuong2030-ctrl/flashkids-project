@@ -1947,26 +1947,39 @@ function updateCategoryProgress(progress) {
 
 // Cập nhật hàm này để lưu lại lịch sử hoạt động
 function updateDailyActivity() {
-	const progress = getUserProgress();
-	const today = new Date().toDateString();
+    const progress = getUserProgress();
+    const today = new Date().toDateString(); // Lấy ngày hôm nay dưới dạng chuỗi, ví dụ: "Tue Aug 12 2025"
 
-    // Khởi tạo lịch sử nếu chưa có
+    // 1. Khởi tạo đối tượng lịch sử nếu nó chưa tồn tại
     if (!progress.dailyActivitiesHistory) {
         progress.dailyActivitiesHistory = {};
     }
-	
-	if (progress.lastActivityDate !== today) {
-		// ... (logic tính streak days giữ nguyên)
-		progress.lastActivityDate = today;
-		progress.dailyActivities = 1;
-	} else {
-		progress.dailyActivities++;
-	}
-    
-    // Ghi lại hoạt động của ngày hôm nay
-    progress.dailyActivitiesHistory[today] = progress.dailyActivities;
-	
-	saveUserProgress(progress);
+
+    // 2. Lấy số hoạt động đã có của ngày hôm nay (mặc định là 0 nếu chưa có)
+    const currentActivities = progress.dailyActivitiesHistory[today] || 0;
+
+    // 3. Cộng thêm 1 vào số hoạt động của ngày hôm nay
+    progress.dailyActivitiesHistory[today] = currentActivities + 1;
+
+    // 4. Cập nhật ngày hoạt động cuối cùng để tính streak (chuỗi ngày học)
+    if (progress.lastActivityDate !== today) {
+        // Nếu ngày hoạt động cuối cùng không phải hôm nay, đây là ngày học mới trong chuỗi
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        
+        if (progress.lastActivityDate === yesterday.toDateString()) {
+            // Nếu ngày học cuối là hôm qua, tăng chuỗi lên
+            progress.streakDays = (progress.streakDays || 0) + 1;
+        } else {
+            // Nếu không, reset chuỗi về 1
+            progress.streakDays = 1;
+        }
+        progress.lastActivityDate = today;
+    }
+
+    // 5. Lưu lại toàn bộ tiến trình
+    saveUserProgress(progress);
+    console.log(`Đã ghi nhận hoạt động mới. Hôm nay có: ${progress.dailyActivitiesHistory[today]} hoạt động.`);
 }
 
 function updateMasteryScore(wordId, pointsToAdd) {
