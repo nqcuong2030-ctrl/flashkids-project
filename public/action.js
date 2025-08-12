@@ -1977,31 +1977,27 @@ function updateDailyActivity(progress) {
 }
 
 function updateMasteryScore(wordId, pointsToAdd) {
-    const progress = getUserProgress();
+    const progress = getUserProgress(); // Đọc progress 1 lần duy nhất ở đây
     const oldScore = progress.masteryScores[wordId] || 0;
 
     // Chỉ cộng điểm nếu từ đó chưa đạt ngưỡng thông thạo
     if (oldScore < MASTERY_THRESHOLD) {
         const newScore = Math.min(MASTERY_THRESHOLD, oldScore + pointsToAdd);
         progress.masteryScores[wordId] = newScore;
-
         console.log(`Từ ${wordId}: ${oldScore} -> ${newScore} điểm.`);
 
         // Nếu từ đó LẦN ĐẦU TIÊN đạt ngưỡng, tính là một hoạt động mới
         if (newScore >= MASTERY_THRESHOLD && oldScore < MASTERY_THRESHOLD) {
-            updateDailyActivity();
+            updateDailyActivity(progress); // << SỬA LẠI: Truyền "progress" vào đây
             console.log(`Từ ${wordId} đã đạt mức thông thạo!`);
-			addXp(progress, 20); // <-- THÊM DÒNG NÀY: +20 XP KHI HỌC THÔNG THẠO 1 TỪ
+			addXp(progress, 20); // << SỬA LẠI: Truyền "progress" và số XP vào đây
         }
     }
 
     updateCategoryProgress(progress);
-    saveUserProgress(progress);
+    saveUserProgress(progress); // Chỉ cần lưu 1 lần ở cuối hàm
     updateUserStats();
 
-    // ================================================================
-    // ===== PHẦN CẢI TIẾN: VẼ LẠI BIỂU ĐỒ NẾU ĐANG Ở TAB THỐNG KÊ =====
-    // ================================================================
     // Lấy nút tab đang hoạt động để kiểm tra
     const activeButton = document.querySelector('nav button.tab-active');
     // Nếu người dùng đang ở tab 'stats', hãy cập nhật biểu đồ ngay lập tức
