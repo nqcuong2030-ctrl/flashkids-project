@@ -455,6 +455,7 @@ function updateMarkLearnedButton(wordId) {
 
 // Biểu đồ tab Thống kê
 function renderActivityChart() {
+	console.log("LOG: Đang thực thi renderActivityChart()...");
     const progress = getUserProgress();
     const ctx = document.getElementById('activity-chart')?.getContext('2d');
     if (!ctx) return;
@@ -499,6 +500,7 @@ function renderActivityChart() {
 }
 
 function renderMasteryChart() {
+	console.log("LOG: Đang thực thi renderMasteryChart()...");
     const progress = getUserProgress();
     const ctx = document.getElementById('mastery-chart')?.getContext('2d');
     if (!ctx) return;
@@ -2253,7 +2255,9 @@ function updateCategoryProgressDisplay() {
 	categories.forEach(category => {
 		const progress = getCategoryProgress(category.id);
 		const colorClass = category.colorClass || getCategoryColorClass(category.color);
-		const baseColor = colorClass.split(' ')[0].replace('from-', '');
+		
+        // === DÒNG SỬA LỖI NẰM Ở ĐÂY ===
+		const baseColor = colorClass.split(' ')[0].split('-')[1]; // SỬA DÒNG NÀY
 		
 		const categoryElement = document.createElement('div');
 		categoryElement.className = 'mb-4';
