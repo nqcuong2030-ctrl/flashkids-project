@@ -2855,6 +2855,39 @@ function saveUserProfile() {
     alert('Đã lưu hồ sơ thành công!');
 }
 
+function loadUserSettings(progress) {
+    if (!progress || !progress.userProfile) return;
+
+    const settings = progress.userProfile;
+
+    // Tải mục tiêu hàng ngày
+    const dailyGoalSlider = document.getElementById('daily-goal-slider');
+    const dailyGoalValue = document.getElementById('daily-goal-value');
+    if (dailyGoalSlider && dailyGoalValue && settings.dailyGoal) {
+        dailyGoalSlider.value = settings.dailyGoal;
+        dailyGoalValue.textContent = `${settings.dailyGoal} từ`;
+    }
+
+    // Tải giọng đọc đã chọn
+    const voiceSelect = document.getElementById('voice-select');
+    if (voiceSelect && settings.voice) {
+        voiceSelect.value = settings.voice;
+    }
+
+    // Tải avatar đã chọn
+    const avatarImg = document.querySelector('#user-menu-button img');
+    if (avatarImg && settings.avatar) {
+        avatarImg.src = settings.avatar;
+    }
+    
+    // Tải trạng thái bật/tắt âm thanh
+    const soundToggle = document.getElementById('sound-toggle');
+    if (soundToggle) {
+        soundToggle.checked = settings.soundEnabled;
+        soundEnabled = settings.soundEnabled; // Cập nhật biến toàn cục
+    }
+}
+
 // ===================================================================================
 // ===== 13. KHỞI TẠO ỨNG DỤNG
 // ===================================================================================
