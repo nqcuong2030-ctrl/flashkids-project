@@ -2888,6 +2888,48 @@ function loadUserSettings(progress) {
     }
 }
 
+function loadAvatarSelection() {
+    const grid = document.getElementById('avatar-selection-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    const progress = getUserProgress();
+    const currentAvatar = progress.userProfile.avatar;
+
+    availableAvatars.forEach(avatarUrl => {
+        const avatarElement = document.createElement('div');
+        // Thêm viền xanh nếu đây là avatar đang được chọn
+        const borderClass = (avatarUrl === currentAvatar) ? 'border-blue-500' : 'border-transparent';
+        avatarElement.className = `relative p-2 border-2 ${borderClass} rounded-full cursor-pointer hover:border-blue-500 transition-colors`;
+        avatarElement.innerHTML = `<img src="${avatarUrl}" alt="Avatar" class="w-full h-full rounded-full">`;
+        
+        // Gán sự kiện onclick để chọn avatar
+        avatarElement.onclick = () => selectAvatar(avatarUrl, avatarElement);
+        
+        grid.appendChild(avatarElement);
+    });
+}
+
+function selectAvatar(avatarUrl, selectedElement) {
+    // Cập nhật avatar ở header
+    const headerAvatar = document.querySelector('#user-menu-button img');
+    if (headerAvatar) {
+        headerAvatar.src = avatarUrl;
+    }
+
+    // Lưu lựa chọn vào localStorage
+    const progress = getUserProgress();
+    progress.userProfile.avatar = avatarUrl;
+    saveUserProgress(progress);
+
+    // Cập nhật giao diện (xóa viền xanh ở các avatar khác và thêm vào avatar được chọn)
+    document.querySelectorAll('#avatar-selection-grid > div').forEach(el => {
+        el.classList.remove('border-blue-500');
+        el.classList.add('border-transparent');
+    });
+    selectedElement.classList.remove('border-transparent');
+    selectedElement.classList.add('border-blue-500');
+}
+
 // ===================================================================================
 // ===== 13. KHỞI TẠO ỨNG DỤNG
 // ===================================================================================
