@@ -2170,22 +2170,23 @@ function loadQuizTypes() {
 
 function loadBadges() {
 	const container = document.getElementById('badges-container');
+	if (!container) return; // Thêm kiểm tra an toàn
 	container.innerHTML = '';
 	
-	// Update badge status based on user progress
 	const progress = getUserProgress();
 	
-	// Update streak badge
+	// --- LOGIC ĐÃ ĐƯỢC CẬP NHẬT ĐỂ DÙNG masteryScores ---
+	// Cập nhật huy hiệu streak days
 	badges[0].achieved = progress.streakDays >= 7;
 	
-	// Update words learned badge
-	const totalLearned = Object.keys(progress.completedWords).length;
+	// Cập nhật huy hiệu số từ đã học
+	const totalLearned = Object.values(progress.masteryScores).filter(score => score >= MASTERY_THRESHOLD).length;
 	badges[1].achieved = totalLearned >= 100;
 	if (!badges[1].achieved) {
 		badges[1].progress = `${totalLearned}/100`;
 	}
 	
-	// Update quiz completion badges
+	// Cập nhật huy hiệu hoàn thành quiz
 	const completedQuizzes = Object.keys(progress.completedQuizzes).length;
 	badges[2].achieved = completedQuizzes >= 5;
 	badges[3].achieved = completedQuizzes >= 10;
@@ -2195,6 +2196,7 @@ function loadBadges() {
 	if (!badges[3].achieved) {
 		badges[3].progress = `${Math.min(completedQuizzes, 10)}/10`;
 	}
+	// --- KẾT THÚC CẬP NHẬT LOGIC ---
 	
 	badges.forEach(badge => {
 		const badgeElement = document.createElement('div');
@@ -2209,7 +2211,7 @@ function loadBadges() {
 			<p class="text-gray-600 text-sm mb-2">${badge.description}</p>
 			${badge.achieved 
 				? `<span class="bg-green-100 text-green-600 text-xs font-bold px-2 py-1 rounded-full">Đã đạt</span>`
-				: `<span class="bg-gray-100 text-gray-600 text-xs font-bold px-2 py-1 rounded-full">${badge.progress}</span>`
+				: `<span class="bg-gray-100 text-gray-600 text-xs font-bold px-2 py-1 rounded-full">${badge.progress || ''}</span>`
 			}
 		`;
 		
