@@ -7,6 +7,7 @@
     <title>FlashKids - Học Từ Vựng Tiếng Anh</title>
 	<link href="./dist/style.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         body {
@@ -372,35 +373,60 @@
 
             <!-- Stats Tab -->
             <div id="stats" class="tab-content hidden">
-                <h2 class="text-2xl font-bold text-gray-800 mb-6">Thống kê học tập</h2>
-                
-                <!-- Learning Stats -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div class="bg-white rounded-2xl p-6 shadow-md">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4">Từ vựng đã học</h3>
-                        <div class="text-4xl font-bold text-blue-500 mb-2" id="words-learned">0</div>
-                        <p class="text-gray-600">từ</p>
-                    </div>
-                    <div class="bg-white rounded-2xl p-6 shadow-md">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4">Thời gian học</h3>
-                        <div class="text-4xl font-bold text-purple-500 mb-2" id="study-time">0</div>
-                        <p class="text-gray-600">phút</p>
-                    </div>
-                    <div class="bg-white rounded-2xl p-6 shadow-md">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4">Ngày học liên tục</h3>
-                        <div class="text-4xl font-bold text-green-500 mb-2" id="streak-days">0</div>
-                        <p class="text-gray-600">ngày</p>
-                    </div>					
-                </div>
+				<h2 class="text-3xl font-bold text-gray-800 mb-6">Bảng điều khiển Tiến độ</h2>
+				
+				<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+					<div class="bg-white rounded-2xl p-6 shadow-md flex items-center">
+						<div class="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mr-4">
+							<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v11.494m-9-5.747h18" /></svg>
+						</div>
+						<div>
+							<div class="text-4xl font-bold text-blue-500 mb-1" id="words-learned">0</div>
+							<p class="text-gray-600 font-semibold">Từ vựng Thông thạo</p>
+						</div>
+					</div>
+					<div class="bg-white rounded-2xl p-6 shadow-md flex items-center">
+						<div class="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mr-4">
+							 <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+						</div>
+						<div>
+							<div class="text-4xl font-bold text-green-500 mb-1" id="streak-days">0</div>
+							<p class="text-gray-600 font-semibold">Ngày học liên tục</p>
+						</div>
+					</div>
+					<div class="bg-white rounded-2xl p-6 shadow-md flex items-center">
+						 <div class="w-16 h-16 rounded-full bg-purple-100 flex items-center justify-center mr-4">
+							 <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+						</div>
+						<div>
+							<div class="text-4xl font-bold text-purple-500 mb-1" id="study-time">0</div>
+							<p class="text-gray-600 font-semibold">Phút đã học</p>
+						</div>
+					</div>					
+				</div>
 
-                <!-- Category Progress -->
-                <h3 class="text-xl font-bold text-gray-800 mb-4">Tiến độ theo chủ đề</h3>
-                <div class="bg-white rounded-2xl p-6 shadow-md mb-8">
-                    <div id="category-progress-container">
-                        <!-- Category progress will be loaded dynamically -->
-                    </div>
-                </div>
-            </div>
+				<div class="bg-white rounded-2xl p-6 shadow-md mb-8">
+					<h3 class="text-xl font-bold text-gray-800 mb-4">Hoạt động 7 ngày qua</h3>
+					<div>
+						<canvas id="activity-chart"></canvas>
+					</div>
+				</div>
+				
+				<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+					<div class="lg:col-span-1 bg-white rounded-2xl p-6 shadow-md">
+						<h3 class="text-xl font-bold text-gray-800 mb-4">Tổng quan từ vựng</h3>
+						<div class="h-64 flex items-center justify-center">
+							 <canvas id="mastery-chart"></canvas>
+						</div>
+					</div>
+
+					<div class="lg:col-span-2 bg-white rounded-2xl p-6 shadow-md">
+						<h3 class="text-xl font-bold text-gray-800 mb-4">Tiến độ theo chủ đề</h3>
+						<div id="category-progress-container">
+							</div>
+					</div>
+				</div>
+			</div>
 
             <!-- Settings Tab -->
             <div id="settings" class="tab-content hidden">
@@ -442,12 +468,6 @@
 					</div>
 					
 					<button class="btn-primary text-white py-2 px-6 rounded-lg shadow-md" onclick="saveAppSettings()">Lưu cài đặt</button>
-				</div>
-
-				<div class="bg-white rounded-2xl p-6 shadow-md mb-8">
-					<h3 class="text-lg font-bold text-gray-800 mb-4">Chọn Avatar của bạn</h3>
-					<div id="avatar-selection-grid" class="grid grid-cols-3 sm:grid-cols-4 gap-4">
-						</div>
 				</div>
                 
                 <!-- App Settings -->
@@ -499,7 +519,7 @@
 					</div>
 					
 					<!-- Data Management -->
-					<div class="bg-white rounded-2xl p-6 shadow-md">
+					<div class="bg-white rounded-2xl p-6 shadow-md hidden">
 						<h3 class="text-lg font-bold text-gray-800 mb-4">Quản lý dữ liệu</h3>
 						
 						<div class="flex space-x-4 mb-4">
