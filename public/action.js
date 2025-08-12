@@ -1775,12 +1775,13 @@ function initUserProgress() {
         streakDays: 0,
 		dailyActivitiesHistory: {}, // << BỔ SUNG DÒNG NÀY ĐỂ KHỞI TẠO LỊCH SỬ
         userProfile: {
-            username: '',
+            username: 'Hươu cao cổ',
             age: '',
-            soundEnabled: true,
-            dailyGoal: 20,
             avatar: 'https://upload.wikimedia.org/wikipedia/commons/1/14/H%C6%B0%C6%A1u_cao_c%E1%BB%95.png',
-            voice: 'en-US-JennyNeural'
+            // --- THÊM CÁC DÒNG NÀY VÀO ---
+            level: 1,
+            xp: 0,
+            xpToNextLevel: 100, // XP cần để lên level 2
         }
     };
 
@@ -1965,6 +1966,7 @@ function updateDailyActivity() {
         if (progress.lastActivityDate === yesterday.toDateString()) {
             // Nếu ngày học cuối là hôm qua, tăng chuỗi lên
             progress.streakDays = (progress.streakDays || 0) + 1;
+			addXp(50); // <-- THÊM DÒNG NÀY: +50 XP KHI DUY TRÌ CHUỖI
         } else {
             // Nếu không, reset chuỗi về 1
             progress.streakDays = 1;
@@ -1992,6 +1994,7 @@ function updateMasteryScore(wordId, pointsToAdd) {
         if (newScore >= MASTERY_THRESHOLD && oldScore < MASTERY_THRESHOLD) {
             updateDailyActivity();
             console.log(`Từ ${wordId} đã đạt mức thông thạo!`);
+			addXp(20); // <-- THÊM DÒNG NÀY: +20 XP KHI HỌC THÔNG THẠO 1 TỪ
         }
     }
 
@@ -3001,6 +3004,7 @@ document.addEventListener('DOMContentLoaded', function() {
     updateWelcomeMessage(progress);
     loadUserSettings(progress);
     updateUserStats(progress);
+	updateXpDisplay(); // <-- THÊM DÒNG NÀY
 	changeLevel(currentLevel);
 	
 	// --- GÁN CÁC SỰ KIỆN CHO CÁC NÚT BẤM ---
@@ -3079,3 +3083,60 @@ document.addEventListener('DOMContentLoaded', function() {
 	loadQuizTypes();
     loadAvatarSelection();
 });
+
+// ===================================================================================
+// ===== 14. HỆ THỐNG XP/LEVEL
+// ===================================================================================
+
+// Hàm cập nhật giao diện thanh XP
+function updateXpDisplay() {
+    const progress = getActiveProfileProgress(); // Đã sửa ở các bước trước
+    const profile = progress.userProfile;
+
+    if (profile) {
+        const percent = Math.round((profile.xp / profile.xpToNextLevel) * 100);
+        document.getElementById('xp-level').textContent = profile.level;
+        document.getElementById('xp-text').textContent = `${profile.xp}/${profile.xpToNextLevel}`;
+        document.getElementById('xp-bar').style.width = `${percent}%`;
+    }
+}
+
+// Hàm xử lý khi người dùng lên cấp
+function levelUp(profile) {
+    playSound('tada');
+    createConfetti();
+    
+    profile.level += 1;
+    profile.xp -= profile.xpToNextLevel; // Giữ lại XP thừa
+    profile.xpToNextLevel = profile.level * 100; // Công thức tính XP cho level tiếp theo
+    
+    // Hiển thị thông báo chúc mừng
+    const completionTitle = document.getElementById('completion-title');
+    const completionMessage = document.getElementById('completion-message');
+    
+    completionTitle.textContent = `🎉 Lên Cấp! 🎉`;
+    completionMessage.textContent = `Chúc mừng bạn đã đạt đến Cấp độ ${profile.level}! Hãy tiếp tục phát huy nhé!`;
+    openModal('completionModal');
+
+    console.log(`LÊN CẤP! Level mới: ${profile.level}. Cần ${profile.xpToNextLevel} XP để lên cấp tiếp theo.`);
+}
+
+// Hàm trung tâm để cộng XP
+function addXp(amount) {
+    const progress = getActiveProfileProgress();
+    const profile = progress.userProfile;
+
+    if (!profile) return;
+
+    profile.xp += amount;
+    console.log(`Đã nhận được ${amount} XP. Tổng XP: ${profile.xp}/${profile.xpToNextLevel}`);
+
+    // Kiểm tra nếu đủ XP để lên cấp
+    if (profile.xp >= profile.xpToNextLevel) {
+        levelUp(profile);
+    }
+    
+    saveActiveProfileProgress(progress);
+    updateXpDisplay();
+}
+
