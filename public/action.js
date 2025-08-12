@@ -122,6 +122,28 @@ function unlockAudio() {
     }
 }
 
+// Trong action.js
+function saveUserSettings() {
+	const progress = getUserProgress();
+	
+	const settings = {
+		soundEnabled: document.getElementById('sound-toggle').checked,
+		ttsEnabled: document.getElementById('tts-toggle').checked,
+		autoNextEnabled: document.getElementById('autonext-toggle').checked,
+	};
+	
+	// Đảm bảo đối tượng settings tồn tại trước khi gán
+	if (!progress.userProfile.settings) {
+		progress.userProfile.settings = {};
+	}
+
+	progress.userProfile.settings = settings;
+	saveUserProgress(progress);
+
+    console.log("LOG: Đã lưu cài đặt người dùng!", settings);
+	playSound('click'); // Phát âm thanh để xác nhận đã lưu
+}
+
 // Lắng nghe cú click đầu tiên trên toàn bộ trang để mở khóa âm thanh
 document.addEventListener('click', unlockAudio, { once: true });
 
