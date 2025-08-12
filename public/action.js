@@ -2,7 +2,7 @@
 // ===== 0. VERSIONING & DATA MIGRATION
 // ===================================================================================
 
-const APP_VERSION = '1.1_12082025_2a'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
+const APP_VERSION = '1.1_12082025_3a'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
 
 function checkAppVersion() {
     const storedVersion = localStorage.getItem('flashkids_app_version');
@@ -1318,38 +1318,41 @@ function checkSoundMatch() {
 }
 
 // --- Quiz 1: Trắc nghiệm (Multiple Choice) ---
+// Thay thế hàm cũ bằng hàm này
 function startMultipleChoiceQuiz(words, quizId, categoryId) {
+	const progress = getUserProgress();
 	let wordsForQuiz;
-	const progressPercent = getCategoryProgress(categoryId);
+	let quizMode = 'Học mới';
 
-	// --- LOGIC TỰ ĐỘNG CHỌN CHẾ ĐỘ ---
-	if (progressPercent === 100) {
-		// Nếu đã học 100%, vào chế độ ÔN TẬP (dùng tất cả các từ)
+	// Lọc ra các từ chưa học
+	const unlearnedWords = words.filter(word => !progress.completedWords[word.id]);
+
+	if (unlearnedWords.length === 0) {
+		// Nếu đã học hết 100%, vào chế độ ÔN TẬP (dùng tất cả các từ)
 		wordsForQuiz = words;
+		quizMode = 'Ôn tập';
 		console.log(`Chủ đề ${categoryId} đã hoàn thành. Bắt đầu chế độ ôn tập.`);
 	} else {
-		// Nếu chưa, vào chế độ HỌC MỚI (chỉ dùng các từ chưa học)
-		const progress = getUserProgress();
-		wordsForQuiz = words.filter(word => !progress.completedWords[word.id]);
-		console.log(`Chủ đề ${categoryId} chưa hoàn thành. Bắt đầu chế độ học mới.`);
+		// Nếu còn từ chưa học, vào chế độ HỌC MỚI
+		wordsForQuiz = unlearnedWords;
+		console.log(`Chủ đề ${categoryId} còn ${unlearnedWords.length} từ chưa học.`);
 	}
-	// --- KẾT THÚC LOGIC MỚI ---
 
-	// Kiểm tra xem có từ nào để học/ôn tập không
+	// Kiểm tra xem có đủ từ để tạo câu hỏi không (cần ít nhất 4 để có 1 câu hỏi và 3 đáp án nhiễu)
 	if (wordsForQuiz.length < 4) {
-		// Thông báo này giờ chỉ hiện khi thực sự không còn từ nào hoặc không đủ để chơi
-		alert("🎉 Chúc mừng! Bạn đã học hết tất cả các từ trong chủ đề này.");
-		closeModal('multipleChoiceQuizModal');
+		alert("🎉 Chúc mừng! Bạn đã học hết hoặc không còn đủ từ để tạo bài kiểm tra cho chủ đề này.");
 		return;
 	}
 
+    // Luôn chỉ lấy tối đa 10 câu hỏi mỗi lần
 	const quizWords = wordsForQuiz.sort(() => 0.5 - Math.random()).slice(0, 10);
-	const questionsContainer = document.getElementById('quiz-questions');
+	
+    const questionsContainer = document.getElementById('quiz-questions');
 	questionsContainer.innerHTML = '';
 	
 	quizWords.forEach((word, index) => {
 		const options = [word.vietnamese];
-		// Lấy các đáp án sai từ chính danh sách từ sẽ dùng cho bài quiz
+		// Lấy các đáp án sai từ chính danh sách từ của bài quiz (ôn tập hoặc học mới)
 		const distractors = wordsForQuiz.filter(w => w.id !== word.id);
 
 		while (options.length < 4 && distractors.length > 0) {
@@ -1461,6 +1464,7 @@ function checkQuizAnswers(quizId, categoryId) {
 }
 
 // --- Quiz 2: Xếp chữ (Unscramble) ---
+// Thay thế hàm cũ bằng hàm này
 function startUnscrambleGame(words) {
     if (words) {
         unscrambleWordPool = words;
@@ -1469,13 +1473,25 @@ function startUnscrambleGame(words) {
         alert("Không có từ nào phù hợp để chơi!");
         return;
     }
-	
-	let availableWords = unscrambleWordPool;
-    if (lastUnscrambleWordId && unscrambleWordPool.length > 1) {
-        availableWords = unscrambleWordPool.filter(word => word.id !== lastUnscrambleWordId);
-    }
+
+	const progress = getUserProgress();
+	let availableWords;
+
+	// Lọc ra các từ chưa học
+	const unlearnedWords = unscrambleWordPool.filter(word => !progress.completedWords[word.id]);
+
+	if (unlearnedWords.length > 0) {
+		// Nếu còn từ chưa học, ưu tiên chúng
+		availableWords = unlearnedWords;
+		console.log("Xếp chữ: Ưu tiên các từ chưa học.");
+	} else {
+		// Nếu đã học hết, lấy ngẫu nhiên từ tất cả các từ trong chủ đề
+		availableWords = unscrambleWordPool;
+		console.log("Xếp chữ: Đã học hết, ôn tập ngẫu nhiên.");
+	}
+
+    // Chọn một từ ngẫu nhiên từ danh sách phù hợp
     const randomWord = availableWords[Math.floor(Math.random() * availableWords.length)];
-    lastUnscrambleWordId = randomWord.id; // Lưu lại ID của từ mới
 
     unscrambleTargetWord = randomWord.english.toUpperCase();
     unscrambleTargetWordId = randomWord.id;
@@ -1483,7 +1499,6 @@ function startUnscrambleGame(words) {
     speakWord(randomWord.vietnamese, 'vi-VN');
 
     const scrambledLetters = unscrambleTargetWord.split('').sort(() => Math.random() - 0.5);
-    // THAY ĐỔI Ở ĐÂY: Sử dụng ID mới
     const answerArea = document.getElementById('unscramble-answer-area');
     const letterTilesArea = document.getElementById('unscramble-letter-tiles');
     answerArea.innerHTML = '';
