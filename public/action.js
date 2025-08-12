@@ -2880,7 +2880,9 @@ document.addEventListener('DOMContentLoaded', function() {
 		const card = getFilteredCards()[currentCardIndex];
 		if (isFlashcardsTabActive && soundEnabled) {
 			setTimeout(() => {
-				speakWord(this.classList.contains('flipped') ? card.vietnamese : card.vietnamese, this.classList.contains('flipped') ? 'vi-VN' : 'en-US');
+				const langToSpeak = this.classList.contains('flipped') ? 'vi-VN' : 'en-US';
+                const wordToSpeak = this.classList.contains('flipped') ? card.vietnamese : card.english;
+				speakWord(wordToSpeak, langToSpeak);
 			}, 100);
 		}
 	});
@@ -2911,6 +2913,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     const langToggleBtn = document.getElementById('tts-lang-toggle-btn');
 	if (langToggleBtn) {
+        // Mặc định là tiếng Anh
+        langToggleBtn.dataset.lang = 'en-US';
+        langToggleBtn.textContent = 'Eng';
 		langToggleBtn.addEventListener('click', function() {
 			if (this.dataset.lang === 'en-US') {
 				this.dataset.lang = 'vi-VN';
