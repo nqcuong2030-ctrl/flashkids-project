@@ -1941,8 +1941,7 @@ function updateCategoryProgress(progress) {
 }
 
 // Cập nhật hàm này để lưu lại lịch sử hoạt động
-function updateDailyActivity() {
-    const progress = getUserProgress();
+function updateDailyActivity(progress) {
     const today = new Date().toDateString(); // Lấy ngày hôm nay dưới dạng chuỗi, ví dụ: "Tue Aug 12 2025"
 
     // 1. Khởi tạo đối tượng lịch sử nếu nó chưa tồn tại
@@ -1965,7 +1964,7 @@ function updateDailyActivity() {
         if (progress.lastActivityDate === yesterday.toDateString()) {
             // Nếu ngày học cuối là hôm qua, tăng chuỗi lên
             progress.streakDays = (progress.streakDays || 0) + 1;
-			addXp(50); // <-- THÊM DÒNG NÀY: +50 XP KHI DUY TRÌ CHUỖI
+			addXp(progress, 50); // <-- THÊM DÒNG NÀY: +50 XP KHI DUY TRÌ CHUỖI
         } else {
             // Nếu không, reset chuỗi về 1
             progress.streakDays = 1;
@@ -1974,7 +1973,6 @@ function updateDailyActivity() {
     }
 
     // 5. Lưu lại toàn bộ tiến trình
-    saveUserProgress(progress);
     console.log(`Đã ghi nhận hoạt động mới. Hôm nay có: ${progress.dailyActivitiesHistory[today]} hoạt động.`);
 }
 
@@ -1993,7 +1991,7 @@ function updateMasteryScore(wordId, pointsToAdd) {
         if (newScore >= MASTERY_THRESHOLD && oldScore < MASTERY_THRESHOLD) {
             updateDailyActivity();
             console.log(`Từ ${wordId} đã đạt mức thông thạo!`);
-			addXp(20); // <-- THÊM DÒNG NÀY: +20 XP KHI HỌC THÔNG THẠO 1 TỪ
+			addXp(progress, 20); // <-- THÊM DÒNG NÀY: +20 XP KHI HỌC THÔNG THẠO 1 TỪ
         }
     }
 
@@ -3121,8 +3119,8 @@ function levelUp(profile) {
 }
 
 // Hàm trung tâm để cộng XP
-function addXp(amount) {
-    const progress = getUserProgress();
+function addXp(progress, amount) { // << THÊM "progress" VÀO THAM SỐ
+    // const progress = getUserProgress(); // << XÓA DÒNG NÀY
     const profile = progress.userProfile;
 
     if (!profile) return;
@@ -3135,7 +3133,7 @@ function addXp(amount) {
         levelUp(profile);
     }
     
-    saveUserProgress(progress);
+    // Không cần lưu ở đây nữa vì hàm gọi nó sẽ lưu
+    // saveUserProgress(progress); 
     updateXpDisplay();
 }
-
