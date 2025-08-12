@@ -2,7 +2,7 @@
 // ===== 0. VERSIONING & DATA MIGRATION
 // ===================================================================================
 
-const APP_VERSION = '1.1_12082025_2'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
+const APP_VERSION = '1.1_12082025_3'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
 
 function checkAppVersion() {
     const storedVersion = localStorage.getItem('flashkids_app_version');
