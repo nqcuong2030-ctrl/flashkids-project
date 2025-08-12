@@ -345,6 +345,41 @@ function slugifyVietnamese(text) {
 // ===== 4. ĐIỀU HƯỚNG & GIAO DIỆN CHÍNH
 // ===================================================================================
 
+// Hàm changeLevel giờ chỉ cần gọi các hàm khác sau khi có dữ liệu
+async function changeLevel(level, isUserAction = false) { 
+	if (isUserAction) {
+        playSound('click'); // Chỉ phát âm thanh nếu đây là hành động của người dùng
+    }
+	
+	currentLevel = level;
+
+	localStorage.setItem('flashkids_currentLevel', level);
+	updateLevelBadges(level);
+
+	try {
+		const data = await loadLevelData(level);
+		// Gán dữ liệu đã được lọc sẵn cho level này
+		categories = data.categories || [];
+		flashcards = data.flashcards || [];
+		
+		categories.forEach(category => {
+			const count = flashcards.filter(card => card.categoryId === category.id).length;
+			category.wordCount = count; // Ghi đè lại wordCount bằng số đếm thực tế
+		});
+
+		// Cập nhật giao diện
+		currentCategoryId = null;
+		currentCardIndex = 0;
+		loadCategories(); // Không cần truyền tham số
+		loadCategoryFilters(); // Không cần truyền tham số
+		updateFlashcard();
+		updateCardCounter();
+	} catch (error) {
+		console.error("Failed to change level:", error);
+		alert(error.message);
+	}
+}
+
 // Tab navigation
 // Hàm này để xử lý khi người dùng bấm trực tiếp vào tab "Thẻ từ vựng"
 function navigateToFlashcardsTab() {
@@ -2969,6 +3004,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadUserSettings(progress);
     updateUserStats(progress);
 	updateXpDisplay(); // <-- THÊM DÒNG NÀY
+	changeLevel(currentLevel);
 	
 	// --- GÁN CÁC SỰ KIỆN CHO CÁC NÚT BẤM ---
 
