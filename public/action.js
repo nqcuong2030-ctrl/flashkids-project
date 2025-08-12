@@ -109,9 +109,9 @@ const games = [
 ];
 
 const quizTypes = [
-    { id: 1, name: 'Trắc nghiệm', description: 'Chọn đáp án đúng cho từng câu hỏi', time: 10, difficulty: 3, icon: 'document' },
-	{ id: 3, name: 'Đọc hiểu', description: 'Đọc câu và chọn từ đúng để điền vào chỗ trống', time: 5, difficulty: 4, icon: 'book-open' },
-    { id: 2, name: 'Xếp chữ', description: 'Sắp xếp các chữ cái thành từ đúng', time: 5, difficulty: 5, icon: 'question' }	
+    { id: 1, name: 'Trắc nghiệm', description: 'Chọn đáp án đúng cho từng câu hỏi [+1 điểm/từ]', time: 10, difficulty: 3, icon: 'document' },
+	{ id: 3, name: 'Đọc hiểu', description: 'Đọc câu và chọn từ đúng để điền vào chỗ trống [+2 điểm/từ]', time: 5, difficulty: 4, icon: 'book-open' },
+    { id: 2, name: 'Xếp chữ', description: 'Sắp xếp các chữ cái thành từ đúng [+3 điểm/từ]', time: 5, difficulty: 5, icon: 'question' }	
 ];
 
 const badges = [
