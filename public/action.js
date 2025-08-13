@@ -2957,8 +2957,8 @@ function loadUserSettings(progress) {
 	
     if (soundToggle) {
 		const savedSoundSetting = progress?.userProfile?.settings?.soundEnabled ?? true;
-        soundToggle.checked = settings.soundEnabled;
-        soundEnabled = settings.soundEnabled; // Cập nhật biến toàn cục
+        soundToggle.checked = savedSoundSetting;
+        soundEnabled = savedSoundSetting;
     }
 }
 
