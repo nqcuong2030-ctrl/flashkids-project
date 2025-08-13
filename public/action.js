@@ -122,7 +122,7 @@ function unlockAudio() {
     }
 }
 
-function saveAppSettings() {
+function saveUserSettings() {
 	const progress = getUserProgress();
 	
 	const settings = {
@@ -3079,7 +3079,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	// Set up sound toggle
 	document.getElementById('sound-toggle').addEventListener('change', function() {
 		soundEnabled = this.checked;
-		saveAppSettings();
+		saveUserSettings();
 	});
 	
 	// Sự kiện đóng modal khi bấm ra ngoài
