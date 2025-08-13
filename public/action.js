@@ -2,7 +2,7 @@
 // ===== 0. VERSIONING & DATA MIGRATION
 // ===================================================================================
 
-const APP_VERSION = '1.1_13082025_5'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
+const APP_VERSION = '1.1_13082025_6'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
 const MASTERY_THRESHOLD = 3;
 
 function checkAppVersion() {
@@ -30,8 +30,30 @@ function checkAppVersion() {
     }
 }
 
+/**
+ * Hàm này quyết định xem có nên chạy kiểm tra phiên bản hay không,
+ * dựa trên lần kiểm tra cuối cùng.
+ */
+function runPeriodicVersionCheck() {
+    const lastCheckTimestamp = parseInt(localStorage.getItem('flashkids_last_version_check') || '0');
+    const oneDay = 24 * 60 * 60 * 1000; // 24 giờ tính bằng mili giây = 24 * 60 * 60 * 1000
+    const now = Date.now();
+
+    // Chỉ chạy checkAppVersion nếu chưa từng kiểm tra, hoặc lần cuối đã hơn 24 giờ trước.
+    if (!lastCheckTimestamp || (now - lastCheckTimestamp > oneDay)) {
+        console.log("Đã đến lúc kiểm tra phiên bản mới...");
+
+        // Gọi hàm kiểm tra phiên bản gốc
+        checkAppVersion();
+
+        // Cập nhật lại thời gian kiểm tra cuối cùng là bây giờ
+        localStorage.setItem('flashkids_last_version_check', now.toString());
+    } else {
+        // console.log("Chưa đến lúc kiểm tra phiên bản mới.");
+    }
+}
 // Gọi hàm này ngay khi script được tải
-checkAppVersion();
+runPeriodicVersionCheck();
 
 // ===================================================================================
 // ===== 1. KHAI BÁO BIẾN TOÀN CỤC & HẰNG SỐ
@@ -345,7 +367,8 @@ function slugifyVietnamese(text) {
 // ===================================================================================
 
 // Hàm changeLevel giờ chỉ cần gọi các hàm khác sau khi có dữ liệu
-async function changeLevel(level, isUserAction = false) { 
+async function changeLevel(level, isUserAction = false) {
+	runPeriodicVersionCheck();
 	if (isUserAction) {
         playSound('click'); // Chỉ phát âm thanh nếu đây là hành động của người dùng
     }
@@ -382,13 +405,14 @@ async function changeLevel(level, isUserAction = false) {
 // Tab navigation
 // Hàm này để xử lý khi người dùng bấm trực tiếp vào tab "Thẻ từ vựng"
 function navigateToFlashcardsTab() {
+	runPeriodicVersionCheck();
     currentCategoryId = 'cat1'; // Mặc định chọn chủ đề 'cat1'
     currentCardIndex = 0;
     changeTab('flashcards');
 }
 
 // Hàm chuyển tab chính, đã được sửa lại để ổn định hơn
-function changeTab(tabId) {
+function changeTab(tabId) {	
 	playSound('click');
 	
 	document.querySelectorAll('.tab-content').forEach(tab => {
@@ -427,11 +451,18 @@ function changeTab(tabId) {
 		updateCategoryProgressDisplay();
 		renderActivityHeatmap();
         renderMasteryChart();
+		runPeriodicVersionCheck();
 	}
 	
 	if (tabId === 'rewards') {
-		renderRewardsPath(); 
+		renderRewardsPath();
+		runPeriodicVersionCheck();
 	}
+	
+	// Nếu người dùng chuyển đến tab học chính, hãy kiểm tra phiên bản
+    if (tabId === 'flashcards' || tabId === 'games' || tabId === 'quiz') {
+        runPeriodicVersionCheck(); // <-- THÊM LOGIC NÀY
+    }
 }
 
 function updateMarkLearnedButton(wordId) {
@@ -2108,7 +2139,8 @@ function loadCategories() {
 		`;
 		
 		categoryElement.addEventListener('click', () => {
-			playSound('click'); // <-- Thêm âm thanh khi nhấn
+			runPeriodicVersionCheck();
+			playSound('click'); 
 			currentCategoryId = category.id;
 			currentCardIndex = 0;
 			changeTab('flashcards');
