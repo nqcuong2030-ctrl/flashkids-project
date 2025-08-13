@@ -2,7 +2,7 @@
 // ===== 0. VERSIONING & DATA MIGRATION
 // ===================================================================================
 
-const APP_VERSION = '1.1_13082025_7'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
+const APP_VERSION = '1.1_13082025_8'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
 const MASTERY_THRESHOLD = 3;
 
 function checkAppVersion() {
@@ -455,7 +455,6 @@ function changeTab(tabId) {
 	}
 	
 	if (tabId === 'rewards') {
-		renderRewardsPath();
 		runPeriodicVersionCheck();
 	}
 	
@@ -2259,65 +2258,55 @@ function loadQuizTypes() {
 	});
 }
 
-function renderRewardsPath() {
-    const container = document.getElementById('rewards-path-container');
-    if (!container) return;
-    container.innerHTML = ''; // Xóa nội dung cũ
-
-    const progress = getUserProgress();
-
-    // Định nghĩa các cột mốc và điều kiện để mở khóa
-    const milestones = [
-        { 
-            title: 'Khởi Đầu Thuận Lợi', 
-            description: 'Học thông thạo 10 từ vựng đầu tiên.',
-            icon: 'badge',
-            color: 'green',
-            isUnlocked: (p) => Object.values(p.masteryScores).filter(s => s >= MASTERY_THRESHOLD).length >= 10
-        },
-        { 
-            title: 'Nhà Vô Địch Quiz', 
-            description: 'Hoàn thành 5 bài kiểm tra bất kỳ.',
-            icon: 'play',
-            color: 'blue',
-            isUnlocked: (p) => Object.keys(p.completedQuizzes).length >= 5
-        },
-        { 
-            title: 'Siêu Sao Bền Bỉ', 
-            description: 'Duy trì chuỗi 7 ngày học liên tục.',
-            icon: 'star',
-            color: 'yellow',
-            isUnlocked: (p) => (p.streakDays || 0) >= 7
-        },
-        { 
-            title: 'Nhà Từ Vựng Học', 
-            description: 'Chinh phục 100 từ vựng thông thạo.',
-            icon: 'book',
-            color: 'purple',
-            isUnlocked: (p) => Object.values(p.masteryScores).filter(s => s >= MASTERY_THRESHOLD).length >= 100
-        }
-    ];
-
-    // Tạo HTML cho từng cột mốc
-    milestones.forEach(milestone => {
-        const unlocked = milestone.isUnlocked(progress);
-        const statusClass = unlocked ? 'unlocked' : 'locked';
-
-        const milestoneElement = document.createElement('div');
-        milestoneElement.className = `milestone ${statusClass}`;
-        milestoneElement.innerHTML = `
-            <div class="milestone-content">
-                <h4 class="font-bold text-lg text-gray-800">${milestone.title}</h4>
-                <p class="text-gray-600">${milestone.description}</p>
-            </div>
-            <div class="milestone-node">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                    ${getBadgeIcon(milestone.icon)}
-                </svg>
-            </div>
-        `;
-        container.appendChild(milestoneElement);
-    });
+function loadBadges() {
+	const container = document.getElementById('badges-container');
+	if (!container) return; // Thêm kiểm tra an toàn
+	container.innerHTML = '';
+	
+	const progress = getUserProgress();
+	
+	// --- LOGIC ĐÃ ĐƯỢC CẬP NHẬT ĐỂ DÙNG masteryScores ---
+	// Cập nhật huy hiệu streak days
+	badges[0].achieved = progress.streakDays >= 7;
+	
+	// Cập nhật huy hiệu số từ đã học
+	const totalLearned = Object.values(progress.masteryScores).filter(score => score >= MASTERY_THRESHOLD).length;
+	badges[1].achieved = totalLearned >= 100;
+	if (!badges[1].achieved) {
+		badges[1].progress = `${totalLearned}/100`;
+	}
+	
+	// Cập nhật huy hiệu hoàn thành quiz
+	const completedQuizzes = Object.keys(progress.completedQuizzes).length;
+	badges[2].achieved = completedQuizzes >= 5;
+	badges[3].achieved = completedQuizzes >= 10;
+	if (!badges[2].achieved) {
+		badges[2].progress = `${Math.min(completedQuizzes, 5)}/5`;
+	}
+	if (!badges[3].achieved) {
+		badges[3].progress = `${Math.min(completedQuizzes, 10)}/10`;
+	}
+	// --- KẾT THÚC CẬP NHẬT LOGIC ---
+	
+	badges.forEach(badge => {
+		const badgeElement = document.createElement('div');
+		badgeElement.className = 'bg-white rounded-2xl p-5 shadow-md text-center';
+		badgeElement.innerHTML = `
+			<div class="w-20 h-20 mx-auto rounded-full bg-${badge.color}-100 flex items-center justify-center mb-4 ${badge.achieved ? 'badge' : ''}">
+				<svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-${badge.color}-500" viewBox="0 0 20 20" fill="currentColor">
+					${getBadgeIcon(badge.icon)}
+				</svg>
+			</div>
+			<h4 class="text-lg font-bold text-gray-800 mb-1">${badge.name}</h4>
+			<p class="text-gray-600 text-sm mb-2">${badge.description}</p>
+			${badge.achieved 
+				? `<span class="bg-green-100 text-green-600 text-xs font-bold px-2 py-1 rounded-full">Đã đạt</span>`
+				: `<span class="bg-gray-100 text-gray-600 text-xs font-bold px-2 py-1 rounded-full">${badge.progress || ''}</span>`
+			}
+		`;
+		
+		container.appendChild(badgeElement);
+	});
 }
 
 function updateUserStats() {
@@ -3130,6 +3119,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	
 	// --- TẢI CÁC GIAO DIỆN CỐ ĐỊNH ---
 	loadGames();
+	loadBadges();
 	loadQuizTypes();
     loadAvatarSelection();
 });

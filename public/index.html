@@ -138,80 +138,6 @@
 		.tooltip { display: none; position: absolute; bottom: 125%; left: 50%; transform: translateX(-50%); background-color: #333; color: white;
 			padding: 5px 10px; border-radius: 5px; font-size: 12px; white-space: nowrap; z-index: 10; }
 		.tooltip::after { content: ''; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: #333 transparent transparent transparent; }
-    
-		/* === CSS CHO CON ĐƯỜNG VINH DANH === */
-		.rewards-path {
-			position: relative;
-			padding: 20px 0;
-		}
-		/* Đường kẻ nối các cột mốc */
-		.rewards-path::before {
-			content: '';
-			position: absolute;
-			top: 0;
-			left: 50%;
-			transform: translateX(-50%);
-			width: 4px;
-			height: 100%;
-			background-image: linear-gradient(to bottom, #cbd5e1 60%, transparent 100%);
-			background-size: 4px 10px;
-			z-index: 1;
-		}
-		.milestone {
-			display: flex;
-			justify-content: space-between;
-			align-items: center;
-			margin-bottom: 40px;
-			position: relative;
-			z-index: 2;
-		}
-		/* Căn lề xen kẽ cho các cột mốc */
-		.milestone:nth-child(even) {
-			flex-direction: row-reverse;
-		}
-		.milestone-content {
-			width: calc(50% - 40px);
-			background-color: white;
-			border-radius: 12px;
-			padding: 16px;
-			box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-			border: 1px solid #e2e8f0;
-		}
-		.milestone:nth-child(even) .milestone-content {
-			text-align: right;
-		}
-		/* Vòng tròn ở giữa */
-		.milestone-node {
-			width: 60px;
-			height: 60px;
-			background-color: white;
-			border: 4px solid #cbd5e1;
-			border-radius: 50%;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			box-shadow: 0 0 0 4px white;
-			transition: all 0.3s ease;
-		}
-
-		/* Kiểu cho trạng thái ĐÃ MỞ KHÓA */
-		.milestone.unlocked .milestone-content {
-			border-color: #34d399;
-		}
-		.milestone.unlocked .milestone-node {
-			border-color: #34d399;
-			background-color: #a7f3d0;
-		}
-		.milestone.unlocked .milestone-node svg {
-			color: #059669;
-		}
-
-		/* Kiểu cho trạng thái CHƯA MỞ KHÓA */
-		.milestone.locked .milestone-content,
-		.milestone.locked .milestone-node {
-			opacity: 0.6;
-			filter: grayscale(80%);
-		}
 	
 	</style>
 </head>
@@ -421,12 +347,31 @@
 
             <!-- Rewards Tab -->
             <div id="rewards" class="tab-content hidden">
-				<h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Con Đường Vinh Danh</h2>
-				<p class="text-center text-gray-600 mb-10 max-w-2xl mx-auto">Mỗi khi hoàn thành một thử thách, bạn sẽ mở khóa một cột mốc mới trên hành trình chinh phục tiếng Anh của mình.</p>
-				
-				<div class="rewards-path max-w-3xl mx-auto" id="rewards-path-container">
-					</div>
-			</div>
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Phần thưởng</h2>
+                
+                <!-- Level Progress -->
+                <div class="bg-white rounded-2xl p-6 shadow-md mb-8">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold text-gray-800">Cấp độ của bạn</h3>
+                        <span class="bg-blue-500 text-white text-sm font-bold px-3 py-1 rounded-full" id="user-level">Cấp 1</span>
+                    </div>
+                    <div class="mb-4">
+                        <div class="flex justify-between text-sm mb-1">
+                            <span>Tiến độ</span>
+                            <span id="xp-progress">0/100 XP</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-3">
+                            <div class="progress-bar" id="xp-bar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Badges -->
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Huy hiệu</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8" id="badges-container">
+                    <!-- Badges will be loaded dynamically -->
+                </div>
+            </div>
 
             <!-- Stats Tab -->
             <div id="stats" class="tab-content">
