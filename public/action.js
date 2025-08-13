@@ -2,7 +2,7 @@
 // ===== 0. VERSIONING & DATA MIGRATION
 // ===================================================================================
 
-const APP_VERSION = '1.1_13082025_6'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
+const APP_VERSION = '1.1_13082025_7'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
 const MASTERY_THRESHOLD = 3;
 
 function checkAppVersion() {
@@ -1851,7 +1851,7 @@ function markWordAsLearned(wordId) {
 	updateCategoryProgress(progress); // Truyền progress để tính toán
 	
 	if (isNewWord) {
-		updateDailyActivity(); // Chỉ cập nhật hoạt động nếu là từ mới
+		updateDailyActivity(progress); // Chỉ cập nhật hoạt động nếu là từ mới
 	}
 	
 	saveUserProgress(progress); // Lưu tất cả 1 lần
@@ -1901,7 +1901,7 @@ function updateGameProgress(gameId, categoryId, score) {
 	};
 	
 	// Update daily activities
-	updateDailyActivity();
+	updateDailyActivity(progress);
 	
 	// Save progress
 	saveUserProgress(progress);
@@ -1921,7 +1921,7 @@ function updateQuizProgress(quizId, categoryId, score) {
 	};
 	
 	// Update daily activities
-	updateDailyActivity();
+	updateDailyActivity(progress);
 	
 	// Save progress
 	saveUserProgress(progress);
