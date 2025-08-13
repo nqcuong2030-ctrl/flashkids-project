@@ -122,8 +122,7 @@ function unlockAudio() {
     }
 }
 
-// Trong action.js
-function saveUserSettings() {
+function saveAppSettings() {
 	const progress = getUserProgress();
 	
 	const settings = {
