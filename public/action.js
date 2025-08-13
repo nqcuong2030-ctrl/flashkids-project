@@ -2022,8 +2022,7 @@ function saveUserSettings() {
 
 	progress.userProfile.settings = settings;
 	saveUserProgress(progress);
-
-    console.log("LOG: Đã lưu cài đặt người dùng!", settings);
+	
 	playSound('click'); // Phát âm thanh để xác nhận đã lưu
 }
 
@@ -2955,7 +2954,9 @@ function loadUserSettings(progress) {
     
     // Tải trạng thái bật/tắt âm thanh
     const soundToggle = document.getElementById('sound-toggle');
+	
     if (soundToggle) {
+		const savedSoundSetting = progress?.userProfile?.settings?.soundEnabled ?? true;
         soundToggle.checked = settings.soundEnabled;
         soundEnabled = settings.soundEnabled; // Cập nhật biến toàn cục
     }
