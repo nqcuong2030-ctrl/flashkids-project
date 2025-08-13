@@ -2,7 +2,7 @@
 // ===== 0. VERSIONING & DATA MIGRATION
 // ===================================================================================
 
-const APP_VERSION = '1.1_13082025_4'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
+const APP_VERSION = '1.1_13082025_5'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
 const MASTERY_THRESHOLD = 3;
 
 function checkAppVersion() {
@@ -88,7 +88,7 @@ let isTimerRunning = false;
 let flashcardActivityTimeout = null;
 const INACTIVITY_DELAY = 10000; // 10 giây
 
-// Các đối tượng biểu đồ tab Thống kê
+// Các đối tượng biểu đồ tab Thống kê -test
 let activityChartInstance = null;
 let masteryChartInstance = null;
 
@@ -206,7 +206,6 @@ function pruneAudioCache(itemsToRemove = 50) {
 		localStorage.removeItem(item.key);
 	});
 }
-
 
 // ===================================================================================
 // ===== 3. ÂM THANH & PHÁT ÂM
@@ -383,7 +382,6 @@ async function changeLevel(level, isUserAction = false) {
 // Tab navigation
 // Hàm này để xử lý khi người dùng bấm trực tiếp vào tab "Thẻ từ vựng"
 function navigateToFlashcardsTab() {
-	console.log(`Đang ở tab FlashCards!`);
     currentCategoryId = 'cat1'; // Mặc định chọn chủ đề 'cat1'
     currentCardIndex = 0;
     changeTab('flashcards');
