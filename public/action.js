@@ -2,7 +2,7 @@
 // ===== 0. VERSIONING & DATA MIGRATION
 // ===================================================================================
 
-const APP_VERSION = '1.1_13082025_3'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
+const APP_VERSION = '1.1_13082025_4'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
 const MASTERY_THRESHOLD = 3;
 
 function checkAppVersion() {
@@ -95,7 +95,6 @@ let masteryChartInstance = null;
 // NEW
 let lastSpokenAudio = { lang: null, text: null }; 
 
-
 function saveUserSettings() {
 	const progress = getUserProgress();
 	
@@ -116,9 +115,6 @@ function saveUserSettings() {
     console.log("LOG: Đã lưu cài đặt người dùng!", settings);
 	playSound('click'); // Phát âm thanh để xác nhận đã lưu
 }
-
-// Lắng nghe cú click đầu tiên trên toàn bộ trang để mở khóa âm thanh
-document.addEventListener('click', unlockAudio, { once: true });
 
 // Dữ liệu tĩnh
 const categoryColors = [
