@@ -95,27 +95,6 @@ let masteryChartInstance = null;
 // NEW
 let lastSpokenAudio = { lang: null, text: null }; 
 
-function saveUserSettings() {
-	const progress = getUserProgress();
-	
-	const settings = {
-		soundEnabled: document.getElementById('sound-toggle').checked,
-		ttsEnabled: document.getElementById('tts-toggle').checked,
-		autoNextEnabled: document.getElementById('autonext-toggle').checked,
-	};
-	
-	// Đảm bảo đối tượng settings tồn tại trước khi gán
-	if (!progress.userProfile.settings) {
-		progress.userProfile.settings = {};
-	}
-
-	progress.userProfile.settings = settings;
-	saveUserProgress(progress);
-
-    console.log("LOG: Đã lưu cài đặt người dùng!", settings);
-	playSound('click'); // Phát âm thanh để xác nhận đã lưu
-}
-
 // Dữ liệu tĩnh
 const categoryColors = [
     'from-blue-400 to-blue-600', 'from-purple-400 to-purple-600', 'from-pink-400 to-pink-600',
@@ -2027,6 +2006,25 @@ function updateMasteryScore(wordId, pointsToAdd) {
         console.log("Đang ở tab Thống kê, cập nhật lại biểu đồ...");
         renderMasteryChart();
     }
+}
+
+function saveUserSettings() {
+	const progress = getUserProgress();
+	
+	const settings = {
+		soundEnabled: document.getElementById('sound-toggle').checked,
+	};
+	
+	// Đảm bảo đối tượng settings tồn tại trước khi gán
+	if (!progress.userProfile.settings) {
+		progress.userProfile.settings = {};
+	}
+
+	progress.userProfile.settings = settings;
+	saveUserProgress(progress);
+
+    console.log("LOG: Đã lưu cài đặt người dùng!", settings);
+	playSound('click'); // Phát âm thanh để xác nhận đã lưu
 }
 
 // ===================================================================================
