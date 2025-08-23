@@ -139,27 +139,6 @@
 			padding: 5px 10px; border-radius: 5px; font-size: 12px; white-space: nowrap; z-index: 10; }
 		.tooltip::after { content: ''; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: #333 transparent transparent transparent; }
 		
-		/* (THÊM MỚI) CSS cho nút Home */
-		#home-btn {
-			position: fixed;
-			top: 24px;   /* Căn chỉnh với padding của trang */
-			left: 24px;  /* Căn chỉnh với padding của trang */
-			z-index: 40; /* Nằm trên nội dung nhưng dưới cửa sổ modal (z-50) */
-			background-color: white;
-			width: 48px;
-			height: 48px;
-			border-radius: 9999px; /* bo tròn */
-			box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			transition: all 0.2s ease-in-out;
-		}
-
-		#home-btn:hover {
-			transform: scale(1.1);
-			box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-		}
 	</style>
 </head>
 <body>
@@ -182,12 +161,7 @@
 						<div id="user-menu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
 							<a href="#" onclick="handleMenuLinkClick(event,'settings'); return false;" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Hồ sơ cá nhân</a>
 						</div>
-					</div>					
-					<a id="home-btn" href="https://superkid.netlify.app/" title="Về trang chủ">
-						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="#4B5563">
-							<path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8h5z"/>
-						</svg>
-					</a>
+					</div>
                 </div>
             </div>
         </header>
