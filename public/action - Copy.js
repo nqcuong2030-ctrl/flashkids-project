@@ -2,7 +2,7 @@
 // ===== 0. VERSIONING & DATA MIGRATION
 // ===================================================================================
 
-const APP_VERSION = '1.1_12082025_5'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
+const APP_VERSION = '1.1_13082025_8'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
 const MASTERY_THRESHOLD = 3;
 
 function checkAppVersion() {
@@ -30,8 +30,30 @@ function checkAppVersion() {
     }
 }
 
+/**
+ * Hàm này quyết định xem có nên chạy kiểm tra phiên bản hay không,
+ * dựa trên lần kiểm tra cuối cùng.
+ */
+function runPeriodicVersionCheck() {
+    const lastCheckTimestamp = parseInt(localStorage.getItem('flashkids_last_version_check') || '0');
+    const oneDay = 24 * 60 * 60 * 1000; // 24 giờ tính bằng mili giây = 24 * 60 * 60 * 1000
+    const now = Date.now();
+
+    // Chỉ chạy checkAppVersion nếu chưa từng kiểm tra, hoặc lần cuối đã hơn 24 giờ trước.
+    if (!lastCheckTimestamp || (now - lastCheckTimestamp > oneDay)) {
+        console.log("Đã đến lúc kiểm tra phiên bản mới...");
+
+        // Gọi hàm kiểm tra phiên bản gốc
+        checkAppVersion();
+
+        // Cập nhật lại thời gian kiểm tra cuối cùng là bây giờ
+        localStorage.setItem('flashkids_last_version_check', now.toString());
+    } else {
+        // console.log("Chưa đến lúc kiểm tra phiên bản mới.");
+    }
+}
 // Gọi hàm này ngay khi script được tải
-checkAppVersion();
+runPeriodicVersionCheck();
 
 // ===================================================================================
 // ===== 1. KHAI BÁO BIẾN TOÀN CỤC & HẰNG SỐ
@@ -88,7 +110,7 @@ let isTimerRunning = false;
 let flashcardActivityTimeout = null;
 const INACTIVITY_DELAY = 10000; // 10 giây
 
-// Các đối tượng biểu đồ tab Thống kê
+// Các đối tượng biểu đồ tab Thống kê -test
 let activityChartInstance = null;
 let masteryChartInstance = null;
 
@@ -206,7 +228,6 @@ function pruneAudioCache(itemsToRemove = 50) {
 		localStorage.removeItem(item.key);
 	});
 }
-
 
 // ===================================================================================
 // ===== 3. ÂM THANH & PHÁT ÂM
@@ -346,14 +367,14 @@ function slugifyVietnamese(text) {
 // ===================================================================================
 
 // Hàm changeLevel giờ chỉ cần gọi các hàm khác sau khi có dữ liệu
-async function changeLevel(level, isUserAction = false) { 
+async function changeLevel(level, isUserAction = false) {
+	runPeriodicVersionCheck();
 	if (isUserAction) {
         playSound('click'); // Chỉ phát âm thanh nếu đây là hành động của người dùng
     }
 	
 	currentLevel = level;
 
-	document.getElementById('current-level-display').textContent = `Level ${level.toUpperCase()}`;
 	localStorage.setItem('flashkids_currentLevel', level);
 	updateLevelBadges(level);
 
@@ -384,13 +405,14 @@ async function changeLevel(level, isUserAction = false) {
 // Tab navigation
 // Hàm này để xử lý khi người dùng bấm trực tiếp vào tab "Thẻ từ vựng"
 function navigateToFlashcardsTab() {
+	runPeriodicVersionCheck();
     currentCategoryId = 'cat1'; // Mặc định chọn chủ đề 'cat1'
     currentCardIndex = 0;
     changeTab('flashcards');
 }
 
 // Hàm chuyển tab chính, đã được sửa lại để ổn định hơn
-function changeTab(tabId) {
+function changeTab(tabId) {	
 	playSound('click');
 	
 	document.querySelectorAll('.tab-content').forEach(tab => {
@@ -429,11 +451,17 @@ function changeTab(tabId) {
 		updateCategoryProgressDisplay();
 		renderActivityHeatmap();
         renderMasteryChart();
+		runPeriodicVersionCheck();
 	}
 	
 	if (tabId === 'rewards') {
-		renderRewardsPath(); 
+		runPeriodicVersionCheck();
 	}
+	
+	// Nếu người dùng chuyển đến tab học chính, hãy kiểm tra phiên bản
+    if (tabId === 'flashcards' || tabId === 'games' || tabId === 'quiz') {
+        runPeriodicVersionCheck(); // <-- THÊM LOGIC NÀY
+    }
 }
 
 function updateMarkLearnedButton(wordId) {
@@ -1822,7 +1850,7 @@ function markWordAsLearned(wordId) {
 	updateCategoryProgress(progress); // Truyền progress để tính toán
 	
 	if (isNewWord) {
-		updateDailyActivity(); // Chỉ cập nhật hoạt động nếu là từ mới
+		updateDailyActivity(progress); // Chỉ cập nhật hoạt động nếu là từ mới
 	}
 	
 	saveUserProgress(progress); // Lưu tất cả 1 lần
@@ -1872,7 +1900,7 @@ function updateGameProgress(gameId, categoryId, score) {
 	};
 	
 	// Update daily activities
-	updateDailyActivity();
+	updateDailyActivity(progress);
 	
 	// Save progress
 	saveUserProgress(progress);
@@ -1892,7 +1920,7 @@ function updateQuizProgress(quizId, categoryId, score) {
 	};
 	
 	// Update daily activities
-	updateDailyActivity();
+	updateDailyActivity(progress);
 	
 	// Save progress
 	saveUserProgress(progress);
@@ -1942,8 +1970,7 @@ function updateCategoryProgress(progress) {
 }
 
 // Cập nhật hàm này để lưu lại lịch sử hoạt động
-function updateDailyActivity() {
-    const progress = getUserProgress();
+function updateDailyActivity(progress) {
     const today = new Date().toDateString(); // Lấy ngày hôm nay dưới dạng chuỗi, ví dụ: "Tue Aug 12 2025"
 
     // 1. Khởi tạo đối tượng lịch sử nếu nó chưa tồn tại
@@ -1966,6 +1993,7 @@ function updateDailyActivity() {
         if (progress.lastActivityDate === yesterday.toDateString()) {
             // Nếu ngày học cuối là hôm qua, tăng chuỗi lên
             progress.streakDays = (progress.streakDays || 0) + 1;
+			addXp(progress, 50); // <-- THÊM DÒNG NÀY: +50 XP KHI DUY TRÌ CHUỖI
         } else {
             // Nếu không, reset chuỗi về 1
             progress.streakDays = 1;
@@ -1974,35 +2002,31 @@ function updateDailyActivity() {
     }
 
     // 5. Lưu lại toàn bộ tiến trình
-    saveUserProgress(progress);
     console.log(`Đã ghi nhận hoạt động mới. Hôm nay có: ${progress.dailyActivitiesHistory[today]} hoạt động.`);
 }
 
 function updateMasteryScore(wordId, pointsToAdd) {
-    const progress = getUserProgress();
+    const progress = getUserProgress(); // Đọc progress 1 lần duy nhất ở đây
     const oldScore = progress.masteryScores[wordId] || 0;
 
     // Chỉ cộng điểm nếu từ đó chưa đạt ngưỡng thông thạo
     if (oldScore < MASTERY_THRESHOLD) {
         const newScore = Math.min(MASTERY_THRESHOLD, oldScore + pointsToAdd);
         progress.masteryScores[wordId] = newScore;
-
         console.log(`Từ ${wordId}: ${oldScore} -> ${newScore} điểm.`);
 
         // Nếu từ đó LẦN ĐẦU TIÊN đạt ngưỡng, tính là một hoạt động mới
         if (newScore >= MASTERY_THRESHOLD && oldScore < MASTERY_THRESHOLD) {
-            updateDailyActivity();
+            updateDailyActivity(progress); // << SỬA LẠI: Truyền "progress" vào đây
             console.log(`Từ ${wordId} đã đạt mức thông thạo!`);
+			addXp(progress, 20); // << SỬA LẠI: Truyền "progress" và số XP vào đây
         }
     }
 
     updateCategoryProgress(progress);
-    saveUserProgress(progress);
+    saveUserProgress(progress); // Chỉ cần lưu 1 lần ở cuối hàm
     updateUserStats();
 
-    // ================================================================
-    // ===== PHẦN CẢI TIẾN: VẼ LẠI BIỂU ĐỒ NẾU ĐANG Ở TAB THỐNG KÊ =====
-    // ================================================================
     // Lấy nút tab đang hoạt động để kiểm tra
     const activeButton = document.querySelector('nav button.tab-active');
     // Nếu người dùng đang ở tab 'stats', hãy cập nhật biểu đồ ngay lập tức
@@ -2010,6 +2034,24 @@ function updateMasteryScore(wordId, pointsToAdd) {
         console.log("Đang ở tab Thống kê, cập nhật lại biểu đồ...");
         renderMasteryChart();
     }
+}
+
+function saveUserSettings() {
+	const progress = getUserProgress();
+	
+	const settings = {
+		soundEnabled: document.getElementById('sound-toggle').checked,
+	};
+	
+	// Đảm bảo đối tượng settings tồn tại trước khi gán
+	if (!progress.userProfile.settings) {
+		progress.userProfile.settings = {};
+	}
+
+	progress.userProfile.settings = settings;
+	saveUserProgress(progress);
+	
+	playSound('click'); // Phát âm thanh để xác nhận đã lưu
 }
 
 // ===================================================================================
@@ -2096,7 +2138,8 @@ function loadCategories() {
 		`;
 		
 		categoryElement.addEventListener('click', () => {
-			playSound('click'); // <-- Thêm âm thanh khi nhấn
+			runPeriodicVersionCheck();
+			playSound('click'); 
 			currentCategoryId = category.id;
 			currentCardIndex = 0;
 			changeTab('flashcards');
@@ -2215,65 +2258,55 @@ function loadQuizTypes() {
 	});
 }
 
-function renderRewardsPath() {
-    const container = document.getElementById('rewards-path-container');
-    if (!container) return;
-    container.innerHTML = ''; // Xóa nội dung cũ
-
-    const progress = getUserProgress();
-
-    // Định nghĩa các cột mốc và điều kiện để mở khóa
-    const milestones = [
-        { 
-            title: 'Khởi Đầu Thuận Lợi', 
-            description: 'Học thông thạo 10 từ vựng đầu tiên.',
-            icon: 'badge',
-            color: 'green',
-            isUnlocked: (p) => Object.values(p.masteryScores).filter(s => s >= MASTERY_THRESHOLD).length >= 10
-        },
-        { 
-            title: 'Nhà Vô Địch Quiz', 
-            description: 'Hoàn thành 5 bài kiểm tra bất kỳ.',
-            icon: 'play',
-            color: 'blue',
-            isUnlocked: (p) => Object.keys(p.completedQuizzes).length >= 5
-        },
-        { 
-            title: 'Siêu Sao Bền Bỉ', 
-            description: 'Duy trì chuỗi 7 ngày học liên tục.',
-            icon: 'star',
-            color: 'yellow',
-            isUnlocked: (p) => (p.streakDays || 0) >= 7
-        },
-        { 
-            title: 'Nhà Từ Vựng Học', 
-            description: 'Chinh phục 100 từ vựng thông thạo.',
-            icon: 'book',
-            color: 'purple',
-            isUnlocked: (p) => Object.values(p.masteryScores).filter(s => s >= MASTERY_THRESHOLD).length >= 100
-        }
-    ];
-
-    // Tạo HTML cho từng cột mốc
-    milestones.forEach(milestone => {
-        const unlocked = milestone.isUnlocked(progress);
-        const statusClass = unlocked ? 'unlocked' : 'locked';
-
-        const milestoneElement = document.createElement('div');
-        milestoneElement.className = `milestone ${statusClass}`;
-        milestoneElement.innerHTML = `
-            <div class="milestone-content">
-                <h4 class="font-bold text-lg text-gray-800">${milestone.title}</h4>
-                <p class="text-gray-600">${milestone.description}</p>
-            </div>
-            <div class="milestone-node">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                    ${getBadgeIcon(milestone.icon)}
-                </svg>
-            </div>
-        `;
-        container.appendChild(milestoneElement);
-    });
+function loadBadges() {
+	const container = document.getElementById('badges-container');
+	if (!container) return; // Thêm kiểm tra an toàn
+	container.innerHTML = '';
+	
+	const progress = getUserProgress();
+	
+	// --- LOGIC ĐÃ ĐƯỢC CẬP NHẬT ĐỂ DÙNG masteryScores ---
+	// Cập nhật huy hiệu streak days
+	badges[0].achieved = progress.streakDays >= 7;
+	
+	// Cập nhật huy hiệu số từ đã học
+	const totalLearned = Object.values(progress.masteryScores).filter(score => score >= MASTERY_THRESHOLD).length;
+	badges[1].achieved = totalLearned >= 100;
+	if (!badges[1].achieved) {
+		badges[1].progress = `${totalLearned}/100`;
+	}
+	
+	// Cập nhật huy hiệu hoàn thành quiz
+	const completedQuizzes = Object.keys(progress.completedQuizzes).length;
+	badges[2].achieved = completedQuizzes >= 5;
+	badges[3].achieved = completedQuizzes >= 10;
+	if (!badges[2].achieved) {
+		badges[2].progress = `${Math.min(completedQuizzes, 5)}/5`;
+	}
+	if (!badges[3].achieved) {
+		badges[3].progress = `${Math.min(completedQuizzes, 10)}/10`;
+	}
+	// --- KẾT THÚC CẬP NHẬT LOGIC ---
+	
+	badges.forEach(badge => {
+		const badgeElement = document.createElement('div');
+		badgeElement.className = 'bg-white rounded-2xl p-5 shadow-md text-center';
+		badgeElement.innerHTML = `
+			<div class="w-20 h-20 mx-auto rounded-full bg-${badge.color}-100 flex items-center justify-center mb-4 ${badge.achieved ? 'badge' : ''}">
+				<svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-${badge.color}-500" viewBox="0 0 20 20" fill="currentColor">
+					${getBadgeIcon(badge.icon)}
+				</svg>
+			</div>
+			<h4 class="text-lg font-bold text-gray-800 mb-1">${badge.name}</h4>
+			<p class="text-gray-600 text-sm mb-2">${badge.description}</p>
+			${badge.achieved 
+				? `<span class="bg-green-100 text-green-600 text-xs font-bold px-2 py-1 rounded-full">Đã đạt</span>`
+				: `<span class="bg-gray-100 text-gray-600 text-xs font-bold px-2 py-1 rounded-full">${badge.progress || ''}</span>`
+			}
+		`;
+		
+		container.appendChild(badgeElement);
+	});
 }
 
 function updateUserStats() {
@@ -2940,9 +2973,11 @@ function loadUserSettings(progress) {
     
     // Tải trạng thái bật/tắt âm thanh
     const soundToggle = document.getElementById('sound-toggle');
+	
     if (soundToggle) {
-        soundToggle.checked = settings.soundEnabled;
-        soundEnabled = settings.soundEnabled; // Cập nhật biến toàn cục
+		const savedSoundSetting = progress?.userProfile?.settings?.soundEnabled ?? true;
+        soundToggle.checked = savedSoundSetting;
+        soundEnabled = savedSoundSetting;
     }
 }
 
@@ -3002,6 +3037,7 @@ document.addEventListener('DOMContentLoaded', function() {
     updateWelcomeMessage(progress);
     loadUserSettings(progress);
     updateUserStats(progress);
+	updateXpDisplay(progress); // <-- THÊM DÒNG NÀY
 	changeLevel(currentLevel);
 	
 	// --- GÁN CÁC SỰ KIỆN CHO CÁC NÚT BẤM ---
@@ -3027,6 +3063,12 @@ document.addEventListener('DOMContentLoaded', function() {
 	// Sự kiện cho đồng hồ
 	document.getElementById('toggle-timer-btn').addEventListener('click', toggleTimer);
 	updateTimerDisplay();
+	
+	// Set up sound toggle
+	document.getElementById('sound-toggle').addEventListener('change', function() {
+		soundEnabled = this.checked;
+		saveUserSettings();
+	});
 	
 	// Sự kiện đóng modal khi bấm ra ngoài
 	document.querySelectorAll('.modal').forEach(modal => {
@@ -3077,6 +3119,63 @@ document.addEventListener('DOMContentLoaded', function() {
 	
 	// --- TẢI CÁC GIAO DIỆN CỐ ĐỊNH ---
 	loadGames();
+	loadBadges();
 	loadQuizTypes();
     loadAvatarSelection();
 });
+
+// ===================================================================================
+// ===== 14. HỆ THỐNG XP/LEVEL
+// ===================================================================================
+
+// Hàm cập nhật giao diện thanh XP
+function updateXpDisplay(progress) {
+    const profile = progress.userProfile;
+
+    if (profile) {
+        const percent = Math.round((profile.xp / profile.xpToNextLevel) * 100);
+        document.getElementById('xp-level').textContent = profile.level;
+        document.getElementById('xp-text').textContent = `${profile.xp}/${profile.xpToNextLevel}`;
+        document.getElementById('xp-bar').style.width = `${percent}%`;
+    }
+}
+
+// Hàm xử lý khi người dùng lên cấp
+function levelUp(profile) {
+    playSound('tada');
+    createConfetti();
+    
+    profile.level += 1;
+    profile.xp -= profile.xpToNextLevel; // Giữ lại XP thừa
+    profile.xpToNextLevel = profile.level * 100; // Công thức tính XP cho level tiếp theo
+    
+    // Hiển thị thông báo chúc mừng
+    const completionTitle = document.getElementById('completion-title');
+    const completionMessage = document.getElementById('completion-message');
+    
+    completionTitle.textContent = `🎉 Lên Cấp! 🎉`;
+    completionMessage.textContent = `Chúc mừng bạn đã đạt đến Cấp độ ${profile.level}! Hãy tiếp tục phát huy nhé!`;
+    openModal('completionModal');
+
+    console.log(`LÊN CẤP! Level mới: ${profile.level}. Cần ${profile.xpToNextLevel} XP để lên cấp tiếp theo.`);
+}
+
+// Hàm trung tâm để cộng XP
+function addXp(progress, amount) { // << THÊM "progress" VÀO THAM SỐ
+    // const progress = getUserProgress(); // << XÓA DÒNG NÀY
+    const profile = progress.userProfile;
+
+    if (!profile) return;
+
+    profile.xp += amount;
+    console.log(`Đã nhận được ${amount} XP. Tổng XP: ${profile.xp}/${profile.xpToNextLevel}`);
+
+    // Kiểm tra nếu đủ XP để lên cấp
+    if (profile.xp >= profile.xpToNextLevel) {
+        levelUp(profile);
+    }
+    
+    // Không cần lưu ở đây nữa vì hàm gọi nó sẽ lưu
+    // saveUserProgress(progress); 
+    updateXpDisplay(progress);
+}
