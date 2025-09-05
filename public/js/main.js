@@ -1,13 +1,13 @@
-// File: public/js/main.js (PHIÊN BẢN HOÀN CHỈNH CUỐI CÙNG)
+// File: public/js/main.js (PHIÊN BẢN SỬA LỖI MẤT BỘ LỌC)
 // Nhiệm vụ: "Nhạc trưởng" điều phối toàn bộ ứng dụng.
 
 import { runPeriodicVersionCheck, fetchLevelData } from './api.js';
 import { playSound, speakWord } from './audio.js';
-import { GAMES_CONFIG, QUIZ_CONFIG } from './config.js';
 import { 
     loadCategories, updateFlashcard, updateUserProfileDisplay, 
-    openModal, closeModal, renderMasteryChart, updateCardCounter,
-    loadGames, loadQuizTypes, loadBadges // Bổ sung import
+    openModal, closeModal, renderMasteryChart,
+    loadGames, loadQuizTypes, loadBadges,
+    loadCategoryFilters, updateCategoryFiltersUI // Bổ sung import
 } from './dom.js';
 import { startMatchingGame, startImageQuiz, startFillBlankGame, startSoundMatchGame } from './games.js';
 import { startMultipleChoiceQuiz, startUnscrambleQuiz, startReadingQuiz } from './quiz.js';
@@ -27,7 +27,10 @@ async function changeLevel(level, isUserAction = false) {
     try {
         const data = await fetchLevelData(level, getState().flashcardCache);
         setLevelData(level, data);
+
+        // Cập nhật giao diện
         loadCategories();
+        loadCategoryFilters(); // Bổ sung: Tải lại bộ lọc khi đổi level
         updateFlashcard();
         
         document.querySelectorAll('.level-badge').forEach(badge => {
@@ -59,6 +62,7 @@ function navigateToFlashcardsTab() {
     setCurrentCategoryId(categories[0]?.id || null);
     setCurrentCardIndex(0);
     changeTab('flashcards');
+    loadCategoryFilters(); // Bổ sung: Tải bộ lọc khi vào tab
     updateFlashcard();
 }
 
@@ -70,7 +74,17 @@ function speakCurrentWord(language) {
     speakWord(wordToSpeak, lang);
 }
 
+// BỔ SUNG: Hàm xử lý khi người dùng bấm vào bộ lọc chủ đề
+function filterByCategory(categoryId) {
+    playSound('click');
+    setCurrentCategoryId(categoryId);
+    setCurrentCardIndex(0);
+    updateFlashcard();
+    updateCategoryFiltersUI(); // Cập nhật lại màu sắc cho nút được chọn
+}
+
 function startGame(gameId) {
+    // ... (Hàm này giữ nguyên như cũ, không thay đổi)
     playSound('click');
     setCurrentActivity({ type: 'game', id: gameId });
     openModal('categorySelectionModal');
@@ -79,6 +93,7 @@ function startGame(gameId) {
 }
 
 function startQuiz(quizId) {
+    // ... (Hàm này giữ nguyên như cũ, không thay đổi)
     playSound('click');
     setCurrentActivity({ type: 'quiz', id: quizId });
     openModal('categorySelectionModal');
@@ -93,6 +108,7 @@ function handleCategorySelect(categoryId) {
     setCurrentCategoryId(categoryId);
     setCurrentCardIndex(0);
     changeTab('flashcards');
+    loadCategoryFilters(); // Bổ sung: Tải lại bộ lọc khi chọn chủ đề từ trang chủ
     updateFlashcard();
 }
 
@@ -109,6 +125,7 @@ function navigateCard(direction) {
 }
 
 function handleActivitySelection(categoryId) {
+    // ... (Hàm này giữ nguyên như cũ, không thay đổi)
     closeModal('categorySelectionModal');
     const activity = getState().currentActivity;
     if (!activity) return;
@@ -133,6 +150,7 @@ function handleActivitySelection(categoryId) {
 }
 
 function handleActivityEnd(completed, xpGained) {
+    // ... (Hàm này giữ nguyên như cũ, không thay đổi)
     if (completed && xpGained > 0) {
         const leveledUp = addXp(xpGained);
         if (leveledUp) {
@@ -149,7 +167,7 @@ function handleActivityEnd(completed, xpGained) {
 // === ĐIỂM KHỞI ĐẦU CỦA ỨNG DỤNG ===
 
 function setupEventListeners() {
-    // 1. Sự kiện cho các container chính (dùng Event Delegation)
+    // ... (Hàm này giữ nguyên như cũ, không thay đổi)
     document.getElementById('categories-container')?.addEventListener('click', (e) => {
         const card = e.target.closest('.category-card');
         if (card) handleCategorySelect(card.dataset.categoryId);
@@ -160,22 +178,19 @@ function setupEventListeners() {
         if (card) handleActivitySelection(card.dataset.categoryId);
     });
     
-    // 2. Sự kiện cho thẻ từ vựng
     document.getElementById('current-flashcard')?.addEventListener('click', () => {
         document.getElementById('current-flashcard').classList.toggle('flipped');
     });
     document.getElementById('prev-card')?.addEventListener('click', () => navigateCard(-1));
     document.getElementById('next-card')?.addEventListener('click', () => navigateCard(1));
     
-    // 3. SỬA LỖI: Bổ sung sự kiện cho menu avatar
     const userMenuButton = document.getElementById('user-menu-button');
     const userMenu = document.getElementById('user-menu');
     if (userMenuButton && userMenu) {
         userMenuButton.addEventListener('click', function(event) {
-            event.stopPropagation(); // Ngăn sự kiện click lan ra window
+            event.stopPropagation();
             userMenu.classList.toggle('hidden');
         });
-        // Đóng menu khi click ra ngoài
         window.addEventListener('click', function() {
             if (!userMenu.classList.contains('hidden')) {
                 userMenu.classList.add('hidden');
@@ -188,12 +203,10 @@ document.addEventListener('DOMContentLoaded', () => {
     runPeriodicVersionCheck();
     const savedLevel = localStorage.getItem('flashkids_currentLevel') || 'a1';
 
-    // Khởi tạo và tải dữ liệu ban đầu
     setupEventListeners();
     updateUserProfileDisplay();
     changeLevel(savedLevel, false);
 
-    // SỬA LỖI: Gọi các hàm render giao diện tĩnh
     loadGames();
     loadQuizTypes();
     loadBadges();
@@ -203,6 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.changeTab = changeTab;
     window.navigateToFlashcardsTab = navigateToFlashcardsTab;
     window.speakCurrentWord = speakCurrentWord;
+    window.filterByCategory = filterByCategory; // Bổ sung
     window.startGame = startGame;
     window.startQuiz = startQuiz;
     window.closeModal = closeModal;

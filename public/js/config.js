@@ -3,7 +3,7 @@
 // Tệp này chứa các hằng số và dữ liệu cấu hình tĩnh cho toàn bộ ứng dụng.
 // Việc tách ra giúp dễ dàng quản lý và thay đổi các giá trị này mà không cần động vào logic chính.
 
-export const APP_VERSION = '1.2_2'; // Tăng phiên bản sau khi tái cấu trúc
+export const APP_VERSION = '1.2_3'; // Tăng phiên bản sau khi tái cấu trúc
 export const MASTERY_THRESHOLD = 4; // Ngưỡng điểm để coi là "thông thạo" một từ
 export const INACTIVITY_DELAY = 10000; // 10 giây không hoạt động thì dừng timer
 
