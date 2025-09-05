@@ -9,7 +9,7 @@
  * @description Chứa các hằng số và cấu hình không thay đổi trong suốt quá trình chạy.
  */
 const config = {
-    APP_VERSION: '1.1_09082025_3_refactored',
+    APP_VERSION: '1.1_09082025_1',
     MASTERY_THRESHOLD: 4,
     INACTIVITY_DELAY: 10000, // 10 giây
     LOCAL_STORAGE_KEYS: {
