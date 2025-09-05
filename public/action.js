@@ -2,7 +2,7 @@
 // ===== 0. VERSIONING & DATA MIGRATION
 // ===================================================================================
 
-const APP_VERSION = '1.1_09082025_2'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
+const APP_VERSION = '1.1_09082025_3'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
 const MASTERY_THRESHOLD = 3;
 
 function checkAppVersion() {
@@ -35,7 +35,7 @@ function checkAppVersion() {
  * dựa trên lần kiểm tra cuối cùng.
  */
 function runPeriodicVersionCheck() {
-    const lastCheckTimestamp = parseInt(localStorage.getItem('flashkids_last_version_check') || '0');
+    const lastCheckTimestamp = parseInt(localStorage.getItem('last_version_check') || '0');
     const oneDay = 24 * 60 * 60 * 1000; // 24 giờ tính bằng mili giây = 24 * 60 * 60 * 1000
     const now = Date.now();
 
@@ -47,7 +47,7 @@ function runPeriodicVersionCheck() {
         checkAppVersion();
 
         // Cập nhật lại thời gian kiểm tra cuối cùng là bây giờ
-        localStorage.setItem('flashkids_last_version_check', now.toString());
+        localStorage.setItem('last_version_check', now.toString());
     } else {
         // console.log("Chưa đến lúc kiểm tra phiên bản mới.");
     }
@@ -259,11 +259,13 @@ const soundEffects = {
 
 function playSound(soundName) {
 	if (soundEnabled && soundEffects[soundName]) {
-		soundEffects[soundName].currentTime = 0; // Tua về đầu để có thể phát lại ngay
-		soundEffects[soundName].play();
+		soundEffects[soundName].currentTime = 0; 
+		
+		// <<< SỬA ĐỔI: Khai báo hằng số 'playPromise' để hứng kết quả trả về >>>
+		const playPromise = soundEffects[soundName].play();
+
 		if (playPromise !== undefined) {
 			playPromise.catch(error => {
-				// Lỗi này sẽ không làm dừng ứng dụng, chỉ thông báo trong console.
 				console.error(`Không thể phát âm thanh "${soundName}":`, error);
 			});
 		}
