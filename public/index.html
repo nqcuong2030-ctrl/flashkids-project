@@ -217,8 +217,8 @@
                 <div class="bg-white rounded-2xl p-6 mb-8 shadow-md">
                     <h3 class="text-xl font-bold text-gray-800 mb-4">Chọn cấp độ từ vựng (hơn 3000 từ)</h3>
                     <div class="flex flex-wrap gap-3">
-                        <button class="level-badge active" data-level="a1">A1 - Cơ bản</button>
-                        <button class="level-badge" data-level="a2">A2 - Sơ cấp</button>
+                        <button class="level-badge level-a1 active" data-level="a1">A1 - Cơ bản</button>
+                        <button class="level-badge level-a2" data-level="a2">A2 - Sơ cấp</button>
                         <button class="level-badge" data-level="b1">B1 - Trung cấp</button>
                         <button class="level-badge" data-level="b2">B2 - Cao cấp</button>
 						<button class="level-badge hidden" data-level="c1">C1 - Thông thạo</button>
@@ -547,7 +547,7 @@
         <div class="modal-content">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xl font-bold text-gray-800">Chọn chủ đề từ vựng</h3>
-                <button id="close-category-modal-btn" class="text-gray-500 hover:text-gray-700">
+                <button id="close-category-modal-btn" class="text-gray-500 hover:text-gray-700  close-modal-btn">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -564,7 +564,7 @@
         <div class="modal-content" style="max-width: 600px">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xl font-bold text-gray-800">Trò chơi ghép từ</h3>
-                <button class="text-gray-500 hover:text-gray-700">
+                <button class="text-gray-500 hover:text-gray-700  close-modal-btn">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -623,7 +623,7 @@
 		<div class="modal-content" style="max-width: 500px;">
 			<div class="flex justify-between items-center mb-4">
 				<h3 class="text-xl font-bold text-gray-800">Ghép Âm thanh & Từ</h3>
-				<button class="text-gray-500 hover:text-gray-700">
+				<button class="text-gray-500 hover:text-gray-700 close-modal-btn">
 					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
 					</svg>
@@ -640,7 +640,7 @@
 		<div class="modal-content" style="max-width: 400px;">
 			<div class="flex justify-between items-center mb-4">
 				<h3 class="text-xl font-bold text-gray-800">Chọn độ khó</h3>
-				<button class="text-gray-500 hover:text-gray-700">
+				<button class="text-gray-500 hover:text-gray-700 close-modal-btn">
 					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
 				</button>
 			</div>
@@ -657,7 +657,7 @@
 			<div id="fill-blank-success-feedback" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-6xl hidden">👍</div>
 			<div class="flex justify-between items-center mb-4">
 				<h3 class="text-xl font-bold text-gray-800">Điền vào chỗ trống</h3>
-				<button class="text-gray-500 hover:text-gray-700">
+				<button class="text-gray-500 hover:text-gray-700 close-modal-btn">
 					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
 					</svg>
@@ -687,7 +687,7 @@
 		<div class="modal-content" style="max-width: 600px">
 			<div class="flex justify-between items-center mb-4">
 				<h3 class="text-xl font-bold text-gray-800">Đọc và Chọn từ</h3>
-				<button class="text-gray-500 hover:text-gray-700">
+				<button class="text-gray-500 hover:text-gray-700 close-modal-btn">
 					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
 					</svg>
@@ -713,7 +713,7 @@
 			<div id="unscramble-success-feedback" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-6xl hidden">👍</div>
 			<div class="flex justify-between items-center mb-4">
 				<h3 class="text-xl font-bold text-gray-800">Xếp chữ</h3>
-				<button class="text-gray-500 hover:text-gray-700">
+				<button class="text-gray-500 hover:text-gray-700 close-modal-btn">
 					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
 					</svg>
@@ -743,7 +743,7 @@
 		<div class="modal-content" style="max-width: 600px">
 			<div class="flex justify-between items-center mb-4">
 				<h3 class="text-xl font-bold text-gray-800">Bài kiểm tra trắc nghiệm</h3>
-				<button class="text-gray-500 hover:text-gray-700">
+				<button class="text-gray-500 hover:text-gray-700 close-modal-btn">
 					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
 					</svg>

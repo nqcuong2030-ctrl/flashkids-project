@@ -9,7 +9,7 @@
  * @description Chứa các hằng số và cấu hình không thay đổi trong suốt quá trình chạy.
  */
 const config = {
-    APP_VERSION: '1.1_09082025_4',
+    APP_VERSION: '1.1_09082025_5',
     MASTERY_THRESHOLD: 4,
     INACTIVITY_DELAY: 10000, // 10 giây
     LOCAL_STORAGE_KEYS: {
@@ -1251,6 +1251,332 @@ const gameManager = {
             setTimeout(() => this.playGame(id, categoryId), 300);
         }
     },
+
+	// --- GAME 2: CHỌN TỪ (IMAGE QUIZ) ---
+    startImageQuiz: function(words) {
+        const s = state.games.imageQuiz;
+        s.questions = this.generateImageQuizQuestions(words);
+        s.currentQuestionIndex = 0;
+        s.score = 0;
+
+        this.displayImageQuizQuestion();
+        uiManager.openModal('imageQuizModal');
+    },
+
+    generateImageQuizQuestions: function(allWords, numQuestions = 5) {
+        const questions = [];
+        // SỬA LỖI: dùng state.flashcards để có bộ từ vựng đầy đủ cho câu trả lời sai
+        const wordsForDistractors = [...state.flashcards]; 
+        let wordsForQuestions = [...allWords];
+
+        for (let i = 0; i < Math.min(numQuestions, wordsForQuestions.length); i++) {
+            const correctWordIndex = Math.floor(Math.random() * wordsForQuestions.length);
+            const correctWord = wordsForQuestions.splice(correctWordIndex, 1)[0];
+            
+            const options = [correctWord];
+            const distractors = wordsForDistractors.filter(w => w.id !== correctWord.id);
+
+            while (options.length < 4 && distractors.length > 0) {
+                const distractorIndex = Math.floor(Math.random() * distractors.length);
+                options.push(distractors.splice(distractorIndex, 1)[0]);
+            }
+            
+            questions.push({
+                correctAnswer: correctWord,
+                options: util.shuffleArray(options)
+            });
+        }
+        return questions;
+    },
+
+    displayImageQuizQuestion: function() {
+        const s = state.games.imageQuiz;
+        if (s.currentQuestionIndex >= s.questions.length) {
+            this.endImageQuiz();
+            return;
+        }
+
+        const question = s.questions[s.currentQuestionIndex];
+        const imageContainer = document.getElementById('image-quiz-image-container');
+        
+        document.getElementById('image-quiz-progress').textContent = `Câu ${s.currentQuestionIndex + 1} / ${s.questions.length}`;
+        
+        if (question.correctAnswer.image && question.correctAnswer.image.startsWith('http')) {
+            imageContainer.innerHTML = `<img id="image-quiz-img" src="${question.correctAnswer.image}" alt="Quiz image" class="max-w-full max-h-full object-contain">`;
+        } else {
+            imageContainer.innerHTML = `<div class="text-4xl md:text-5xl font-bold text-center text-blue-800 p-4">${question.correctAnswer.vietnamese}</div>`;
+            soundManager.speak(question.correctAnswer.vietnamese, 'vi-VN');
+        }
+
+        const optionsContainer = document.getElementById('image-quiz-options');
+        optionsContainer.innerHTML = '';
+        question.options.forEach(option => {
+            const optionButton = document.createElement('button');
+            optionButton.className = 'quiz-option p-4 border rounded-lg text-lg font-semibold text-gray-700 bg-white';
+            optionButton.textContent = option.english;
+            optionButton.onclick = () => this.handleImageQuizOptionClick(optionButton, option, question.correctAnswer);
+            optionsContainer.appendChild(optionButton);
+        });
+    },
+
+    handleImageQuizOptionClick: function(button, selectedOption, correctOption) {
+        soundManager.play('click');
+        document.querySelectorAll('#image-quiz-options button').forEach(btn => btn.disabled = true);
+        
+        const s = state.games.imageQuiz;
+        if (selectedOption.id === correctOption.id) {
+            button.classList.add('correct');
+            s.score++;
+            soundManager.play('success_2');
+        } else {
+            button.classList.add('incorrect');
+            soundManager.play('fail');
+            
+            document.querySelectorAll('#image-quiz-options button').forEach(btn => {
+                if (btn.textContent === correctOption.english) {
+                    btn.classList.add('correct');
+                }
+            });
+        }
+
+        soundManager.speak(correctOption.english, 'en-US');
+
+        setTimeout(() => {
+            s.currentQuestionIndex++;
+            this.displayImageQuizQuestion();
+        }, 1500);
+    },
+
+    endImageQuiz: function() {
+        uiManager.closeModal('imageQuizModal');
+        const s = state.games.imageQuiz;
+        const scorePercentage = Math.round((s.score / s.questions.length) * 100);
+        const { id, categoryId } = state.currentActivity;
+        
+        progressManager.updateGameProgress(id, categoryId, scorePercentage);
+        uiManager.showCompletionMessage(scorePercentage, id, categoryId);
+        
+        if (scorePercentage >= 60) {
+            uiManager.createConfetti();
+        }
+    },
+
+	// --- GAME 3: ĐIỀN TỪ (FILL IN THE BLANK) ---
+	startFillBlankGame: function(words) {
+		const s = state.games.fillBlank;
+		if (words) s.wordPool = words;
+		if (!s.wordPool || s.wordPool.length === 0) {
+			alert("Không có từ vựng phù hợp cho trò chơi này.");
+			return;
+		}
+
+		let availableWords = s.wordPool;
+		if (s.lastWordId && s.wordPool.length > 1) {
+			availableWords = s.wordPool.filter(word => word.id !== s.lastWordId);
+		}
+		const randomWord = availableWords[Math.floor(Math.random() * availableWords.length)];
+		s.lastWordId = randomWord.id;
+		s.targetWord = randomWord.english.toUpperCase();
+
+		soundManager.speak(randomWord.vietnamese, 'vi-VN');
+
+		let numBlanks = 1;
+		if (s.targetWord.length >= 6) numBlanks = 2;
+		if (s.targetWord.length >= 9) numBlanks = 3;
+
+		const wordChars = s.targetWord.split('');
+		s.missingLetters = [];
+		const indices = Array.from(Array(s.targetWord.length).keys());
+		util.shuffleArray(indices);
+		const blankIndices = indices.slice(0, numBlanks).sort((a, b) => a - b);
+
+		blankIndices.forEach(index => {
+			s.missingLetters.push(wordChars[index]);
+			wordChars[index] = '_';
+		});
+
+		const choices = [...s.missingLetters];
+		const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+		while (choices.length < 6) {
+			const randomLetter = alphabet[Math.floor(Math.random() * alphabet.length)];
+			if (!choices.includes(randomLetter)) choices.push(randomLetter);
+		}
+		util.shuffleArray(choices);
+
+		const answerArea = document.getElementById('answer-area');
+		const letterTilesArea = document.getElementById('letter-tiles');
+		answerArea.innerHTML = '';
+		letterTilesArea.innerHTML = '';
+
+		wordChars.forEach((char) => {
+			const charElement = document.createElement('div');
+			if (char === '_') {
+				charElement.className = 'blank-slot';
+				charElement.onclick = () => {
+					if (charElement.textContent) {
+						const letter = charElement.textContent;
+						charElement.textContent = '';
+						const choiceToUnhide = Array.from(document.querySelectorAll('.letter-choice.hidden')).find(el => el.dataset.letterInstance.startsWith(letter));
+						if (choiceToUnhide) choiceToUnhide.classList.remove('hidden');
+					}
+				};
+			} else {
+				charElement.className = 'word-char';
+				charElement.textContent = char;
+			}
+			answerArea.appendChild(charElement);
+		});
+
+		choices.forEach((letter, index) => {
+			const tile = document.createElement('div');
+			tile.className = 'letter-choice';
+			tile.textContent = letter;
+			tile.dataset.letterInstance = letter + index;
+			tile.onclick = () => {
+				const firstEmptySlot = document.querySelector('.blank-slot:empty');
+				if (firstEmptySlot) {
+					firstEmptySlot.textContent = letter;
+					tile.classList.add('hidden');
+				}
+			};
+			letterTilesArea.appendChild(tile);
+		});
+		
+		document.getElementById('check-fill-blank-btn').onclick = () => this.checkFillBlankAnswer();
+		document.getElementById('change-word-fill-blank-btn').onclick = () => this.startFillBlankGame();
+		document.getElementById('fill-blank-listen-btn').onclick = () => soundManager.speak(randomWord.english, 'en-US');
+
+		uiManager.openModal('fillBlankGameModal');
+	},
+
+	checkFillBlankAnswer: function() {
+		let userAnswer = Array.from(document.querySelectorAll('#answer-area > div')).map(slot => slot.textContent || '_').join('');
+
+		if (userAnswer === state.games.fillBlank.targetWord) {
+			soundManager.play('success_2');
+			document.getElementById('fill-blank-success-feedback').classList.remove('hidden');
+			setTimeout(() => {
+				document.getElementById('fill-blank-success-feedback').classList.add('hidden');
+				this.startFillBlankGame();
+			}, 1500);
+		} else {
+			soundManager.play('fail');
+			document.getElementById('answer-area').classList.add('error');
+			setTimeout(() => document.getElementById('answer-area').classList.remove('error'), 500);
+		}
+	},
+
+	// --- GAME 4: GHÉP ÂM THANH & TỪ (SOUND MATCH) ---
+	startSoundMatchGame: function(words, numCards = 9) {
+		const s = state.games.soundMatch;
+		if (words) s.wordPool = words;
+		
+		const board = document.getElementById('sound-match-board');
+		board.innerHTML = '';
+		s.selectedCards = [];
+		s.isChecking = true;
+
+		const numPairs = (numCards === 12) ? 4 : 3;
+		const numBlanks = numCards - (numPairs * 2);
+		
+		const gameWords = [...s.wordPool].sort(() => 0.5 - Math.random()).slice(0, numPairs);
+		if (gameWords.length < numPairs) {
+			alert(`Chủ đề này không đủ ${numPairs} từ vựng để chơi.`);
+			s.isChecking = false;
+			return;
+		}
+
+		let cards = [];
+		gameWords.forEach(word => {
+			cards.push({ type: 'audio', word: word.english, pairId: word.id });
+			cards.push({ type: 'text', word: word.english, pairId: word.id });
+		});
+		for (let i = 0; i < numBlanks; i++) {
+			cards.push({ type: 'blank', word: null, pairId: `blank_${i}` });
+		}
+		util.shuffleArray(cards);
+
+		cards.forEach((cardData, index) => {
+			const cardElement = document.createElement('div');
+			let frontContent = '';
+			let frontClasses = 'card-face card-front w-full h-full rounded-lg flex justify-center items-center p-1 text-center font-bold';
+
+			if (cardData.type === 'audio') {
+				frontClasses += ' bg-blue-100 text-blue-600';
+				frontContent = `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>`;
+			} else if (cardData.type === 'text') {
+				frontClasses += ' bg-yellow-100 text-yellow-800';
+				frontContent = cardData.word;
+			} else {
+				frontClasses += ' bg-gray-200';
+			}
+
+			cardElement.className = `match-card w-[90px] h-[70px] cursor-pointer`;
+			cardElement.dataset.cardIndex = index;
+			cardElement.innerHTML = `
+				<div class="card-face card-back w-full h-full rounded-lg flex justify-center items-center text-4xl bg-blue-800 text-white">?</div>
+				<div class="${frontClasses}">${frontContent}</div>`;
+			cardElement.addEventListener('click', () => this.handleMatchCardClick(cardElement, cardData));
+			board.appendChild(cardElement);
+		});
+		
+		uiManager.openModal('soundMatchModal');
+
+		setTimeout(() => board.querySelectorAll('.match-card').forEach(card => card.classList.add('flipped')), 500);
+		setTimeout(() => {
+			board.querySelectorAll('.match-card').forEach(card => card.classList.remove('flipped'));
+			s.isChecking = false;
+		}, 3500);
+	},
+
+	handleMatchCardClick: function(cardElement, cardData) {
+		const s = state.games.soundMatch;
+		if (s.isChecking || cardElement.classList.contains('flipped')) return;
+
+		soundManager.play('click');
+		cardElement.classList.add('flipped');
+		
+		if(cardData.type === 'audio') {
+			soundManager.speak(cardData.word, 'en-US');
+		}
+
+		s.selectedCards.push({ element: cardElement, data: cardData });
+
+		if (s.selectedCards.length === 2) {
+			s.isChecking = true;
+			setTimeout(() => this.checkSoundMatch(), 1200);
+		}
+	},
+
+	checkSoundMatch: function() {
+		const s = state.games.soundMatch;
+		const [card1, card2] = s.selectedCards;
+		
+		const isPair = card1.data.pairId === card2.data.pairId;
+		const isAudioText = card1.data.type !== 'blank' && card1.data.type !== card2.data.type;
+
+		if (isPair && isAudioText) {
+			soundManager.play('success');
+			card1.element.classList.add('matched');
+			card2.element.classList.add('matched');
+			
+			const totalPairs = document.querySelectorAll('#sound-match-board .match-card[data-pair-id^="w"]').length / 2;
+			const matchedCount = document.querySelectorAll('.match-card.matched').length / 2;
+			if (matchedCount === totalPairs) {
+				soundManager.play('tada');
+				setTimeout(() => {
+					this.startSoundMatchGame(null, 9); // Restart game
+				}, 1500);
+			}
+		} else {
+			soundManager.play('fail');
+			card1.element.classList.remove('flipped');
+			card2.element.classList.remove('flipped');
+		}
+
+		s.selectedCards = [];
+		s.isChecking = false;
+	},
 
     // --- QUIZ 1: TRẮC NGHIỆM (MULTIPLE CHOICE) ---
     startMultipleChoiceQuiz: function(words) {
