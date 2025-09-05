@@ -43,7 +43,7 @@ function checkAppVersion() {
  */
 export function runPeriodicVersionCheck() {
     const lastCheck = parseInt(localStorage.getItem('last_version_check') || '0');
-    const oneDay = 24 * 60 * 60 * 1000;
+    const oneDay = 12 * 60 * 60 * 1000;
     if (Date.now() - lastCheck > oneDay) {
         checkAppVersion();
         localStorage.setItem('last_version_check', Date.now().toString());
