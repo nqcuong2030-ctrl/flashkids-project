@@ -752,29 +752,31 @@
 	
     <!-- Multiple Choice Quiz Modal -->
     <div id="multipleChoiceQuizModal" class="modal">
-        <div class="modal-content" style="max-width: 600px">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xl font-bold text-gray-800">Bài kiểm tra trắc nghiệm</h3>
-                <button onclick="closeModal('multipleChoiceQuizModal')" class="text-gray-500 hover:text-gray-700">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-            
-            <p class="text-gray-600 mb-4">Chọn nghĩa tiếng Việt đúng cho mỗi từ tiếng Anh.</p>
-            
-            <div class="space-y-6" id="quiz-questions">
-                <!-- Quiz questions will be loaded dynamically -->
-            </div>
-            
-            <div class="flex justify-center mt-6">
-                <button id="submit-quiz" class="btn-primary text-white py-2 px-6 rounded-lg shadow-md">
-                    Nộp bài
-                </button>
-            </div>
-        </div>
-    </div>
+		<div class="modal-content" style="max-width: 600px">
+			<div class="flex justify-between items-center mb-4">
+				<h3 class="text-xl font-bold text-gray-800">Bài kiểm tra trắc nghiệm</h3>
+				<button onclick="closeModal('multipleChoiceQuizModal')" class="text-gray-500 hover:text-gray-700">
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+					</svg>
+				</button>
+			</div>
+			
+			<p class="text-gray-600 mb-4">Chọn nghĩa tiếng Việt đúng cho mỗi từ tiếng Anh.</p>
+			
+			<div class="space-y-6" id="quiz-questions">
+				</div>
+			
+			<div class="flex justify-center mt-6 space-x-4">
+				<button id="submit-quiz" class="btn-primary text-white py-2 px-6 rounded-lg shadow-md">
+					Nộp bài
+				</button>
+				<button id="next-quiz-btn" class="btn-success text-white py-2 px-6 rounded-lg shadow-md hidden">
+					Làm bài tiếp
+				</button>
+			</div>
+		</div>
+	</div>
 
     <!-- Completion Message Modal -->
     <div id="completionModal" class="modal">

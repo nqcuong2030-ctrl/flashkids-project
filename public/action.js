@@ -2,7 +2,7 @@
 // ===== 0. VERSIONING & DATA MIGRATION
 // ===================================================================================
 
-const APP_VERSION = '1.1_23082025_2'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
+const APP_VERSION = '1.1_09082025_1'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
 const MASTERY_THRESHOLD = 3;
 
 function checkAppVersion() {
@@ -184,8 +184,23 @@ async function loadLevelData(level) {
 		}
 		const data = await response.json();
 
-		// Lưu vào localStorage và cache bộ nhớ
-		localStorage.setItem(`flashkids_level_${level}`, JSON.stringify(data));
+		// <<< BẮT ĐẦU THAY ĐỔI >>>
+		// Thêm cơ chế try...catch để xử lý khi localStorage đầy
+		try {
+			localStorage.setItem(`flashkids_level_${level}`, JSON.stringify(data));
+		} catch (e) {
+			console.error("Lỗi khi lưu cache level:", e);
+			// Nếu localStorage đầy, chúng ta sẽ ưu tiên dọn dẹp cache audio trước
+			pruneAudioCache(50); 
+			// Thử lưu lại một lần nữa sau khi dọn dẹp
+			try {
+				localStorage.setItem(`flashkids_level_${level}`, JSON.stringify(data));
+			} catch (e2) {
+				console.error("Vẫn không thể lưu cache level sau khi dọn dẹp.", e2);
+			}
+		}
+		// <<< KẾT THÚC THAY ĐỔI >>>
+		
 		flashcardCache[level] = data;
 
 		return data;
@@ -330,7 +345,21 @@ async function speakWord(word, lang) {
                 if (data.audioContent) {
                     audioSrc = `data:audio/mp3;base64,${data.audioContent}`;
                     const itemToCache = { audioContent: data.audioContent, timestamp: Date.now() };
-                    try { localStorage.setItem(cacheKey, JSON.stringify(itemToCache)); } catch (e) { /* Xử lý cache đầy */ }
+                    
+                    // <<< BẮT ĐẦU THAY ĐỔI >>>
+                    try { 
+                        localStorage.setItem(cacheKey, JSON.stringify(itemToCache)); 
+                    } catch (e) { 
+                        // Nếu localStorage đầy, gọi hàm dọn dẹp
+                        pruneAudioCache();
+                        // Thử lưu lại một lần nữa
+                        try {
+                           localStorage.setItem(cacheKey, JSON.stringify(itemToCache)); 
+                        } catch (e2) {
+                            console.error("Vẫn không thể lưu cache audio sau khi dọn dẹp.", e2);
+                        }
+                    }
+                    // <<< KẾT THÚC THAY ĐỔI >>>
                 }
             } catch (fetchError) {
                 console.error('Lỗi khi gọi Netlify Function:', fetchError);
@@ -1513,9 +1542,19 @@ function startMultipleChoiceQuiz(words, quizId, categoryId) {
     });
     
     const submitButton = document.getElementById('submit-quiz');
+    const nextButton = document.getElementById('next-quiz-btn');
+
+    // Reset trạng thái các nút khi bắt đầu quiz mới
     submitButton.textContent = 'Nộp bài';
     submitButton.disabled = false;
+    submitButton.classList.remove('hidden');
+    nextButton.classList.add('hidden');
+
     submitButton.onclick = () => checkQuizAnswers(quizId, categoryId);
+    nextButton.onclick = () => {
+        const categoryWords = flashcards.filter(card => card.categoryId === categoryId);
+		startMultipleChoiceQuiz(categoryWords, quizId, categoryId);
+    };
     
     openModal('multipleChoiceQuizModal');
 }
@@ -1573,20 +1612,21 @@ function checkQuizAnswers(quizId, categoryId) {
 	}
 
 	const submitButton = document.getElementById('submit-quiz');
+    const nextButton = document.getElementById('next-quiz-btn');
+
+	// Vô hiệu hóa các lựa chọn sau khi nộp bài
+	document.querySelectorAll('.quiz-option').forEach(opt => opt.onclick = null);
+
+    // Cập nhật giao diện nút
 	submitButton.textContent = `Đúng ${correctCount}/${totalCount}`;
 	submitButton.disabled = true;
+    submitButton.classList.add('hidden');
+    nextButton.classList.remove('hidden');
 
-	// Hiệu ứng chúc mừng nếu đạt điểm tuyệt đối
 	if (correctCount === totalCount && totalCount > 0) {
 		createConfetti();
-		playSound('success'); // <-- Thay thế âm thanh "tada" bằng "success"
+		playSound('success'); 
 	}
-
-	// Tự động bắt đầu vòng mới sau 2 giây
-	setTimeout(() => {
-		const categoryWords = flashcards.filter(card => card.categoryId === categoryId);
-		startMultipleChoiceQuiz(categoryWords, quizId, categoryId);
-	}, 2000);
 }
 
 // --- Quiz 2: Xếp chữ (Unscramble) ---
@@ -2329,17 +2369,18 @@ function updateCategoryProgressDisplay() {
 	
 	categories.forEach(category => {
 		const progress = getCategoryProgress(category.id);
-		const colorClass = category.colorClass || getCategoryColorClass(category.color);
-		
-        // === DÒNG SỬA LỖI NẰM Ở ĐÂY ===
-		const baseColor = colorClass.split(' ')[0].split('-')[1]; // SỬA DÒNG NÀY
+        
+        // <<< BẮT ĐẦU THAY ĐỔI >>>
+		// Lấy màu trực tiếp từ thuộc tính 'color' của category, an toàn hơn parse class
+		const baseColor = category.color || 'blue'; // Mặc định là 'blue' nếu không có
+		// <<< KẾT THÚC THAY ĐỔI >>>
 		
 		const categoryElement = document.createElement('div');
 		categoryElement.className = 'mb-4';
 		categoryElement.innerHTML = `
 			<div class="flex justify-between items-center mb-1">
 				<span class="font-semibold text-gray-700">${category.name}</span>
-				<span class="text-sm text-${baseColor}-600">${progress}%</span>
+				<span class="text-sm text-${baseColor}-600 font-bold">${progress}%</span>
 			</div>
 			<div class="w-full bg-gray-200 rounded-full h-2">
 				<div class="bg-${baseColor}-500 h-2 rounded-full" style="width: ${progress}%"></div>
@@ -2760,11 +2801,12 @@ function handleSpeakRequest() {
     
     lastSpokenAudio = { lang: lang, text: text };
 
+    // Hiển thị icon loading/stop
     document.getElementById('tts-speak-icon').classList.add('hidden');
     document.getElementById('tts-stop-icon').classList.remove('hidden');
+    // Ẩn nút download cũ đi để chuẩn bị cho lần tạo file mới
     document.getElementById('download-speech-btn').classList.add('hidden');
 
-    // <<< THAY ĐỔI Ở ĐÂY >>>
     // Gọi hàm phát âm thanh với callback đã được tối giản.
     // Callback này giờ chỉ có nhiệm vụ reset icon khi phát xong.
     speakWordForTool(text, lang, () => {
@@ -2834,14 +2876,13 @@ function speakWordForTool(word, lang, onEndCallback) {
     const textCacheKey = `audio_${lang}_${word.toLowerCase().substring(0, 50)}`;
     const downloadCacheKey = 'flashkids_last_tts_audio'; 
     const speed = parseFloat(document.getElementById('tts-speed-slider').value);
-    const downloadBtn = document.getElementById('download-speech-btn'); // Lấy tham chiếu đến nút download
+    const downloadBtn = document.getElementById('download-speech-btn');
     
     if (ttsToolAudio) {
         ttsToolAudio.pause();
         ttsToolAudio = null;
     }
     
-    // Bước 1: Kiểm tra cache hiệu năng (áp dụng cho câu ngắn)
     if (word.length <= 50) {
         const cachedItem = localStorage.getItem(textCacheKey);
         if (cachedItem) {
@@ -2850,30 +2891,37 @@ function speakWordForTool(word, lang, onEndCallback) {
                 const data = JSON.parse(cachedItem);
                 localStorage.setItem(downloadCacheKey, JSON.stringify(data));
                 
-                // <<< THAY ĐỔI Ở ĐÂY: HIỆN NÚT DOWNLOAD NGAY LẬP TỨC >>>
-                downloadBtn.classList.remove('hidden');
+                downloadBtn.classList.remove('hidden'); // <<< HIỆN NÚT DOWNLOAD NGAY
                 
                 const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
                 audio.playbackRate = speed;
                 ttsToolAudio = audio;
                 audio.onended = onEndCallback;
+                audio.onerror = () => {
+                    alert("Lỗi khi phát âm thanh từ cache.");
+                    if (onEndCallback) onEndCallback();
+                };
                 audio.play();
                 return;
             } catch (e) {
-                console.error("Dữ liệu cache bị lỗi, sẽ gọi API.", e);
                 localStorage.removeItem(textCacheKey);
             }
         }
     }
 
-    // Bước 2: Nếu không có trong cache hoặc câu dài, gọi API
     console.log("Đang gọi API để tạo file âm thanh...");
     fetch(`/.netlify/functions/text-to-speech`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: word, lang: lang }),
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            // Xử lý lỗi từ server tốt hơn
+            return response.json().then(err => { throw new Error(err.details || err.error || 'Lỗi không xác định từ server') });
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.audioContent) {
             const itemToCache = { 
@@ -2892,8 +2940,7 @@ function speakWordForTool(word, lang, onEndCallback) {
                 }
             }
             
-            // <<< THAY ĐỔI Ở ĐÂY: HIỆN NÚT DOWNLOAD NGAY LẬP TỨC >>>
-            downloadBtn.classList.remove('hidden');
+            downloadBtn.classList.remove('hidden'); // <<< HIỆN NÚT DOWNLOAD NGAY
 
             const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
             audio.playbackRate = speed;
