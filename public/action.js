@@ -249,12 +249,12 @@ function pruneAudioCache(itemsToRemove = 50) {
 // ===================================================================================
 
 const soundEffects = {
-	click: new Audio('https://cdn.pixabay.com/download/audio/2025/07/31/audio_ebc800c9bc.mp3?filename=button-press-click-tap-video-game-main-menu-select-382948.mp3'),
-	success: new Audio('https://cdn.pixabay.com/download/audio/2022/03/15/audio_e8b2fa25cf.mp3?filename=goodresult-82807.mp3'),
-	success_2: new Audio('https://cdn.pixabay.com/download/audio/2021/08/09/audio_61f5e6ef48.mp3?filename=news-ting-6832.mp3'),
-	fail: new Audio('https://cdn.pixabay.com/download/audio/2022/03/10/audio_8b0fae46ef.mp3?filename=wrong-47985.mp3'),
-	error: new Audio('https://cdn.pixabay.com/download/audio/2024/08/23/audio_703f9da0e1.mp3?filename=fail-234710.mp3'),			
-	tada: new Audio('https://cdn.pixabay.com/download/audio/2021/08/04/audio_473a42432c.mp3?filename=tada-fanfare-a-6313.mp3')
+	click: new Audio('data/click.mp3'),
+	success: new Audio('data/success.mp3'),
+	success_2: new Audio('data/success_2.mp3'),
+	fail: new Audio('data/fail.mp3'),
+	error: new Audio('data/error.mp3'),			
+	tada: new Audio('data/tada.mp3')
 };
 
 function playSound(soundName) {
