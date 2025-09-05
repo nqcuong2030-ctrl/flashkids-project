@@ -9,7 +9,7 @@
  * @description Chứa các hằng số và cấu hình không thay đổi trong suốt quá trình chạy.
  */
 const config = {
-    APP_VERSION: '1.1_09082025_6',
+    APP_VERSION: '1.1_09082025_7',
     MASTERY_THRESHOLD: 4,
     INACTIVITY_DELAY: 10000, // 10 giây
     LOCAL_STORAGE_KEYS: {
@@ -1113,144 +1113,180 @@ const gameManager = {
     },
 
     showCategorySelectionModal: function() {
-        const container = dom.categorySelectionContainer;
-        container.innerHTML = '';
-        
-        state.categories.forEach(category => {
-            const progress = progressManager.getCategoryProgress(category.id);
-            const colorClass = util.getCategoryColorClass(category.color);
-            const categoryElement = document.createElement('div');
-            categoryElement.className = `bg-gradient-to-br ${colorClass} rounded-xl p-4 text-white cursor-pointer hover:shadow-lg transition duration-300 lift-on-hover`;
-            categoryElement.innerHTML = `
-                <div class="flex justify-between items-start mb-2">
-                    <h4 class="font-bold">${category.name}</h4>
-                    <span class="bg-white text-gray-700 text-xs font-bold px-2 py-1 rounded-full">${category.wordCount} từ</span>
-                </div>
-                <div class="mt-2">
-                    <div class="text-sm mb-1">Tiến độ: ${progress}%</div>
-                    <div class="w-full bg-white bg-opacity-30 rounded-full h-2">
-                        <div class="bg-white h-2 rounded-full" style="width: ${progress}%"></div>
-                    </div>
-                </div>`;
-            
-            categoryElement.addEventListener('click', () => {
-                soundManager.play('click');
-                uiManager.closeModal('categorySelectionModal');
-                state.currentActivity.categoryId = category.id;
+		const container = dom.categorySelectionContainer;
+		container.innerHTML = '';
+		
+		state.categories.forEach(category => {
+			const progress = progressManager.getCategoryProgress(category.id);
+			const colorClass = util.getCategoryColorClass(category.color);
+			const categoryElement = document.createElement('div');
+			// ... (phần code HTML của categoryElement giữ nguyên) ...
+			categoryElement.className = `bg-gradient-to-br ${colorClass} rounded-xl p-4 text-white cursor-pointer hover:shadow-lg transition duration-300 lift-on-hover`;
+			categoryElement.innerHTML = `
+				<div class="flex justify-between items-start mb-2">
+					<h4 class="font-bold">${category.name}</h4>
+					<span class="bg-white text-gray-700 text-xs font-bold px-2 py-1 rounded-full">${category.wordCount} từ</span>
+				</div>
+				<div class="mt-2">
+					<div class="text-sm mb-1">Tiến độ: ${progress}%</div>
+					<div class="w-full bg-white bg-opacity-30 rounded-full h-2">
+						<div class="bg-white h-2 rounded-full" style="width: ${progress}%"></div>
+					</div>
+				</div>`;
 
-                if (state.currentActivity.type === 'game') {
-                    this.playGame(state.currentActivity.id, category.id);
-                } else if (state.currentActivity.type === 'quiz') {
-                    this.startQuizWithCategory(state.currentActivity.id, category.id);
-                }
-            });
-            container.appendChild(categoryElement);
-        });
-        uiManager.openModal('categorySelectionModal');
-    },
+			categoryElement.addEventListener('click', () => {
+				soundManager.play('click');
+				uiManager.closeModal('categorySelectionModal');
+				state.currentActivity.categoryId = category.id;
+				const categoryWords = state.flashcards.filter(card => card.categoryId === category.id);
 
+				// SỬA LỖI: Thêm lại logic hiển thị modal chọn độ khó cho Game 4
+				if (state.currentActivity.type === 'game' && state.currentActivity.id === 4) {
+					uiManager.openModal('gameOptionsModal');
+					document.getElementById('option-9-cards').onclick = () => {
+						soundManager.play('click');
+						uiManager.closeModal('gameOptionsModal');
+						this.startSoundMatchGame(categoryWords, 9);
+					};
+					document.getElementById('option-12-cards').onclick = () => {
+						soundManager.play('click');
+						uiManager.closeModal('gameOptionsModal');
+						this.startSoundMatchGame(categoryWords, 12);
+					};
+				} else {
+					// Giữ nguyên logic cũ cho các game và quiz khác
+					if (state.currentActivity.type === 'game') {
+						this.playGame(state.currentActivity.id, category.id);
+					} else if (state.currentActivity.type === 'quiz') {
+						this.startQuizWithCategory(state.currentActivity.id, category.id);
+					}
+				}
+			});
+			container.appendChild(categoryElement);
+		});
+		uiManager.openModal('categorySelectionModal');
+	},
+	
     // --- GAME 1: GHÉP TỪ (MATCHING GAME) ---
-    startMatchingGame: function(words) {
-        const s = state.games.matching;
-        s.selectedEnglishWord = null;
-        s.selectedVietnameseWord = null;
-        s.matchedPairs = [];
-        
-        const gameWords = [...words].sort(() => 0.5 - Math.random()).slice(0, 5);
-        const englishContainer = document.getElementById('english-words');
-        const vietnameseContainer = document.getElementById('vietnamese-words');
-        englishContainer.innerHTML = '';
-        vietnameseContainer.innerHTML = '';
 
-        gameWords.forEach(word => {
-            const wordElement = document.createElement('div');
-            wordElement.className = 'word-card bg-blue-100 p-3 rounded-lg text-blue-800 font-semibold cursor-pointer';
-            wordElement.dataset.wordId = word.id;
-            wordElement.textContent = word.english;
-            wordElement.addEventListener('click', (e) => this.selectMatchingWord(e.target, word.id, 'en'));
-            englishContainer.appendChild(wordElement);
-        });
+	// 1. HÀM KHỞI TẠO GAME
+	startMatchingGame: function(words) {
+		const s = state.games.matching;
+		s.selectedEnglishWord = null;
+		s.selectedVietnameseWord = null;
+		s.matchedPairs = []; // Mảng này sẽ lưu các cặp đã ghép đúng
+		
+		const gameWords = [...words].sort(() => 0.5 - Math.random()).slice(0, 5);
+		const englishContainer = document.getElementById('english-words');
+		const vietnameseContainer = document.getElementById('vietnamese-words');
+		englishContainer.innerHTML = '';
+		vietnameseContainer.innerHTML = '';
 
-        const shuffledVietnamese = [...gameWords].sort(() => 0.5 - Math.random());
-        shuffledVietnamese.forEach(word => {
-            const wordElement = document.createElement('div');
-            wordElement.className = 'word-card bg-gray-100 p-3 rounded-lg text-gray-800 cursor-pointer';
-            wordElement.dataset.wordId = word.id;
-            wordElement.textContent = word.vietnamese;
-            wordElement.addEventListener('click', (e) => this.selectMatchingWord(e.target, word.id, 'vi'));
-            vietnameseContainer.appendChild(wordElement);
-        });
-        
-        document.getElementById('restart-matching-game').onclick = () => this.restartMatchingGame();
-        uiManager.openModal('matchingGameModal');
-    },
+		gameWords.forEach(word => {
+			// Tạo cột Tiếng Anh
+			const enWordEl = document.createElement('div');
+			enWordEl.className = 'word-card bg-blue-100 p-3 rounded-lg text-blue-800 font-semibold cursor-pointer';
+			enWordEl.dataset.wordId = word.id;
+			enWordEl.textContent = word.english;
+			enWordEl.addEventListener('click', () => this.selectEnglishWord(enWordEl, word.id));
+			englishContainer.appendChild(enWordEl);
 
-    selectMatchingWord: function(element, wordId, lang) {
-        soundManager.speak(element.textContent, lang === 'en' ? 'en-US' : 'vi-VN');
-        if (element.classList.contains('matched')) return;
+			// Tạo cột Tiếng Việt (chưa xáo trộn)
+			const viWordEl = document.createElement('div');
+			viWordEl.className = 'word-card bg-gray-100 p-3 rounded-lg text-gray-800 cursor-pointer';
+			viWordEl.dataset.wordId = word.id;
+			viWordEl.textContent = word.vietnamese;
+			vietnameseContainer.appendChild(viWordEl);
+		});
+		
+		// Xáo trộn cột Tiếng Việt sau khi đã tạo
+		const viWords = Array.from(vietnameseContainer.children);
+		util.shuffleArray(viWords);
+		viWords.forEach(word => vietnameseContainer.appendChild(word));
+		vietnameseContainer.querySelectorAll('.word-card').forEach(el => {
+			el.addEventListener('click', () => this.selectVietnameseWord(el, el.dataset.wordId));
+		});
 
-        const s = state.games.matching;
-        const containerId = lang === 'en' ? '#english-words' : '#vietnamese-words';
-        
-        const currentlySelected = document.querySelector(`${containerId} .word-card.selected`);
-        if (currentlySelected) currentlySelected.classList.remove('selected');
-        
-        element.classList.add('selected');
+		// Gán sự kiện cho các nút điều khiển
+		document.getElementById('check-answers').onclick = () => this.checkMatchingAnswers(gameWords);
+		document.getElementById('restart-matching-game').onclick = () => this.restartMatchingGame();
+		
+		uiManager.openModal('matchingGameModal');
+	},
 
-        if (lang === 'en') s.selectedEnglishWord = wordId;
-        else s.selectedVietnameseWord = wordId;
+	// 2. CÁC HÀM CHỌN TỪ
+	selectEnglishWord: function(element, wordId) {
+		soundManager.speak(element.textContent, 'en-US');
+		if (element.classList.contains('matched')) return;
 
-        if (s.selectedEnglishWord && s.selectedVietnameseWord) {
-            this.checkWordMatch();
-        }
-    },
+		// Bỏ chọn tất cả các từ khác trong cột
+		document.querySelectorAll('#english-words .word-card.selected').forEach(el => el.classList.remove('selected'));
+		
+		// Chọn từ mới
+		element.classList.add('selected');
+		state.games.matching.selectedEnglishWord = wordId;
+	},
 
-    checkWordMatch: function() {
-        const s = state.games.matching;
-        const englishElement = document.querySelector(`#english-words .word-card[data-word-id="${s.selectedEnglishWord}"]`);
-        const vietnameseElement = document.querySelector(`#vietnamese-words .word-card[data-word-id="${s.selectedVietnameseWord}"]`);
-        if (!englishElement || !vietnameseElement) return;
+	selectVietnameseWord: function(element, wordId) {
+		soundManager.speak(element.textContent, 'vi-VN');
+		if (element.classList.contains('matched')) return;
 
-        if (s.selectedEnglishWord === s.selectedVietnameseWord) {
-            soundManager.play('success_2');
-            englishElement.classList.remove('selected');
-            vietnameseElement.classList.remove('selected');
-            englishElement.classList.add('matched');
-            vietnameseElement.classList.add('matched');
-            s.matchedPairs.push(s.selectedEnglishWord);
-        } else {
-            soundManager.play('fail');
-            englishElement.classList.add('error');
-            vietnameseElement.classList.add('error');
-            setTimeout(() => {
-                englishElement.classList.remove('selected', 'error');
-                vietnameseElement.classList.remove('selected', 'error');
-            }, 800);
-        }
+		document.querySelectorAll('#vietnamese-words .word-card.selected').forEach(el => el.classList.remove('selected'));
+		
+		element.classList.add('selected');
+		state.games.matching.selectedVietnameseWord = wordId;
+	},
 
-        s.selectedEnglishWord = null;
-        s.selectedVietnameseWord = null;
+	// 3. HÀM KIỂM TRA ĐÁP ÁN (LOGIC MỚI)
+	checkMatchingAnswers: function(gameWords) {
+		soundManager.play('click');
+		const s = state.games.matching;
 
-        const totalPairs = document.querySelectorAll('#english-words .word-card').length;
-        if (s.matchedPairs.length === totalPairs && totalPairs > 0) {
-            setTimeout(() => {
-                const { id, categoryId } = state.currentActivity;
-                progressManager.updateGameProgress(id, categoryId, 100);
-                uiManager.closeModal('matchingGameModal');
-                uiManager.showCompletionMessage(100, id, categoryId);
-                uiManager.createConfetti();
-            }, 1000);
-        }
-    },
+		document.querySelectorAll('#english-words .word-card').forEach(enEl => {
+			// Tìm từ tiếng Việt mà người dùng đã chọn cho từ tiếng Anh này (nếu có)
+			// Đây là một cách giả lập việc nối dây, dựa vào vị trí tương ứng
+			const index = Array.from(enEl.parentElement.children).indexOf(enEl);
+			const viEl = document.querySelectorAll('#vietnamese-words .word-card')[index];
 
-    restartMatchingGame: function() {
-        soundManager.play('click');
-        const { id, categoryId } = state.currentActivity;
-        if (id && categoryId) {
-            uiManager.closeModal('matchingGameModal');
-            setTimeout(() => this.playGame(id, categoryId), 300);
-        }
-    },
+			const enId = enEl.dataset.wordId;
+			const viId = viEl.dataset.wordId;
+			
+			// Nếu ghép đúng
+			if (enId === viId) {
+				enEl.classList.add('matched');
+				viEl.classList.add('matched');
+				enEl.classList.remove('selected', 'error');
+				viEl.classList.remove('selected', 'error');
+			} 
+			// Nếu ghép sai
+			else {
+				enEl.classList.add('error');
+				viEl.classList.add('error');
+			}
+		});
+
+		const allCorrect = document.querySelectorAll('#english-words .word-card.matched').length === gameWords.length;
+		if (allCorrect) {
+			soundManager.play('tada');
+		} else {
+			soundManager.play('error');
+		}
+
+		// Sau 2.5 giây, tự động tải bộ từ mới
+		setTimeout(() => {
+			this.restartMatchingGame();
+		}, 2500);
+	},
+
+	// 4. HÀM CHƠI LẠI
+	restartMatchingGame: function() {
+		soundManager.play('click');
+		const { id, categoryId } = state.currentActivity;
+		if (id && categoryId) {
+			// Không cần đóng modal, chỉ cần tải lại nội dung
+			this.playGame(id, categoryId);
+		}
+	}
 
 	// --- GAME 2: CHỌN TỪ (IMAGE QUIZ) ---
     startImageQuiz: function(words) {
@@ -1560,12 +1596,15 @@ const gameManager = {
 			card1.element.classList.add('matched');
 			card2.element.classList.add('matched');
 			
-			const totalPairs = document.querySelectorAll('#sound-match-board .match-card[data-pair-id^="w"]').length / 2;
-			const matchedCount = document.querySelectorAll('.match-card.matched').length / 2;
-			if (matchedCount === totalPairs) {
+			const totalPairsOnBoard = document.querySelectorAll('#sound-match-board .match-card[data-card-index]').length - document.querySelectorAll('#sound-match-board .match-card[data-pair-id*="blank"]').length;
+			const matchedCardsCount = document.querySelectorAll('.match-card.matched').length;
+
+			// SỬA LỖI: Thêm lại logic kiểm tra hoàn thành và restart game
+			if (matchedCardsCount === totalPairsOnBoard && totalPairsOnBoard > 0) {
 				soundManager.play('tada');
 				setTimeout(() => {
-					this.startSoundMatchGame(null, 9); // Restart game
+					const currentNumCards = document.querySelectorAll('#sound-match-board .match-card').length;
+					this.startSoundMatchGame(null, currentNumCards); // Restart game với cùng độ khó
 				}, 1500);
 			}
 		} else {
@@ -2195,7 +2234,7 @@ const app = {
      */
     runPeriodicVersionCheck: function() {
 		const lastCheck = parseInt(localStorage.getItem(config.LOCAL_STORAGE_KEYS.LAST_VERSION_CHECK) || '0');
-		const oneDay = 24 * 60 * 60 * 1000;
+		const oneDay = 1 * 60 * 60 * 1000;
 
 		if (!lastCheck || (Date.now() - lastCheck > oneDay)) {
 			const storedVersion = localStorage.getItem(config.LOCAL_STORAGE_KEYS.APP_VERSION);
