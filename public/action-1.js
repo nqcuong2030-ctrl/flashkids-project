@@ -9,7 +9,7 @@
  * @description Chứa các hằng số và cấu hình không thay đổi trong suốt quá trình chạy.
  */
 const config = {
-    APP_VERSION: '1.1_09082025_1',
+    APP_VERSION: '1.1_09082025_2',
     MASTERY_THRESHOLD: 4,
     INACTIVITY_DELAY: 10000, // 10 giây
     LOCAL_STORAGE_KEYS: {
@@ -1812,19 +1812,29 @@ const app = {
      * @description Kiểm tra phiên bản ứng dụng định kỳ.
      */
     runPeriodicVersionCheck: function() {
-        const lastCheck = parseInt(localStorage.getItem(config.LOCAL_STORAGE_KEYS.LAST_VERSION_CHECK) || '0');
-        const oneDay = 24 * 60 * 60 * 1000;
+		const lastCheck = parseInt(localStorage.getItem(config.LOCAL_STORAGE_KEYS.LAST_VERSION_CHECK) || '0');
+		const oneDay = 24 * 60 * 60 * 1000;
 
-        if (!lastCheck || (Date.now() - lastCheck > oneDay)) {
-            const storedVersion = localStorage.getItem(config.LOCAL_STORAGE_KEYS.APP_VERSION);
-            if (storedVersion !== config.APP_VERSION) {
-                console.log(`Phiên bản cũ (${storedVersion}) được phát hiện. Cập nhật lên ${config.APP_VERSION}.`);
-                dataManager.pruneAudioCache(Infinity); // Xóa hết cache audio
-                localStorage.setItem(config.LOCAL_STORAGE_KEYS.APP_VERSION, config.APP_VERSION);
-            }
-            localStorage.setItem(config.LOCAL_STORAGE_KEYS.LAST_VERSION_CHECK, Date.now().toString());
-        }
-    },
+		if (!lastCheck || (Date.now() - lastCheck > oneDay)) {
+			const storedVersion = localStorage.getItem(config.LOCAL_STORAGE_KEYS.APP_VERSION);
+			if (storedVersion !== config.APP_VERSION) {
+				console.log(`Phiên bản cũ (${storedVersion}) được phát hiện. Cập nhật lên ${config.APP_VERSION}.`);
+				
+				// SỬA LỖI: Thay vì gọi pruneAudioCache(Infinity), chúng ta sẽ xóa tất cả các key có tiền tố 'audio_'
+				console.log("Đang tiến hành dọn dẹp toàn bộ cache âm thanh...");
+				for (let i = localStorage.length - 1; i >= 0; i--) {
+					const key = localStorage.key(i);
+					if (key.startsWith(config.LOCAL_STORAGE_KEYS.AUDIO_CACHE_PREFIX)) {
+						localStorage.removeItem(key);
+					}
+				}
+				console.log("Đã dọn dẹp cache âm thanh thành công.");
+				
+				localStorage.setItem(config.LOCAL_STORAGE_KEYS.APP_VERSION, config.APP_VERSION);
+			}
+			localStorage.setItem(config.LOCAL_STORAGE_KEYS.LAST_VERSION_CHECK, Date.now().toString());
+		}
+	},
     
     /**
      * @description Tải dữ liệu cho một level và cập nhật giao diện.

@@ -198,7 +198,7 @@
                     <div>
                         <h2 id="welcome-message" class="text-3xl font-bold mb-2">Xin chào, Bạn nhỏ!</h2>
                         <p class="mb-4">Hôm nay bạn đã sẵn sàng học từ vựng mới chưa?</p>
-                        <button class="bg-white text-orange-500 font-bold py-2 px-6 rounded-full shadow-md hover:shadow-lg transition duration-300 flex items-center" onclick="changeTab('flashcards')">
+                        <button class="bg-white text-orange-500 font-bold py-2 px-6 rounded-full shadow-md hover:shadow-lg transition duration-300 flex items-center">
                             <span>Bắt đầu ngay</span>
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/>
@@ -217,12 +217,12 @@
                 <div class="bg-white rounded-2xl p-6 mb-8 shadow-md">
                     <h3 class="text-xl font-bold text-gray-800 mb-4">Chọn cấp độ từ vựng (hơn 3000 từ)</h3>
                     <div class="flex flex-wrap gap-3">
-                        <button class="level-badge level-a1 active" onclick="changeLevel('a1', true)">A1 - Cơ bản</button>
-                        <button class="level-badge level-a2" onclick="changeLevel('a2', true)">A2 - Sơ cấp</button>
-                        <button class="level-badge level-b1" onclick="changeLevel('b1', true)">B1 - Trung cấp</button>
-                        <button class="level-badge level-b2" onclick="changeLevel('b2', true)">B2 - Cao cấp</button>
-						<button class="level-badge level-c1 hidden" onclick="changeLevel('c1', true)">C1 - Thông thạo</button>
-						<button class="level-badge level-c2 hidden" onclick="changeLevel('c2', true)">C2 - Thành thạo</button>
+                        <button class="level-badge level-a1 active">A1 - Cơ bản</button>
+                        <button class="level-badge level-a2">A2 - Sơ cấp</button>
+                        <button class="level-badge level-b1">B1 - Trung cấp</button>
+                        <button class="level-badge level-b2"">B2 - Cao cấp</button>
+						<button class="level-badge level-c1 hidden">C1 - Thông thạo</button>
+						<button class="level-badge level-c2 hidden">C2 - Thành thạo</button>
                     </div>
                 </div>
 
@@ -257,12 +257,12 @@
                 <div class="mb-6 flex justify-between items-center">                    
                     <!-- Level Selection in Flashcards Tab -->
                     <div class="flex flex-wrap gap-3 hidden">
-						<button class="level-badge level-a1 active" onclick="changeLevel('a1')">A1</button>
-						<button class="level-badge level-a2" onclick="changeLevel('a2')">A2</button>
-						<button class="level-badge level-b1" onclick="changeLevel('b1')">B1</button>
-						<button class="level-badge level-b2" onclick="changeLevel('b2')">B2</button>
-						<button class="level-badge level-c1" onclick="changeLevel('c1')">C1</button>
-						<button class="level-badge level-c2" onclick="changeLevel('c2')">C2</button>
+						<button class="level-badge level-a1 active">A1</button>
+						<button class="level-badge level-a2">A2</button>
+						<button class="level-badge level-b1">B1</button>
+						<button class="level-badge level-b2">B2</button>
+						<button class="level-badge level-c1">C1</button>
+						<button class="level-badge level-c2">C2</button>
 					</div>
                 </div>
 
@@ -276,7 +276,7 @@
                     <div class="flashcard mx-auto" id="current-flashcard">
                         <div class="flashcard-inner">
                             <div class="flashcard-front">
-                                <div class="listen-btn" onclick="speakCurrentWord('english'); event.stopPropagation();">
+                                <div class="listen-btn">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
                                         <path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071a1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243a1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828a1 1 0 010-1.415z" clip-rule="evenodd"/>
                                     </svg>
@@ -285,7 +285,7 @@
                                 <p class="text-xl text-gray-600 mb-6" id="phonetic-text">/ˈfæməli/</p>
                             </div>
                             <div class="flashcard-back">
-                                <div class="listen-btn" onclick="speakCurrentWord('vietnamese'); event.stopPropagation();">
+                                <div class="listen-btn">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
                                         <path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071a1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243a1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828a1 1 0 010-1.415z" clip-rule="evenodd"/>
                                     </svg>
@@ -317,7 +317,7 @@
 
                 <!-- Mark as Learned Button -->
                 <div class="flex justify-center mb-8 hidden">
-                    <button class="btn-success text-white py-2 px-6 rounded-full shadow-md flex items-center" id="mark-learned-btn" onclick="markCurrentWordAsLearned()">
+                    <button class="btn-success text-white py-2 px-6 rounded-full shadow-md flex items-center" id="mark-learned-btn">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                         </svg>
@@ -444,7 +444,7 @@
                                 <label class="block text-gray-700 text-sm font-bold mb-2" for="age">Tuổi</label>
                                 <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="age" type="number" placeholder="Tuổi của bạn">
                             </div>
-                            <button class="btn-primary text-white py-2 px-6 rounded-lg shadow-md" onclick="saveUserProfile()">Lưu thay đổi</button>
+                            <button class="btn-primary text-white py-2 px-6 rounded-lg shadow-md">Lưu thay đổi</button>
                         </div>
                     </div>
                 </div>				
@@ -500,14 +500,14 @@
 						<h3 class="text-lg font-bold text-gray-800 mb-4">Quản lý dữ liệu</h3>
 						
 						<div class="flex space-x-4 mb-4">
-							<button class="btn-primary text-white py-2 px-6 rounded-lg shadow-md flex items-center" onclick="exportFlashcardsToJSON()">
+							<button class="btn-primary text-white py-2 px-6 rounded-lg shadow-md flex items-center">
 								<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
 									<path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
 								</svg>
 								Xuất dữ liệu
 							</button>
 							
-							<button class="btn-warning text-white py-2 px-6 rounded-lg shadow-md flex items-center" onclick="openModal('jsonFileModal')">
+							<button class="btn-warning text-white py-2 px-6 rounded-lg shadow-md flex items-center">
 								<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
 									<path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
 								</svg>
@@ -515,14 +515,14 @@
 							</button>
 						</div>
 						
-						<button class="text-red-500 py-2 px-6 rounded-lg border border-red-500 flex items-center mx-auto" onclick="confirmResetProgress()">
+						<button class="text-red-500 py-2 px-6 rounded-lg border border-red-500 flex items-center mx-auto">
 							<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
 								<path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
 							</svg>
 							Xóa tất cả dữ liệu
 						</button>
 					</div>                    
-                    <button class="btn-primary text-white py-2 px-6 rounded-lg shadow-md mt-6" onclick="saveUserSettings()">Lưu cài đặt</button>
+                    <button class="btn-primary text-white py-2 px-6 rounded-lg shadow-md mt-6">Lưu cài đặt</button>
                 </div>
             </div>
         </main>
@@ -533,7 +533,7 @@
         <div class="modal-content">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xl font-bold text-gray-800">Tải từ vựng từ file JSON</h3>
-                <button onclick="closeModal('jsonFileModal')" class="text-gray-500 hover:text-gray-700">
+                <button class="text-gray-500 hover:text-gray-700">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -548,8 +548,8 @@
                 <textarea class="mt-2 shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-40" id="json-data" placeholder='{"categories": [...], "flashcards": [...]}'></textarea>
             </div>
             <div class="flex justify-end">
-                <button class="bg-gray-300 text-gray-700 py-2 px-4 rounded-lg mr-2" onclick="closeModal('jsonFileModal')">Hủy</button>
-                <button class="btn-primary text-white py-2 px-4 rounded-lg" onclick="processJSONInput()">Tải</button>
+                <button class="bg-gray-300 text-gray-700 py-2 px-4 rounded-lg mr-2">Hủy</button>
+                <button class="btn-primary text-white py-2 px-4 rounded-lg">Tải</button>
             </div>
         </div>
     </div>
@@ -559,7 +559,7 @@
         <div class="modal-content">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xl font-bold text-gray-800">Chọn chủ đề từ vựng</h3>
-                <button onclick="closeModal('categorySelectionModal')" class="text-gray-500 hover:text-gray-700">
+                <button class="text-gray-500 hover:text-gray-700">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -576,7 +576,7 @@
         <div class="modal-content" style="max-width: 600px">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xl font-bold text-gray-800">Trò chơi ghép từ</h3>
-                <button onclick="closeModal('matchingGameModal')" class="text-gray-500 hover:text-gray-700">
+                <button class="text-gray-500 hover:text-gray-700">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -635,7 +635,7 @@
 		<div class="modal-content" style="max-width: 500px;">
 			<div class="flex justify-between items-center mb-4">
 				<h3 class="text-xl font-bold text-gray-800">Ghép Âm thanh & Từ</h3>
-				<button onclick="closeModal('soundMatchModal')" class="text-gray-500 hover:text-gray-700">
+				<button class="text-gray-500 hover:text-gray-700">
 					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
 					</svg>
@@ -652,7 +652,7 @@
 		<div class="modal-content" style="max-width: 400px;">
 			<div class="flex justify-between items-center mb-4">
 				<h3 class="text-xl font-bold text-gray-800">Chọn độ khó</h3>
-				<button onclick="closeModal('gameOptionsModal')" class="text-gray-500 hover:text-gray-700">
+				<button class="text-gray-500 hover:text-gray-700">
 					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
 				</button>
 			</div>
@@ -669,7 +669,7 @@
 			<div id="fill-blank-success-feedback" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-6xl hidden">👍</div>
 			<div class="flex justify-between items-center mb-4">
 				<h3 class="text-xl font-bold text-gray-800">Điền vào chỗ trống</h3>
-				<button onclick="closeModal('fillBlankGameModal')" class="text-gray-500 hover:text-gray-700">
+				<button class="text-gray-500 hover:text-gray-700">
 					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
 					</svg>
@@ -699,7 +699,7 @@
 		<div class="modal-content" style="max-width: 600px">
 			<div class="flex justify-between items-center mb-4">
 				<h3 class="text-xl font-bold text-gray-800">Đọc và Chọn từ</h3>
-				<button onclick="closeModal('readingQuizModal')" class="text-gray-500 hover:text-gray-700">
+				<button class="text-gray-500 hover:text-gray-700">
 					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
 					</svg>
@@ -725,7 +725,7 @@
 			<div id="unscramble-success-feedback" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-6xl hidden">👍</div>
 			<div class="flex justify-between items-center mb-4">
 				<h3 class="text-xl font-bold text-gray-800">Xếp chữ</h3>
-				<button onclick="closeModal('unscrambleGameModal')" class="text-gray-500 hover:text-gray-700">
+				<button class="text-gray-500 hover:text-gray-700">
 					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
 					</svg>
@@ -755,7 +755,7 @@
 		<div class="modal-content" style="max-width: 600px">
 			<div class="flex justify-between items-center mb-4">
 				<h3 class="text-xl font-bold text-gray-800">Bài kiểm tra trắc nghiệm</h3>
-				<button onclick="closeModal('multipleChoiceQuizModal')" class="text-gray-500 hover:text-gray-700">
+				<button class="text-gray-500 hover:text-gray-700">
 					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
 					</svg>
@@ -791,7 +791,7 @@
                 <p class="text-gray-600 mb-4" id="completion-message">Bạn đã hoàn thành hoạt động.</p>
                 <p class="text-gray-600" id="completion-progress">Tiến độ học tập của bạn đã được cập nhật.</p>
             </div>
-            <button class="btn-primary text-white py-2 px-6 rounded-lg shadow-md" onclick="closeModal('completionModal')">
+            <button class="btn-primary text-white py-2 px-6 rounded-lg shadow-md">
                 Đóng
             </button>
         </div>
@@ -805,7 +805,7 @@
                 <p class="text-gray-600" id="confirmation-message">Bạn có chắc chắn muốn thực hiện hành động này?</p>
             </div>
             <div class="flex justify-end space-x-4">
-                <button class="bg-gray-300 text-gray-700 py-2 px-4 rounded-lg" onclick="closeModal('confirmationModal')">Hủy</button>
+                <button class="bg-gray-300 text-gray-700 py-2 px-4 rounded-lg">Hủy</button>
                 <button class="bg-red-500 text-white py-2 px-4 rounded-lg" id="confirm-action-btn">Xác nhận</button>
             </div>
         </div>
