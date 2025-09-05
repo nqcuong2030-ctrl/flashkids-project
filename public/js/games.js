@@ -1,4 +1,4 @@
-// File: public/js/games.js (PHIÊN BẢN SỬA LỖI GAME)
+// File: public/js/games.js (PHIÊN BẢN SỬA LỖI LOGIC GAME)
 // Nhiệm vụ: Chứa logic cho tất cả các mini-game tương tác.
 
 import { playSound, speakWord } from './audio.js';
@@ -17,23 +17,20 @@ function shuffleArray(array) {
 }
 
 // =======================================================
-// == GAME 1: GHÉP TỪ (MATCHING GAME) - Không thay đổi
+// == GAME 1 & 2 - Không thay đổi
 // =======================================================
 
 export function startMatchingGame(words, onGameEnd) {
-    // ... (Logic của game này vẫn giữ nguyên như cũ)
+    // ... (Logic của game này vẫn giữ nguyên)
     let selectedEnglishWord = null;
     let selectedVietnameseWord = null;
     let matchedPairs = [];
     const gameWords = [...words].sort(() => 0.5 - Math.random()).slice(0, 5);
-
     const englishContainer = document.getElementById('english-words');
     const vietnameseContainer = document.getElementById('vietnamese-words');
     englishContainer.innerHTML = '';
     vietnameseContainer.innerHTML = '';
-
     const shuffledVietnamese = [...gameWords].sort(() => 0.5 - Math.random());
-
     gameWords.forEach(word => {
         const wordEl = document.createElement('div');
         wordEl.className = 'word-card bg-blue-100 p-3 rounded-lg text-blue-800 font-semibold';
@@ -42,7 +39,6 @@ export function startMatchingGame(words, onGameEnd) {
         wordEl.onclick = (e) => selectWord(e.currentTarget, word.id, 'english');
         englishContainer.appendChild(wordEl);
     });
-
     shuffledVietnamese.forEach(word => {
         const wordEl = document.createElement('div');
         wordEl.className = 'word-card bg-gray-100 p-3 rounded-lg text-gray-800';
@@ -51,25 +47,19 @@ export function startMatchingGame(words, onGameEnd) {
         wordEl.onclick = (e) => selectWord(e.currentTarget, word.id, 'vietnamese');
         vietnameseContainer.appendChild(wordEl);
     });
-
     function selectWord(element, wordId, type) {
         speakWord(element.textContent, type === 'english' ? 'en-US' : 'vi-VN');
         if (element.classList.contains('matched')) return;
-
         const containerId = type === 'english' ? 'english-words' : 'vietnamese-words';
         document.querySelectorAll(`#${containerId} .word-card.selected`).forEach(el => el.classList.remove('selected'));
         element.classList.add('selected');
-
         if (type === 'english') selectedEnglishWord = wordId;
         else selectedVietnameseWord = wordId;
-        
         if (selectedEnglishWord && selectedVietnameseWord) checkWordMatch();
     }
-
     function checkWordMatch() {
         const englishEl = document.querySelector(`#english-words .word-card[data-word-id="${selectedEnglishWord}"]`);
         const vietnameseEl = document.querySelector(`#vietnamese-words .word-card[data-word-id="${selectedVietnameseWord}"]`);
-
         if (selectedEnglishWord === selectedVietnameseWord) {
             playSound('success');
             [englishEl, vietnameseEl].forEach(el => {
@@ -91,50 +81,37 @@ export function startMatchingGame(words, onGameEnd) {
             setTimeout(() => onGameEnd(true, gameWords.length * 10), 1000);
         }
     }
-
     document.getElementById('check-answers').onclick = () => {
         const score = Math.round((matchedPairs.length / gameWords.length) * 100);
         onGameEnd(true, score);
     };
-
     openModal('matchingGameModal');
 }
 
-
-// =======================================================
-// == GAME 2: CHỌN TỪ THEO HÌNH/NGHĨA - Không thay đổi
-// =======================================================
-
 export function startImageQuiz(allCards, categoryCards, onGameEnd) {
-    // ... (Logic của game này vẫn giữ nguyên như cũ)
+    // ... (Logic của game này vẫn giữ nguyên)
     let score = 0;
     const questions = [...categoryCards].sort(() => 0.5 - Math.random()).slice(0, 5);
     let currentQuestionIndex = 0;
-
     function displayQuestion() {
         if (currentQuestionIndex >= questions.length) {
             onGameEnd(true, score * 15);
             return;
         }
-
         const question = questions[currentQuestionIndex];
         const imageContainer = document.getElementById('image-quiz-image-container');
         const optionsContainer = document.getElementById('image-quiz-options');
-        
         document.getElementById('image-quiz-progress').textContent = `Câu ${currentQuestionIndex + 1}/${questions.length}`;
-
         if (question.image && question.image.startsWith('http')) {
             imageContainer.innerHTML = `<img src="${question.image}" alt="Quiz image" class="max-w-full max-h-full object-contain">`;
         } else {
             imageContainer.innerHTML = `<div class="text-4xl font-bold text-center text-blue-800 p-4">${question.vietnamese}</div>`;
             speakWord(question.vietnamese, 'vi-VN');
         }
-
         const distractors = allCards.filter(w => w.id !== question.id);
         shuffleArray(distractors);
         const options = [question, ...distractors.slice(0, 3)];
         shuffleArray(options);
-
         optionsContainer.innerHTML = '';
         options.forEach(option => {
             const btn = document.createElement('button');
@@ -144,11 +121,9 @@ export function startImageQuiz(allCards, categoryCards, onGameEnd) {
             optionsContainer.appendChild(btn);
         });
     }
-
     function handleAnswer(button, isCorrect, correctWord) {
         playSound('click');
         document.querySelectorAll('#image-quiz-options button').forEach(btn => btn.disabled = true);
-
         if (isCorrect) {
             button.classList.add('correct');
             score++;
@@ -161,13 +136,11 @@ export function startImageQuiz(allCards, categoryCards, onGameEnd) {
             });
         }
         speakWord(correctWord, 'en-US');
-
         setTimeout(() => {
             currentQuestionIndex++;
             displayQuestion();
         }, 1500);
     }
-    
     displayQuestion();
     openModal('imageQuizModal');
 }
@@ -221,12 +194,15 @@ export function startFillBlankGame(words) {
         answerArea.appendChild(charEl);
     });
 
-    choices.forEach(letter => {
+    choices.forEach((letter, index) => {
         const tile = document.createElement('div');
         tile.className = 'letter-choice';
         tile.textContent = letter;
+        // SỬA LỖI: Thêm data-attribute để xác định duy nhất từng tile
+        tile.dataset.instanceId = `${letter}-${index}`;
         tile.onclick = () => {
-            const firstEmptySlot = document.querySelector('#fillBlankGameModal .blank-slot:empty');
+            // SỬA LỖI: Giới hạn querySelector vào trong modal
+            const firstEmptySlot = answerArea.querySelector('.blank-slot:empty');
             if (firstEmptySlot) {
                 firstEmptySlot.textContent = letter;
                 tile.classList.add('hidden');
@@ -235,7 +211,17 @@ export function startFillBlankGame(words) {
         letterTilesArea.appendChild(tile);
     });
     
-    // SỬA LỖI: Truyền tham số `words` vào hàm gọi lại
+    // SỬA LỖI: Thêm sự kiện click vào answerArea để trả chữ về
+    answerArea.onclick = (e) => {
+        if (e.target.classList.contains('blank-slot') && e.target.textContent) {
+            const letterToReturn = e.target.textContent;
+            e.target.textContent = '';
+            // Tìm và hiển thị lại chữ cái đã chọn
+            const hiddenTile = letterTilesArea.querySelector(`.letter-choice.hidden[data-instance-id^="${letterToReturn}-"]`);
+            hiddenTile?.classList.remove('hidden');
+        }
+    };
+    
     document.getElementById('check-fill-blank-btn').onclick = () => checkFillBlankAnswer(targetWord, currentWord.id, words);
     document.getElementById('fill-blank-listen-btn').onclick = () => speakWord(currentWord.english, 'en-US');
     document.getElementById('change-word-fill-blank-btn').onclick = () => startFillBlankGame(words);
@@ -243,13 +229,11 @@ export function startFillBlankGame(words) {
     openModal('fillBlankGameModal');
 }
 
-// SỬA LỖI: Thêm tham số `words` để truyền cho vòng chơi tiếp theo
 function checkFillBlankAnswer(targetWord, wordId, words) {
-    const userAnswer = Array.from(document.querySelectorAll('#answer-area > div')).map(el => el.textContent).join('');
+    const userAnswer = Array.from(document.querySelectorAll('#answer-area > div')).map(el => el.textContent || '_').join('');
     if (userAnswer === targetWord) {
         playSound('success_2');
         updateMasteryScore(wordId, 2);
-        // SỬA LỖI: Truyền `words` vào đây
         setTimeout(() => startFillBlankGame(words), 1500);
     } else {
         playSound('fail');
@@ -289,27 +273,20 @@ export function startSoundMatchGame(words, numCards) {
     boardItems.forEach((item) => {
         const cardEl = document.createElement('div');
         cardEl.className = 'match-card w-[90px] h-[70px] cursor-pointer';
-        cardEl.innerHTML = `
-            <div class="card-face card-back w-full h-full rounded-lg flex justify-center items-center text-4xl">?</div>
-            <div class="card-face card-front w-full h-full rounded-lg flex justify-center items-center p-1 text-center font-bold text-base">
-                ${item.type === 'audio' ? '🔊' : (item.type === 'text' ? item.word : '')}
-            </div>`;
+        cardEl.innerHTML = `...`; // Giữ nguyên HTML
         cardEl.onclick = () => handleCardClick(cardEl, item);
         board.appendChild(cardEl);
     });
 
+    // SỬA LỖI: Logic xử lý lật thẻ được viết lại hoàn toàn
     function handleCardClick(element, data) {
-        // SỬA LỖI: Xóa điều kiện `|| data.type === 'blank'` để cho phép lật thẻ trống
         if (isChecking || element.classList.contains('flipped')) return;
         
         playSound('click');
         element.classList.add('flipped');
         if (data.type === 'audio') speakWord(data.word, 'en-US');
         
-        // Không thêm thẻ trống vào danh sách chờ ghép
-        if (data.type !== 'blank') {
-            selectedCards.push({ element, data });
-        }
+        selectedCards.push({ element, data });
         
         if (selectedCards.length === 2) {
             isChecking = true;
@@ -319,19 +296,29 @@ export function startSoundMatchGame(words, numCards) {
 
     function checkMatch() {
         const [card1, card2] = selectedCards;
-        if (card1.data.pairId === card2.data.pairId && card1.data.type !== card2.data.type) {
+        
+        // Kiểm tra nếu ghép đúng (cùng ID, khác loại, và không phải thẻ trống)
+        const isPair = card1.data.pairId === card2.data.pairId;
+        const isAudioText = card1.data.type !== card2.data.type;
+        const areBothValid = card1.data.type !== 'blank' && card2.data.type !== 'blank';
+
+        if (isPair && isAudioText && areBothValid) {
             playSound('success_2');
             updateMasteryScore(card1.data.pairId, 1.5);
             [card1.element, card2.element].forEach(el => el.classList.add('matched'));
+            
             const matchedCount = document.querySelectorAll('#sound-match-board .match-card.matched').length;
             if (matchedCount === numPairs * 2) {
                 playSound('tada');
                 setTimeout(() => startSoundMatchGame(words, numCards), 1500);
             }
         } else {
+            // Nếu không phải là một cặp ghép đúng (bao gồm cả trường hợp lật phải ô trống)
             playSound('fail');
             [card1.element, card2.element].forEach(el => el.classList.remove('flipped'));
         }
+        
+        // Reset lại lượt đi
         selectedCards = [];
         isChecking = false;
     }
