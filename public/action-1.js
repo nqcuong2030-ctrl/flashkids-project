@@ -9,7 +9,7 @@
  * @description Chứa các hằng số và cấu hình không thay đổi trong suốt quá trình chạy.
  */
 const config = {
-    APP_VERSION: '1.1_09082025_8',
+    APP_VERSION: '1.1_09082025_1',
     MASTERY_THRESHOLD: 4,
     INACTIVITY_DELAY: 10000, // 10 giây
     LOCAL_STORAGE_KEYS: {
@@ -1514,7 +1514,7 @@ const gameManager = {
 	},
 
 	// --- GAME 4: GHÉP ÂM THANH & TỪ (SOUND MATCH) ---
-	startSoundMatchGame: function(words, numCards = 9) {
+	startSoundMatchGame: function(words, numCards) {
 		const s = state.games.soundMatch;
 		if (words) s.wordPool = words;
 		
@@ -1523,9 +1523,22 @@ const gameManager = {
 		s.selectedCards = [];
 		s.isChecking = true;
 
-		const numPairs = (numCards === 12) ? 4 : 3;
-		const numBlanks = numCards - (numPairs * 2);
-		
+		// Logic xác định số cặp và số thẻ
+		let numPairs, numBlanks;
+		if (numCards === 12) {
+			numPairs = 4;
+			numBlanks = 4;
+			board.className = 'grid grid-cols-3 gap-2 md:gap-4 grid-12-cards';
+		} else {
+			numCards = 9;
+			numPairs = 3;
+			numBlanks = 3;
+			board.className = 'grid grid-cols-3 gap-2';
+		}
+		// Lưu lại cấu hình game hiện tại
+		state.currentActivity.numCards = numCards;
+		state.currentActivity.numPairs = numPairs;
+
 		const gameWords = [...s.wordPool].sort(() => 0.5 - Math.random()).slice(0, numPairs);
 		if (gameWords.length < numPairs) {
 			alert(`Chủ đề này không đủ ${numPairs} từ vựng để chơi.`);
@@ -1544,10 +1557,10 @@ const gameManager = {
 		util.shuffleArray(cards);
 
 		cards.forEach((cardData, index) => {
+			// ... (Phần code tạo thẻ HTML giữ nguyên như cũ) ...
 			const cardElement = document.createElement('div');
 			let frontContent = '';
 			let frontClasses = 'card-face card-front w-full h-full rounded-lg flex justify-center items-center p-1 text-center font-bold';
-
 			if (cardData.type === 'audio') {
 				frontClasses += ' bg-blue-100 text-blue-600';
 				frontContent = `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>`;
@@ -1557,7 +1570,6 @@ const gameManager = {
 			} else {
 				frontClasses += ' bg-gray-200';
 			}
-
 			cardElement.className = `match-card w-[90px] h-[70px] cursor-pointer`;
 			cardElement.dataset.cardIndex = index;
 			cardElement.innerHTML = `
@@ -1569,16 +1581,18 @@ const gameManager = {
 		
 		uiManager.openModal('soundMatchModal');
 
-		setTimeout(() => board.querySelectorAll('.match-card').forEach(card => card.classList.add('flipped')), 500);
+		// Giai đoạn ghi nhớ 3 giây
+		const allCards = board.querySelectorAll('.match-card');
+		setTimeout(() => allCards.forEach(card => card.classList.add('flipped')), 500);
 		setTimeout(() => {
-			board.querySelectorAll('.match-card').forEach(card => card.classList.remove('flipped'));
+			allCards.forEach(card => card.classList.remove('flipped'));
 			s.isChecking = false;
 		}, 3500);
 	},
 
 	handleMatchCardClick: function(cardElement, cardData) {
 		const s = state.games.soundMatch;
-		if (s.isChecking || cardElement.classList.contains('flipped')) return;
+		if (s.isChecking || cardElement.classList.contains('flipped') || cardElement.classList.contains('matched')) return;
 
 		soundManager.play('click');
 		cardElement.classList.add('flipped');
@@ -1607,17 +1621,12 @@ const gameManager = {
 			card1.element.classList.add('matched');
 			card2.element.classList.add('matched');
 			
-			// SỬA LỖI: Logic đếm số cặp đúng
-			const gameWords = s.wordPool.slice(0, 4); // Lấy số từ đang chơi
-			const totalPairsInGame = gameWords.length;
-			const matchedCardsCount = document.querySelectorAll('.match-card.matched').length;
-			const matchedPairsCount = matchedCardsCount / 2;
-
-			if (matchedPairsCount === totalPairsInGame) {
+			// Logic kiểm tra hoàn thành game (quay về bản gốc)
+			const matchedCount = document.querySelectorAll('.match-card.matched').length;
+			if (matchedCount === state.currentActivity.numPairs * 2) {
 				soundManager.play('tada');
 				setTimeout(() => {
-					const currentNumCards = document.querySelectorAll('#sound-match-board .match-card').length;
-					this.startSoundMatchGame(null, currentNumCards); // Restart game
+					this.startSoundMatchGame(null, state.currentActivity.numCards);
 				}, 1500);
 			}
 		} else {
