@@ -1,5 +1,5 @@
 // public/js/main.js
-// Đây là tệp "nhạc trưởng", điều phối toàn bộ ứng dụng.
+// PHIÊN BẢN ĐÃ SỬA LỖI TƯƠNG THÍCH VỚI HTML CÓ SẴN
 
 import { fetchLevelData } from './api.js';
 import { playSound, speakWord } from './audio.js';
@@ -19,10 +19,43 @@ import {
     getUserProgress, getFilteredCards
 } from './state.js';
 
-// --- KHỞI TẠO & THIẾT LẬP SỰ KIỆN ---
+
+// --- HÀM XỬ LÝ SỰ KIỆN CHÍNH ---
+
+// SỬA ĐỔI 1: Đổi tên hàm thành "changeLevel" và nhận tham số trực tiếp, không cần event
+async function changeLevel(level, isUserAction = false) {
+    if (isUserAction) {
+        playSound('click');
+    }
+    
+    setCurrentLevel(level);
+    
+    try {
+        const data = await fetchLevelData(level, getState().flashcardCache);
+        setLevelData(level, data);
+        loadCategories();
+        renderMasteryChart();
+        // Cập nhật lại giao diện các nút level
+        document.querySelectorAll('.level-badge').forEach(badge => {
+            badge.classList.remove('active');
+            if (badge.getAttribute('onclick').includes(`'${level}'`)) {
+                badge.classList.add('active');
+            }
+        });
+    } catch (error) {
+        console.error("Không thể tải dữ liệu level:", error);
+        alert("Lỗi kết nối, không thể tải dữ liệu. Vui lòng thử lại.");
+    }
+}
+
+
+// --- CÁC HÀM XỬ LÝ PHỤ (Không thay đổi nhiều) ---
 
 function setupEventListeners() {
-    const levelSelect = document.getElementById('level-select');
+    // SỬA ĐỔI 2: Xóa bỏ event listener cho 'level-select' vì không còn tồn tại
+    // const levelSelect = document.getElementById('level-select');
+    // levelSelect.addEventListener('change', handleLevelChange);
+
     const categoryList = document.getElementById('category-list');
     const flashcardContainer = document.getElementById('flashcard-container');
     const prevBtn = document.getElementById('prev-btn');
@@ -33,8 +66,6 @@ function setupEventListeners() {
     const gameList = document.getElementById('game-list');
     const quizList = document.getElementById('quiz-list');
     
-    levelSelect.addEventListener('change', handleLevelChange);
-
     // Sử dụng event delegation cho danh sách category để tối ưu
     categoryList.addEventListener('click', (e) => {
         const card = e.target.closest('.category-card');
@@ -60,7 +91,6 @@ function setupEventListeners() {
     gamesBtn.addEventListener('click', () => toggleActivityList('games'));
     quizzesBtn.addEventListener('click', () => toggleActivityList('quizzes'));
 
-    // Event delegation cho danh sách game và quiz
     gameList.addEventListener('click', (e) => {
         const button = e.target.closest('button');
         if (button) {
@@ -74,30 +104,11 @@ function setupEventListeners() {
         }
     });
 
-    // Event delegation cho nút thoát game/quiz (gắn vào body)
     document.body.addEventListener('click', (e) => {
         if (e.target.id === 'close-game-btn' || e.target.id === 'close-quiz-btn') {
-            handleActivityEnd(false, 0); // Kết thúc mà không có thưởng
+            handleActivityEnd(false, 0);
         }
     });
-}
-
-// --- CÁC HÀM XỬ LÝ SỰ KIỆN (CONTROLLERS) ---
-
-async function handleLevelChange(e) {
-    const newLevel = e ? e.target.value : 'a1';
-    setCurrentLevel(newLevel);
-    
-    try {
-        const data = await fetchLevelData(newLevel, getState().flashcardCache);
-        setLevelData(newLevel, data);
-        loadCategories();
-        renderMasteryChart();
-        document.getElementById('level-select').value = newLevel;
-    } catch (error) {
-        console.error("Không thể tải dữ liệu level:", error);
-        alert("Lỗi kết nối, không thể tải dữ liệu. Vui lòng thử lại.");
-    }
 }
 
 function handleCategorySelect(categoryId) {
@@ -113,7 +124,7 @@ function handleBackToCategories() {
     setCurrentCategoryId(null);
     document.getElementById('category-view').classList.remove('hidden');
     document.getElementById('flashcard-view').classList.add('hidden');
-    loadCategories(); // Tải lại để cập nhật tiến độ
+    loadCategories();
 }
 
 function navigateCard(direction) {
@@ -227,14 +238,15 @@ function handleActivityEnd(completed, xpGained) {
 
 // --- ĐIỂM KHỞI ĐẦU CỦA ỨNG DỤNG ---
 document.addEventListener('DOMContentLoaded', () => {
-    // Lấy level đã lưu hoặc dùng mặc định
+    // SỬA ĐỔI 3: Xóa bỏ các dòng liên quan đến 'level-select'
     const savedLevel = localStorage.getItem('flashkids_currentLevel') || 'a1';
-    document.getElementById('level-select').value = savedLevel;
     
-    // Khởi tạo các thành phần
     setupEventListeners();
     updateUserProfileDisplay();
     
     // Tải dữ liệu ban đầu cho ứng dụng
-    handleLevelChange({ target: { value: savedLevel } });
+    changeLevel(savedLevel, false); // Gọi trực tiếp hàm changeLevel
+
+    // SỬA ĐỔI 4: Gán hàm changeLevel ra window để HTML có thể gọi được
+    window.changeLevel = changeLevel;
 });
