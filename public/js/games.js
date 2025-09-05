@@ -1,4 +1,4 @@
-// File: public/js/games.js
+// File: public/js/games.js (PHIÊN BẢN SỬA LỖI GAME)
 // Nhiệm vụ: Chứa logic cho tất cả các mini-game tương tác.
 
 import { playSound, speakWord } from './audio.js';
@@ -17,10 +17,11 @@ function shuffleArray(array) {
 }
 
 // =======================================================
-// == GAME 1: GHÉP TỪ (MATCHING GAME)
+// == GAME 1: GHÉP TỪ (MATCHING GAME) - Không thay đổi
 // =======================================================
 
 export function startMatchingGame(words, onGameEnd) {
+    // ... (Logic của game này vẫn giữ nguyên như cũ)
     let selectedEnglishWord = null;
     let selectedVietnameseWord = null;
     let matchedPairs = [];
@@ -101,17 +102,18 @@ export function startMatchingGame(words, onGameEnd) {
 
 
 // =======================================================
-// == GAME 2: CHỌN TỪ THEO HÌNH/NGHĨA
+// == GAME 2: CHỌN TỪ THEO HÌNH/NGHĨA - Không thay đổi
 // =======================================================
 
 export function startImageQuiz(allCards, categoryCards, onGameEnd) {
+    // ... (Logic của game này vẫn giữ nguyên như cũ)
     let score = 0;
     const questions = [...categoryCards].sort(() => 0.5 - Math.random()).slice(0, 5);
     let currentQuestionIndex = 0;
 
     function displayQuestion() {
         if (currentQuestionIndex >= questions.length) {
-            onGameEnd(true, score * 15); // 15XP per correct answer
+            onGameEnd(true, score * 15);
             return;
         }
 
@@ -172,7 +174,7 @@ export function startImageQuiz(allCards, categoryCards, onGameEnd) {
 
 
 // =======================================================
-// == GAME 3: ĐIỀN TỪ (FILL IN THE BLANK)
+// == GAME 3: ĐIỀN TỪ (FILL IN THE BLANK) - ĐÃ SỬA LỖI
 // =======================================================
 
 export function startFillBlankGame(words) {
@@ -224,7 +226,7 @@ export function startFillBlankGame(words) {
         tile.className = 'letter-choice';
         tile.textContent = letter;
         tile.onclick = () => {
-            const firstEmptySlot = document.querySelector('.blank-slot:empty');
+            const firstEmptySlot = document.querySelector('#fillBlankGameModal .blank-slot:empty');
             if (firstEmptySlot) {
                 firstEmptySlot.textContent = letter;
                 tile.classList.add('hidden');
@@ -233,18 +235,22 @@ export function startFillBlankGame(words) {
         letterTilesArea.appendChild(tile);
     });
     
-    document.getElementById('check-fill-blank-btn').onclick = () => checkFillBlankAnswer(targetWord, currentWord.id);
+    // SỬA LỖI: Truyền tham số `words` vào hàm gọi lại
+    document.getElementById('check-fill-blank-btn').onclick = () => checkFillBlankAnswer(targetWord, currentWord.id, words);
     document.getElementById('fill-blank-listen-btn').onclick = () => speakWord(currentWord.english, 'en-US');
+    document.getElementById('change-word-fill-blank-btn').onclick = () => startFillBlankGame(words);
 
     openModal('fillBlankGameModal');
 }
 
-function checkFillBlankAnswer(targetWord, wordId) {
+// SỬA LỖI: Thêm tham số `words` để truyền cho vòng chơi tiếp theo
+function checkFillBlankAnswer(targetWord, wordId, words) {
     const userAnswer = Array.from(document.querySelectorAll('#answer-area > div')).map(el => el.textContent).join('');
     if (userAnswer === targetWord) {
         playSound('success_2');
         updateMasteryScore(wordId, 2);
-        setTimeout(() => startFillBlankGame(), 1500);
+        // SỬA LỖI: Truyền `words` vào đây
+        setTimeout(() => startFillBlankGame(words), 1500);
     } else {
         playSound('fail');
         document.getElementById('answer-area').classList.add('error');
@@ -254,7 +260,7 @@ function checkFillBlankAnswer(targetWord, wordId) {
 
 
 // =======================================================
-// == GAME 4: GHÉP ÂM THANH & TỪ
+// == GAME 4: GHÉP ÂM THANH & TỪ - ĐÃ SỬA LỖI
 // =======================================================
 
 export function startSoundMatchGame(words, numCards) {
@@ -293,12 +299,18 @@ export function startSoundMatchGame(words, numCards) {
     });
 
     function handleCardClick(element, data) {
-        if (isChecking || element.classList.contains('flipped') || data.type === 'blank') return;
+        // SỬA LỖI: Xóa điều kiện `|| data.type === 'blank'` để cho phép lật thẻ trống
+        if (isChecking || element.classList.contains('flipped')) return;
+        
         playSound('click');
         element.classList.add('flipped');
         if (data.type === 'audio') speakWord(data.word, 'en-US');
         
-        selectedCards.push({ element, data });
+        // Không thêm thẻ trống vào danh sách chờ ghép
+        if (data.type !== 'blank') {
+            selectedCards.push({ element, data });
+        }
+        
         if (selectedCards.length === 2) {
             isChecking = true;
             setTimeout(checkMatch, 1200);
@@ -311,7 +323,7 @@ export function startSoundMatchGame(words, numCards) {
             playSound('success_2');
             updateMasteryScore(card1.data.pairId, 1.5);
             [card1.element, card2.element].forEach(el => el.classList.add('matched'));
-            const matchedCount = document.querySelectorAll('.match-card.matched').length;
+            const matchedCount = document.querySelectorAll('#sound-match-board .match-card.matched').length;
             if (matchedCount === numPairs * 2) {
                 playSound('tada');
                 setTimeout(() => startSoundMatchGame(words, numCards), 1500);
@@ -326,7 +338,6 @@ export function startSoundMatchGame(words, numCards) {
 
     openModal('soundMatchModal');
     
-    // Giai đoạn ghi nhớ
     const allCards = board.querySelectorAll('.match-card');
     setTimeout(() => allCards.forEach(card => card.classList.add('flipped')), 500);
     setTimeout(() => {

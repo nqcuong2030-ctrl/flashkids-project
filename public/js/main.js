@@ -1,4 +1,4 @@
-// File: public/js/main.js (PHIÊN BẢN SỬA LỖI MẤT BỘ LỌC)
+// File: public/js/main.js (PHIÊN BẢN HOÀN CHỈNH CUỐI CÙNG)
 // Nhiệm vụ: "Nhạc trưởng" điều phối toàn bộ ứng dụng.
 
 import { runPeriodicVersionCheck, fetchLevelData } from './api.js';
@@ -7,7 +7,7 @@ import {
     loadCategories, updateFlashcard, updateUserProfileDisplay, 
     openModal, closeModal, renderMasteryChart,
     loadGames, loadQuizTypes, loadBadges,
-    loadCategoryFilters, updateCategoryFiltersUI // Bổ sung import
+    loadCategoryFilters, updateCategoryFiltersUI
 } from './dom.js';
 import { startMatchingGame, startImageQuiz, startFillBlankGame, startSoundMatchGame } from './games.js';
 import { startMultipleChoiceQuiz, startUnscrambleQuiz, startReadingQuiz } from './quiz.js';
@@ -27,10 +27,8 @@ async function changeLevel(level, isUserAction = false) {
     try {
         const data = await fetchLevelData(level, getState().flashcardCache);
         setLevelData(level, data);
-
-        // Cập nhật giao diện
         loadCategories();
-        loadCategoryFilters(); // Bổ sung: Tải lại bộ lọc khi đổi level
+        loadCategoryFilters();
         updateFlashcard();
         
         document.querySelectorAll('.level-badge').forEach(badge => {
@@ -62,7 +60,7 @@ function navigateToFlashcardsTab() {
     setCurrentCategoryId(categories[0]?.id || null);
     setCurrentCardIndex(0);
     changeTab('flashcards');
-    loadCategoryFilters(); // Bổ sung: Tải bộ lọc khi vào tab
+    loadCategoryFilters();
     updateFlashcard();
 }
 
@@ -74,17 +72,15 @@ function speakCurrentWord(language) {
     speakWord(wordToSpeak, lang);
 }
 
-// BỔ SUNG: Hàm xử lý khi người dùng bấm vào bộ lọc chủ đề
 function filterByCategory(categoryId) {
     playSound('click');
     setCurrentCategoryId(categoryId);
     setCurrentCardIndex(0);
     updateFlashcard();
-    updateCategoryFiltersUI(); // Cập nhật lại màu sắc cho nút được chọn
+    updateCategoryFiltersUI();
 }
 
 function startGame(gameId) {
-    // ... (Hàm này giữ nguyên như cũ, không thay đổi)
     playSound('click');
     setCurrentActivity({ type: 'game', id: gameId });
     openModal('categorySelectionModal');
@@ -93,7 +89,6 @@ function startGame(gameId) {
 }
 
 function startQuiz(quizId) {
-    // ... (Hàm này giữ nguyên như cũ, không thay đổi)
     playSound('click');
     setCurrentActivity({ type: 'quiz', id: quizId });
     openModal('categorySelectionModal');
@@ -108,7 +103,7 @@ function handleCategorySelect(categoryId) {
     setCurrentCategoryId(categoryId);
     setCurrentCardIndex(0);
     changeTab('flashcards');
-    loadCategoryFilters(); // Bổ sung: Tải lại bộ lọc khi chọn chủ đề từ trang chủ
+    loadCategoryFilters();
     updateFlashcard();
 }
 
@@ -125,11 +120,20 @@ function navigateCard(direction) {
 }
 
 function handleActivitySelection(categoryId) {
-    // ... (Hàm này giữ nguyên như cũ, không thay đổi)
-    closeModal('categorySelectionModal');
     const activity = getState().currentActivity;
     if (!activity) return;
 
+    closeModal('categorySelectionModal');
+
+    // SỬA LỖI: Xử lý trường hợp đặc biệt cho game Ghép Âm thanh
+    if (activity.type === 'game' && activity.id === 4) {
+        // Lưu lại category đã chọn và mở modal chọn độ khó
+        setCurrentActivity({ ...activity, categoryId: categoryId });
+        openModal('gameOptionsModal');
+        return; // Dừng hàm ở đây
+    }
+
+    // Logic cũ cho các game và quiz còn lại
     const allCards = getState().flashcards;
     const categoryCards = allCards.filter(c => c.categoryId === categoryId);
 
@@ -138,7 +142,6 @@ function handleActivitySelection(categoryId) {
             case 1: startMatchingGame(categoryCards, handleActivityEnd); break;
             case 2: startImageQuiz(allCards, categoryCards, handleActivityEnd); break;
             case 3: startFillBlankGame(categoryCards); break;
-            case 4: startSoundMatchGame(categoryCards, 9); break;
         }
     } else if (activity.type === 'quiz') {
         switch (activity.id) {
@@ -150,7 +153,6 @@ function handleActivitySelection(categoryId) {
 }
 
 function handleActivityEnd(completed, xpGained) {
-    // ... (Hàm này giữ nguyên như cũ, không thay đổi)
     if (completed && xpGained > 0) {
         const leveledUp = addXp(xpGained);
         if (leveledUp) {
@@ -167,17 +169,14 @@ function handleActivityEnd(completed, xpGained) {
 // === ĐIỂM KHỞI ĐẦU CỦA ỨNG DỤNG ===
 
 function setupEventListeners() {
-    // ... (Hàm này giữ nguyên như cũ, không thay đổi)
     document.getElementById('categories-container')?.addEventListener('click', (e) => {
         const card = e.target.closest('.category-card');
         if (card) handleCategorySelect(card.dataset.categoryId);
     });
-
     document.getElementById('category-selection-container')?.addEventListener('click', (e) => {
         const card = e.target.closest('.category-card');
         if (card) handleActivitySelection(card.dataset.categoryId);
     });
-    
     document.getElementById('current-flashcard')?.addEventListener('click', () => {
         document.getElementById('current-flashcard').classList.toggle('flipped');
     });
@@ -197,6 +196,25 @@ function setupEventListeners() {
             }
         });
     }
+
+    // SỬA LỖI: Thêm sự kiện cho các nút chọn độ khó của game Ghép Âm thanh
+    document.getElementById('option-9-cards')?.addEventListener('click', () => {
+        const { currentActivity, flashcards } = getState();
+        if (currentActivity?.id === 4 && currentActivity.categoryId) {
+            closeModal('gameOptionsModal');
+            const categoryCards = flashcards.filter(c => c.categoryId === currentActivity.categoryId);
+            startSoundMatchGame(categoryCards, 9);
+        }
+    });
+
+    document.getElementById('option-12-cards')?.addEventListener('click', () => {
+        const { currentActivity, flashcards } = getState();
+        if (currentActivity?.id === 4 && currentActivity.categoryId) {
+            closeModal('gameOptionsModal');
+            const categoryCards = flashcards.filter(c => c.categoryId === currentActivity.categoryId);
+            startSoundMatchGame(categoryCards, 12);
+        }
+    });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -216,7 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.changeTab = changeTab;
     window.navigateToFlashcardsTab = navigateToFlashcardsTab;
     window.speakCurrentWord = speakCurrentWord;
-    window.filterByCategory = filterByCategory; // Bổ sung
+    window.filterByCategory = filterByCategory;
     window.startGame = startGame;
     window.startQuiz = startQuiz;
     window.closeModal = closeModal;
