@@ -4,7 +4,7 @@
 // Việc tách ra giúp dễ dàng quản lý và thay đổi các giá trị này mà không cần động vào logic chính.
 
 export const APP_VERSION = '1.2_REFACTORED'; // Tăng phiên bản sau khi tái cấu trúc
-export const MASTERY_THRESHOLD = 3; // Ngưỡng điểm để coi là "thông thạo" một từ
+export const MASTERY_THRESHOLD = 4; // Ngưỡng điểm để coi là "thông thạo" một từ
 export const INACTIVITY_DELAY = 10000; // 10 giây không hoạt động thì dừng timer
 
 export const GAMES_CONFIG = [

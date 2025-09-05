@@ -1,9 +1,9 @@
-// public/js/quiz.js
-// Module này chứa logic cho tất cả các bài kiểm tra (quizzes).
-// Tương tự games.js, mỗi hàm quiz sẽ tự quản lý giao diện bên trong modal của nó.
+// File: public/js/quiz.js
+// Nhiệm vụ: Chứa logic cho tất cả các bài kiểm tra (quizzes).
 
 import { playSound, speakWord } from './audio.js';
 import { updateMasteryScore } from './state.js';
+import { openModal, closeModal } from './dom.js';
 
 /**
  * Xáo trộn một mảng (thuật toán Fisher-Yates).
@@ -17,252 +17,213 @@ function shuffleArray(array) {
 }
 
 // =======================================================
-// == QUIZ 1: TRẮC NGHIỆM (MULTIPLE CHOICE) ==
+// == QUIZ 1: TRẮC NGHIỆM (MULTIPLE CHOICE)
 // =======================================================
 
-/**
- * Khởi động bài kiểm tra trắc nghiệm.
- * @param {Array} allCards - Tất cả các thẻ trong level (để tạo đáp án sai).
- * @param {Array} categoryCards - Các thẻ trong chủ đề đã chọn.
- * @param {Function} onQuizEnd - Callback khi quiz kết thúc.
- */
 export function startMultipleChoiceQuiz(allCards, categoryCards, onQuizEnd) {
-    const quizContainer = document.getElementById('quiz-container');
-    if (categoryCards.length < 4) {
-        quizContainer.innerHTML = `<p class="text-center text-red-500">Cần ít nhất 4 từ để bắt đầu quiz này.</p>`;
-        setTimeout(() => onQuizEnd(false, 0), 2000);
-        return;
-    }
-    
-    let currentQuestionIndex = 0;
-    let score = 0;
-    const questions = categoryCards.slice(0, 10); // Tối đa 10 câu mỗi lần
-    shuffleArray(questions);
-    
-    function renderQuestion() {
-        const questionCard = questions[currentQuestionIndex];
-        
-        // Tạo các lựa chọn sai từ tất cả các thẻ trong level
-        let distractors = allCards
-            .filter(c => c.id !== questionCard.id)
-            .map(c => c.meaning);
+    const quizWords = [...categoryCards].sort(() => 0.5 - Math.random()).slice(0, 10);
+    const questionsContainer = document.getElementById('quiz-questions');
+    questionsContainer.innerHTML = '';
+
+    quizWords.forEach((word, index) => {
+        const distractors = allCards.filter(w => w.id !== word.id);
         shuffleArray(distractors);
-        
-        let options = [questionCard.meaning, ...distractors.slice(0, 3)];
+        const options = [word.vietnamese, ...distractors.slice(0, 3).map(d => d.vietnamese)];
         shuffleArray(options);
+
+        const questionEl = document.createElement('div');
+        questionEl.className = 'bg-white p-4 rounded-lg shadow';
+        questionEl.dataset.wordId = word.id;
+        questionEl.dataset.correct = word.vietnamese;
         
-        quizContainer.innerHTML = `
-            <p class="text-center text-gray-600 mb-2">Câu ${currentQuestionIndex + 1}/${questions.length}</p>
-            <div class="text-center mb-6">
-                <p class="text-lg text-gray-600">Từ nào có nghĩa là:</p>
-                <h3 class="text-4xl font-bold my-2">${questionCard.word}</h3>
-                <button id="speak-quiz-word" class="text-blue-500 text-2xl hover:text-blue-700 transition-colors">🔊</button>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-                ${options.map(opt => `
-                    <button class="quiz-option p-4 bg-gray-100 rounded-lg text-lg font-semibold hover:bg-blue-100 transition-colors" data-answer="${opt === questionCard.meaning}">
-                        ${opt}
-                    </button>
-                `).join('')}
-            </div>
-        `;
+        let optionsHTML = '';
+        options.forEach(option => {
+            optionsHTML += `<div class="quiz-option p-2 border rounded-lg" data-value="${option}" onclick="selectQuizOption(this)">
+                <label class="flex items-center cursor-pointer">
+                    <input type="radio" name="q${index}" value="${option}" class="mr-2 hidden">
+                    <span class="text-gray-700">${option}</span>
+                </label>
+            </div>`;
+        });
         
-        document.getElementById('speak-quiz-word').addEventListener('click', () => speakWord(questionCard.word, 'en-US'));
-        quizContainer.querySelectorAll('.quiz-option').forEach(btn => btn.addEventListener('click', handleAnswer));
-    }
-    
-    function handleAnswer(e) {
-        const isCorrect = e.currentTarget.dataset.answer === 'true';
-        
-        quizContainer.querySelectorAll('.quiz-option').forEach(btn => btn.disabled = true);
-        
-        if (isCorrect) {
-            playSound('success');
-            e.currentTarget.classList.add('correct');
-            score++;
-            updateMasteryScore(questions[currentQuestionIndex].id, 1); // +1 điểm
-        } else {
-            playSound('error');
-            e.currentTarget.classList.add('incorrect');
-            // Hiển thị đáp án đúng
-            const correctBtn = quizContainer.querySelector('[data-answer="true"]');
-            if (correctBtn) correctBtn.classList.add('correct');
-        }
-        
-        setTimeout(nextQuestion, 1500);
-    }
-    
-    function nextQuestion() {
-        currentQuestionIndex++;
-        if (currentQuestionIndex < questions.length) {
-            renderQuestion();
-        } else {
-            const xpGained = score * 10; // 10XP cho mỗi câu đúng
-            onQuizEnd(true, xpGained);
-        }
-    }
-    
-    renderQuestion();
+        questionEl.innerHTML = `
+            <h4 class="font-bold text-gray-800 mb-3">${index + 1}. ${word.english}</h4>
+            <div class="grid grid-cols-2 gap-3">${optionsHTML}</div>`;
+        questionsContainer.appendChild(questionEl);
+    });
+
+    document.getElementById('submit-quiz').onclick = () => checkQuizAnswers(onQuizEnd);
+    openModal('multipleChoiceQuizModal');
 }
 
+// Hàm này cần được gọi từ global scope bởi onclick
+window.selectQuizOption = function(optionElement) {
+    playSound('click');
+    const questionElement = optionElement.closest('.bg-white');
+    questionElement.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected'));
+    optionElement.classList.add('selected');
+}
+
+function checkQuizAnswers(onQuizEnd) {
+    const questions = document.querySelectorAll('#quiz-questions > div');
+    let correctCount = 0;
+    
+    questions.forEach(q => {
+        const selectedOption = q.querySelector('.quiz-option.selected');
+        if (selectedOption && selectedOption.dataset.value === q.dataset.correct) {
+            correctCount++;
+            updateMasteryScore(parseInt(q.dataset.wordId), 1);
+            selectedOption.classList.add('correct');
+        } else if (selectedOption) {
+            selectedOption.classList.add('incorrect');
+            q.querySelector(`[data-value="${q.dataset.correct}"]`)?.classList.add('correct');
+        }
+    });
+
+    if (correctCount === questions.length) playSound('tada');
+    else playSound('success');
+
+    // Chuyển sang onGameEnd sau một khoảng trễ để người dùng xem kết quả
+    setTimeout(() => onGameEnd(true, correctCount * 10), 2000);
+}
+
+
 // =======================================================
-// == QUIZ 2: XẾP CHỮ (UNSCRAMBLE) ==
+// == QUIZ 2: XẾP CHỮ (UNSCRAMBLE)
 // =======================================================
 
-/**
- * Khởi động bài kiểm tra xếp chữ.
- * @param {Array} words - Các từ phù hợp cho bài kiểm tra này.
- */
 export function startUnscrambleQuiz(words) {
-    const quizContainer = document.getElementById('quiz-container');
-    const suitableWords = words.filter(w => w.word.length > 3 && w.word.length < 8);
-    if (suitableWords.length < 1) {
-        quizContainer.innerHTML = `<p class="text-center text-red-500">Không có từ vựng phù hợp cho quiz này.</p>`;
-        return;
+    const suitableWords = words.filter(w => w.english.length > 3 && w.english.length < 8);
+    if (suitableWords.length === 0) {
+        alert("Chủ đề này không có từ phù hợp cho game Xếp chữ.");
+        return closeModal('unscrambleGameModal');
     }
 
-    let currentWord = suitableWords[Math.floor(Math.random() * suitableWords.length)];
-    let targetWord = currentWord.word.toUpperCase();
+    const currentWord = suitableWords[Math.floor(Math.random() * suitableWords.length)];
+    const targetWord = currentWord.english.toUpperCase();
     
-    speakWord(currentWord.meaning, 'vi-VN');
+    speakWord(currentWord.vietnamese, 'vi-VN');
     
     const scrambledLetters = targetWord.split('').sort(() => Math.random() - 0.5);
-
-    quizContainer.innerHTML = `
-        <p class="text-center text-gray-600 mb-4 text-xl">Sắp xếp các chữ cái để tạo thành từ có nghĩa: <strong>${currentWord.meaning}</strong></p>
-        <div id="unscramble-answer-area" class="flex justify-center gap-2 mb-6 h-16">
-            ${targetWord.split('').map(() => `<div class="answer-slot"></div>`).join('')}
-        </div>
-        <div id="unscramble-letter-tiles" class="flex justify-center gap-3 flex-wrap">
-            ${scrambledLetters.map(letter => `<button class="letter-tile">${letter}</button>`).join('')}
-        </div>
-        <div class="text-center mt-6">
-            <button id="unscramble-listen-btn" class="px-4 py-2 bg-blue-500 text-white rounded-lg">Nghe lại từ</button>
-        </div>
-    `;
-
-    document.getElementById('unscramble-listen-btn').onclick = () => speakWord(targetWord, 'en-US');
-    
-    const letterTilesArea = document.getElementById('unscramble-letter-tiles');
     const answerArea = document.getElementById('unscramble-answer-area');
+    const letterTilesArea = document.getElementById('unscramble-letter-tiles');
+    answerArea.innerHTML = '';
+    letterTilesArea.innerHTML = '';
 
-    letterTilesArea.querySelectorAll('.letter-tile').forEach(tile => tile.addEventListener('click', () => moveLetter(tile)));
-    answerArea.querySelectorAll('.answer-slot').forEach(slot => slot.addEventListener('click', () => moveLetter(slot.firstChild)));
-
-    function moveLetter(tile) {
-        if (!tile) return;
-        playSound('click');
-        const targetContainer = tile.parentElement === letterTilesArea ? answerArea.querySelector('.answer-slot:empty') : letterTilesArea;
-        if(targetContainer) targetContainer.appendChild(tile);
-        checkAnswer();
+    // Tạo các ô trống
+    for (let i = 0; i < targetWord.length; i++) {
+        const slot = document.createElement('div');
+        slot.className = 'answer-slot';
+        slot.onclick = (e) => moveLetter(e.currentTarget.firstChild, letterTilesArea);
+        answerArea.appendChild(slot);
     }
 
-    function checkAnswer() {
-        const slots = answerArea.querySelectorAll('.answer-slot');
-        if ([...slots].every(slot => slot.firstChild)) {
-            const userAnswer = [...slots].map(slot => slot.firstChild.textContent).join('');
-            if (userAnswer === targetWord) {
-                playSound('tada');
-                updateMasteryScore(currentWord.id, 3); // +3 điểm
-                slots.forEach(slot => slot.firstChild.classList.add('correct'));
-                setTimeout(() => startUnscrambleQuiz(words), 1500);
-            } else {
-                playSound('fail');
-                answerArea.classList.add('shake-animation');
-                setTimeout(() => {
-                    answerArea.classList.remove('shake-animation');
-                    slots.forEach(slot => {
-                        if (slot.firstChild) letterTilesArea.appendChild(slot.firstChild);
-                    });
-                }, 800);
-            }
-        }
+    // Tạo các chữ cái
+    scrambledLetters.forEach(letter => {
+        const tile = document.createElement('div');
+        tile.className = 'letter-tile';
+        tile.textContent = letter;
+        tile.onclick = (e) => {
+            const emptySlot = answerArea.querySelector('.answer-slot:empty');
+            if (emptySlot) moveLetter(e.currentTarget, emptySlot);
+        };
+        letterTilesArea.appendChild(tile);
+    });
+
+    document.getElementById('check-unscramble-btn').onclick = () => checkUnscrambleAnswer(targetWord, currentWord.id);
+    document.getElementById('unscramble-listen-btn').onclick = () => speakWord(targetWord, 'en-US');
+
+    openModal('unscrambleGameModal');
+}
+
+function moveLetter(tile, targetContainer) {
+    if (!tile) return;
+    playSound('click');
+    targetContainer.appendChild(tile);
+}
+
+function checkUnscrambleAnswer(targetWord, wordId) {
+    const answerArea = document.getElementById('unscramble-answer-area');
+    const userAnswer = Array.from(answerArea.children).map(slot => slot.textContent).join('');
+
+    if (userAnswer === targetWord) {
+        playSound('tada');
+        updateMasteryScore(wordId, 3);
+        speakWord(targetWord, 'en-US');
+        setTimeout(() => startUnscrambleQuiz(), 1500); // Tự động bắt đầu từ mới
+    } else {
+        playSound('fail');
+        answerArea.classList.add('error');
+        setTimeout(() => answerArea.classList.remove('error'), 500);
     }
 }
 
 
 // =======================================================
-// == QUIZ 3: ĐỌC HIỂU (READING COMPREHENSION) ==
+// == QUIZ 3: ĐỌC HIỂU (READING COMPREHENSION)
 // =======================================================
 
-/**
- * Khởi động bài kiểm tra đọc hiểu.
- * @param {Array} allCards - Tất cả các thẻ trong level.
- * @param {Array} categoryCards - Các thẻ trong chủ đề đã chọn.
- * @param {Function} onQuizEnd - Callback khi kết thúc.
- */
 export function startReadingQuiz(allCards, categoryCards, onQuizEnd) {
-    const quizContainer = document.getElementById('quiz-container');
-    const suitableWords = categoryCards.filter(w => w.example);
+    // Trong action.js, trường này là 'exampleSentence'
+    const suitableWords = categoryCards.filter(w => w.exampleSentence);
     if (suitableWords.length === 0) {
-        quizContainer.innerHTML = `<p class="text-center text-red-500">Chủ đề này chưa có câu ví dụ để làm bài đọc hiểu.</p>`;
-        setTimeout(() => onQuizEnd(false, 0), 2000);
-        return;
+        alert("Chủ đề này chưa có câu ví dụ để làm bài đọc hiểu.");
+        return onQuizEnd(false, 0);
     }
-
-    let questions = suitableWords.slice(0, 5); // Tối đa 5 câu
-    shuffleArray(questions);
-    let currentQuestionIndex = 0;
+    
     let score = 0;
+    const questions = [...suitableWords].sort(() => 0.5 - Math.random()).slice(0, 5);
+    let currentQuestionIndex = 0;
 
     function displayQuestion() {
         if (currentQuestionIndex >= questions.length) {
-            const xpGained = score * 20; // 20XP cho mỗi câu đúng
-            onQuizEnd(true, xpGained);
+            onGameEnd(true, score * 20);
             return;
         }
 
         const question = questions[currentQuestionIndex];
-        const placeholder = `<span class="text-blue-500 font-bold mx-2">_________</span>`;
-        const sentenceHTML = question.example.replace(/___/g, placeholder);
-        
-        const options = [question];
+        const sentenceContainer = document.getElementById('reading-quiz-sentence-container');
+        const optionsContainer = document.getElementById('reading-quiz-options-container');
+
+        const sentenceHTML = question.exampleSentence.replace('___', `<span class="text-blue-500 font-bold mx-2">_________</span>`);
+        sentenceContainer.innerHTML = sentenceHTML;
+
         const distractors = allCards.filter(c => c.id !== question.id && c.categoryId === question.categoryId);
         shuffleArray(distractors);
-        while (options.length < 4 && distractors.length > 0) {
-            options.push(distractors.pop());
-        }
+        const options = [question, ...distractors.slice(0, 3)];
         shuffleArray(options);
 
-        quizContainer.innerHTML = `
-            <p class="text-center text-gray-600 mb-2">Câu ${currentQuestionIndex + 1}/${questions.length}</p>
-            <div class="sentence-container bg-gray-100 p-6 rounded-lg mb-6 text-center text-xl md:text-2xl leading-relaxed">
-                ${sentenceHTML}
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-                ${options.map(opt => `
-                    <button class="quiz-option p-4 border rounded-lg text-lg font-semibold bg-white" data-word-id="${opt.id}">
-                        ${opt.word}
-                    </button>
-                `).join('')}
-            </div>
-        `;
-        quizContainer.querySelectorAll('.quiz-option').forEach(btn => btn.addEventListener('click', handleAnswer));
+        optionsContainer.innerHTML = '';
+        options.forEach(option => {
+            const btn = document.createElement('button');
+            btn.className = 'quiz-option p-4 border rounded-lg text-lg font-semibold bg-white';
+            btn.textContent = option.english;
+            btn.onclick = () => handleAnswer(btn, option.id === question.id, question);
+            optionsContainer.appendChild(btn);
+        });
     }
 
-    function handleAnswer(e) {
-        const selectedId = parseInt(e.currentTarget.dataset.wordId);
-        const correctId = questions[currentQuestionIndex].id;
-        
-        quizContainer.querySelectorAll('.quiz-option').forEach(btn => btn.disabled = true);
+    function handleAnswer(button, isCorrect, correctWord) {
+        playSound('click');
+        document.querySelectorAll('#reading-quiz-options-container button').forEach(btn => btn.disabled = true);
 
-        if (selectedId === correctId) {
-            playSound('success');
-            e.currentTarget.classList.add('correct');
+        if (isCorrect) {
+            button.classList.add('correct');
             score++;
-            updateMasteryScore(correctId, 2); // +2 điểm
+            playSound('success_2');
+            updateMasteryScore(correctWord.id, 2);
         } else {
+            button.classList.add('incorrect');
             playSound('fail');
-            e.currentTarget.classList.add('incorrect');
-            const correctBtn = quizContainer.querySelector(`[data-word-id="${correctId}"]`);
-            if (correctBtn) correctBtn.classList.add('correct');
+            document.querySelector(`#reading-quiz-options-container button[data-word-id="${correctWord.id}"]`)?.classList.add('correct');
         }
 
         setTimeout(() => {
             currentQuestionIndex++;
             displayQuestion();
-        }, 1500);
+        }, 2000);
     }
     
     displayQuestion();
+    openModal('readingQuizModal');
 }

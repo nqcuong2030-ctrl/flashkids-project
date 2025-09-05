@@ -1,10 +1,9 @@
-// public/js/games.js
-// Module này chứa logic cho tất cả các mini-game tương tác.
-// Mỗi hàm game sẽ nhận dữ liệu đầu vào, tự quản lý giao diện bên trong modal của nó,
-// và gọi lại (callback) khi game kết thúc hoặc tự khởi động lại vòng mới.
+// File: public/js/games.js
+// Nhiệm vụ: Chứa logic cho tất cả các mini-game tương tác.
 
 import { playSound, speakWord } from './audio.js';
 import { updateMasteryScore } from './state.js';
+import { openModal, closeModal } from './dom.js';
 
 /**
  * Xáo trộn một mảng (thuật toán Fisher-Yates).
@@ -18,207 +17,148 @@ function shuffleArray(array) {
 }
 
 // =======================================================
-// == GAME 1: GHÉP TỪ (MATCHING GAME) ==
+// == GAME 1: GHÉP TỪ (MATCHING GAME)
 // =======================================================
 
-/**
- * Khởi động trò chơi Ghép Từ.
- * @param {Array} cards - Mảng các thẻ từ vựng cho chủ đề đã chọn.
- * @param {Function} onGameEnd - Callback được gọi khi game kết thúc.
- */
-export function startMatchingGame(cards, onGameEnd) {
-    const gameContainer = document.getElementById('game-container');
-    if (cards.length < 4) {
-        gameContainer.innerHTML = `<p class="text-center text-red-500">Cần ít nhất 4 từ để bắt đầu trò chơi này.</p>`;
-        setTimeout(() => onGameEnd(false, 0), 2000);
-        return;
-    }
+export function startMatchingGame(words, onGameEnd) {
+    let selectedEnglishWord = null;
+    let selectedVietnameseWord = null;
+    let matchedPairs = [];
+    const gameWords = [...words].sort(() => 0.5 - Math.random()).slice(0, 5);
 
-    const gameCards = cards.slice(0, 8);
-    const words = gameCards.map(c => ({ type: 'word', value: c.word, id: c.id, matched: false }));
-    const meanings = gameCards.map(c => ({ type: 'meaning', value: c.meaning, id: c.id, matched: false }));
-    
-    let allTiles = [...words, ...meanings];
-    shuffleArray(allTiles);
+    const englishContainer = document.getElementById('english-words');
+    const vietnameseContainer = document.getElementById('vietnamese-words');
+    englishContainer.innerHTML = '';
+    vietnameseContainer.innerHTML = '';
 
-    let firstSelection = null;
-    let lockBoard = false;
-    let pairsFound = 0;
+    const shuffledVietnamese = [...gameWords].sort(() => 0.5 - Math.random());
 
-    function renderBoard() {
-        gameContainer.innerHTML = `
-            <p class="text-center text-gray-600 mb-4">Tìm các cặp từ và nghĩa tương ứng.</p>
-            <div class="grid grid-cols-4 gap-4">
-                ${allTiles.map((tile, index) => `
-                    <div class="matching-card aspect-square bg-blue-500 rounded-lg flex items-center justify-center p-2 text-center text-white font-bold cursor-pointer transform transition-transform duration-300" data-index="${index}">
-                        <span>${tile.value}</span>
-                    </div>
-                `).join('')}
-            </div>
-        `;
-        gameContainer.querySelectorAll('.matching-card').forEach(card => card.addEventListener('click', handleCardClick));
-    }
+    gameWords.forEach(word => {
+        const wordEl = document.createElement('div');
+        wordEl.className = 'word-card bg-blue-100 p-3 rounded-lg text-blue-800 font-semibold';
+        wordEl.dataset.wordId = word.id;
+        wordEl.textContent = word.english;
+        wordEl.onclick = (e) => selectWord(e.currentTarget, word.id, 'english');
+        englishContainer.appendChild(wordEl);
+    });
 
-    function handleCardClick(event) {
-        if (lockBoard) return;
-        const clickedCard = event.currentTarget;
-        const index = parseInt(clickedCard.dataset.index);
-        const tile = allTiles[index];
+    shuffledVietnamese.forEach(word => {
+        const wordEl = document.createElement('div');
+        wordEl.className = 'word-card bg-gray-100 p-3 rounded-lg text-gray-800';
+        wordEl.dataset.wordId = word.id;
+        wordEl.textContent = word.vietnamese;
+        wordEl.onclick = (e) => selectWord(e.currentTarget, word.id, 'vietnamese');
+        vietnameseContainer.appendChild(wordEl);
+    });
 
-        if (tile.matched || clickedCard === firstSelection) return;
+    function selectWord(element, wordId, type) {
+        speakWord(element.textContent, type === 'english' ? 'en-US' : 'vi-VN');
+        if (element.classList.contains('matched')) return;
 
-        playSound('click');
-        clickedCard.classList.add('flipped');
+        const containerId = type === 'english' ? 'english-words' : 'vietnamese-words';
+        document.querySelectorAll(`#${containerId} .word-card.selected`).forEach(el => el.classList.remove('selected'));
+        element.classList.add('selected');
 
-        if (!firstSelection) {
-            firstSelection = clickedCard;
-            return;
-        }
-
-        lockBoard = true;
-        checkWordMatch(clickedCard);
-    }
-    
-    function checkWordMatch(secondSelection) {
-        const firstIndex = parseInt(firstSelection.dataset.index);
-        const secondIndex = parseInt(secondSelection.dataset.index);
-        const firstTile = allTiles[firstIndex];
-        const secondTile = allTiles[secondIndex];
+        if (type === 'english') selectedEnglishWord = wordId;
+        else selectedVietnameseWord = wordId;
         
-        if (firstTile.id === secondTile.id && firstTile.type !== secondTile.type) {
-            playSound('success_2');
-            firstTile.matched = true;
-            secondTile.matched = true;
-            updateMasteryScore(firstTile.id, 1);
-            pairsFound++;
-            
-            setTimeout(() => {
-                firstSelection.classList.add('matched');
-                secondSelection.classList.add('matched');
-                resetTurn();
-                checkGameEnd();
-            }, 500);
+        if (selectedEnglishWord && selectedVietnameseWord) checkWordMatch();
+    }
+
+    function checkWordMatch() {
+        const englishEl = document.querySelector(`#english-words .word-card[data-word-id="${selectedEnglishWord}"]`);
+        const vietnameseEl = document.querySelector(`#vietnamese-words .word-card[data-word-id="${selectedVietnameseWord}"]`);
+
+        if (selectedEnglishWord === selectedVietnameseWord) {
+            playSound('success');
+            [englishEl, vietnameseEl].forEach(el => {
+                el.classList.remove('selected');
+                el.classList.add('matched');
+            });
+            matchedPairs.push(selectedEnglishWord);
+            updateMasteryScore(selectedEnglishWord, 1);
         } else {
             playSound('fail');
+            [englishEl, vietnameseEl].forEach(el => el.classList.add('error'));
             setTimeout(() => {
-                firstSelection.classList.remove('flipped');
-                secondSelection.classList.remove('flipped');
-                resetTurn();
-            }, 1000);
+                [englishEl, vietnameseEl].forEach(el => el.classList.remove('selected', 'error'));
+            }, 800);
         }
-    }
-    
-    function resetTurn() {
-        firstSelection = null;
-        lockBoard = false;
-    }
-    
-    function checkGameEnd() {
-        if (pairsFound === gameCards.length) {
-            setTimeout(() => {
-                playSound('tada');
-                onGameEnd(true, gameCards.length * 10);
-            }, 500);
+        selectedEnglishWord = null;
+        selectedVietnameseWord = null;
+        if (matchedPairs.length === gameWords.length) {
+            setTimeout(() => onGameEnd(true, gameWords.length * 10), 1000);
         }
     }
 
-    renderBoard();
+    document.getElementById('check-answers').onclick = () => {
+        const score = Math.round((matchedPairs.length / gameWords.length) * 100);
+        onGameEnd(true, score);
+    };
+
+    openModal('matchingGameModal');
 }
 
+
 // =======================================================
-// == GAME 2: CHỌN TỪ THEO HÌNH/NGHĨA (IMAGE/MEANING QUIZ) ==
+// == GAME 2: CHỌN TỪ THEO HÌNH/NGHĨA
 // =======================================================
 
-/**
- * Khởi động trò chơi Chọn Từ.
- * @param {Array} allCardsInLevel - Tất cả các thẻ trong level (để tạo đáp án sai).
- * @param {Array} categoryCards - Các thẻ trong chủ đề đã chọn.
- * @param {Function} onGameEnd - Callback khi game kết thúc.
- */
-export function startImageQuiz(allCardsInLevel, categoryCards, onGameEnd) {
-    const gameContainer = document.getElementById('game-container');
-    if (categoryCards.length < 4) {
-        gameContainer.innerHTML = `<p class="text-center text-red-500">Cần ít nhất 4 từ để bắt đầu trò chơi này.</p>`;
-        setTimeout(() => onGameEnd(false, 0), 2000);
-        return;
-    }
-
-    let questions = generateImageQuizQuestions(allCardsInLevel, categoryCards);
-    let currentQuestionIndex = 0;
+export function startImageQuiz(allCards, categoryCards, onGameEnd) {
     let score = 0;
-
-    function generateImageQuizQuestions(allCards, categoryCards, numQuestions = 5) {
-        const generatedQuestions = [];
-        const wordsCopy = [...categoryCards];
-        shuffleArray(wordsCopy);
-
-        for (let i = 0; i < Math.min(numQuestions, wordsCopy.length); i++) {
-            const correctWord = wordsCopy[i];
-            const options = [correctWord];
-            const distractors = allCards.filter(w => w.id !== correctWord.id);
-            shuffleArray(distractors);
-
-            while (options.length < 4 && distractors.length > 0) {
-                options.push(distractors.pop());
-            }
-            shuffleArray(options);
-            generatedQuestions.push({ correctAnswer: correctWord, options });
-        }
-        return generatedQuestions;
-    }
+    const questions = [...categoryCards].sort(() => 0.5 - Math.random()).slice(0, 5);
+    let currentQuestionIndex = 0;
 
     function displayQuestion() {
         if (currentQuestionIndex >= questions.length) {
-            const xpGained = score * 15;
-            onGameEnd(true, xpGained);
+            onGameEnd(true, score * 15); // 15XP per correct answer
             return;
         }
 
         const question = questions[currentQuestionIndex];
-        let promptHTML = '';
-        if (question.correctAnswer.image && question.correctAnswer.image.startsWith('http')) {
-            promptHTML = `<img src="${question.correctAnswer.image}" alt="Quiz prompt" class="max-h-48 mx-auto object-contain rounded-lg">`;
+        const imageContainer = document.getElementById('image-quiz-image-container');
+        const optionsContainer = document.getElementById('image-quiz-options');
+        
+        document.getElementById('image-quiz-progress').textContent = `Câu ${currentQuestionIndex + 1}/${questions.length}`;
+
+        if (question.image && question.image.startsWith('http')) {
+            imageContainer.innerHTML = `<img src="${question.image}" alt="Quiz image" class="max-w-full max-h-full object-contain">`;
         } else {
-            promptHTML = `<div class="text-3xl font-bold text-center text-blue-800 p-4">${question.correctAnswer.meaning}</div>`;
-            speakWord(question.correctAnswer.meaning, 'vi-VN');
+            imageContainer.innerHTML = `<div class="text-4xl font-bold text-center text-blue-800 p-4">${question.vietnamese}</div>`;
+            speakWord(question.vietnamese, 'vi-VN');
         }
 
-        gameContainer.innerHTML = `
-            <p class="text-center text-gray-600 mb-2">Câu ${currentQuestionIndex + 1}/${questions.length}</p>
-            <div class="prompt-container h-52 flex items-center justify-center bg-gray-100 rounded-lg mb-4">
-                ${promptHTML}
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-                ${question.options.map(option => `
-                    <button class="quiz-option p-4 border rounded-lg text-lg font-semibold text-gray-700 bg-white hover:bg-gray-50 transition-colors" data-word-id="${option.id}">
-                        ${option.word}
-                    </button>
-                `).join('')}
-            </div>
-        `;
+        const distractors = allCards.filter(w => w.id !== question.id);
+        shuffleArray(distractors);
+        const options = [question, ...distractors.slice(0, 3)];
+        shuffleArray(options);
 
-        gameContainer.querySelectorAll('.quiz-option').forEach(btn => btn.addEventListener('click', handleAnswer));
+        optionsContainer.innerHTML = '';
+        options.forEach(option => {
+            const btn = document.createElement('button');
+            btn.className = 'quiz-option p-4 border rounded-lg text-lg font-semibold text-gray-700 bg-white';
+            btn.textContent = option.english;
+            btn.onclick = () => handleAnswer(btn, option.id === question.id, question.english);
+            optionsContainer.appendChild(btn);
+        });
     }
 
-    function handleAnswer(event) {
-        const selectedButton = event.currentTarget;
-        const selectedId = parseInt(selectedButton.dataset.wordId);
-        const correctId = questions[currentQuestionIndex].correctAnswer.id;
+    function handleAnswer(button, isCorrect, correctWord) {
+        playSound('click');
+        document.querySelectorAll('#image-quiz-options button').forEach(btn => btn.disabled = true);
 
-        gameContainer.querySelectorAll('.quiz-option').forEach(btn => btn.disabled = true);
-
-        if (selectedId === correctId) {
-            playSound('success');
-            selectedButton.classList.add('correct');
+        if (isCorrect) {
+            button.classList.add('correct');
             score++;
-            updateMasteryScore(correctId, 1);
+            playSound('success_2');
         } else {
+            button.classList.add('incorrect');
             playSound('fail');
-            selectedButton.classList.add('incorrect');
-            gameContainer.querySelector(`[data-word-id="${correctId}"]`).classList.add('correct');
+            document.querySelectorAll('#image-quiz-options button').forEach(btn => {
+                if (btn.textContent === correctWord) btn.classList.add('correct');
+            });
         }
-
-        speakWord(questions[currentQuestionIndex].correctAnswer.word, 'en-US');
+        speakWord(correctWord, 'en-US');
 
         setTimeout(() => {
             currentQuestionIndex++;
@@ -227,43 +167,36 @@ export function startImageQuiz(allCardsInLevel, categoryCards, onGameEnd) {
     }
     
     displayQuestion();
+    openModal('imageQuizModal');
 }
 
 
 // =======================================================
-// == GAME 3: ĐIỀN TỪ (FILL IN THE BLANK) ==
+// == GAME 3: ĐIỀN TỪ (FILL IN THE BLANK)
 // =======================================================
 
-/**
- * Khởi động trò chơi Điền Từ. Đây là chế độ luyện tập liên tục.
- * @param {Array} words - Các thẻ từ vựng phù hợp cho game này.
- */
 export function startFillBlankGame(words) {
-    const gameContainer = document.getElementById('game-container');
-    const suitableWords = words.filter(w => w.word.length >= 3 && w.word.length <= 15);
+    const suitableWords = words.filter(w => w.english.length >= 3 && w.english.length <= 15);
     if (suitableWords.length === 0) {
-        gameContainer.innerHTML = `<p class="text-center text-red-500">Không có từ vựng phù hợp cho game này.</p>`;
-        return;
+        alert("Không có từ vựng phù hợp cho game này.");
+        return closeModal('fillBlankGameModal');
     }
 
-    let currentWord = suitableWords[Math.floor(Math.random() * suitableWords.length)];
-    let targetWord = currentWord.word.toUpperCase();
-    speakWord(currentWord.meaning, 'vi-VN');
+    const currentWord = suitableWords[Math.floor(Math.random() * suitableWords.length)];
+    const targetWord = currentWord.english.toUpperCase();
+    speakWord(currentWord.vietnamese, 'vi-VN');
 
     let numBlanks = 1;
     if (targetWord.length >= 6) numBlanks = 2;
     if (targetWord.length >= 9) numBlanks = 3;
 
     const wordChars = targetWord.split('');
-    let blankIndices = [];
+    const blankIndices = [];
     while (blankIndices.length < numBlanks) {
         let randomIndex = Math.floor(Math.random() * targetWord.length);
-        if (!blankIndices.includes(randomIndex)) {
-            blankIndices.push(randomIndex);
-        }
+        if (!blankIndices.includes(randomIndex)) blankIndices.push(randomIndex);
     }
-
-    let missingLetters = blankIndices.map(i => wordChars[i]);
+    const missingLetters = blankIndices.map(i => wordChars[i]);
     blankIndices.forEach(i => wordChars[i] = '_');
 
     let choices = [...missingLetters];
@@ -274,193 +207,130 @@ export function startFillBlankGame(words) {
     }
     shuffleArray(choices);
 
-    gameContainer.innerHTML = `
-        <p class="text-center text-gray-600 mb-4 text-xl">Điền vào chỗ trống để hoàn thành từ có nghĩa: <strong>${currentWord.meaning}</strong></p>
-        <div id="fill-blank-answer-area" class="flex justify-center gap-2 mb-6">
-            ${wordChars.map((char, index) => 
-                char === '_'
-                ? `<div class="blank-slot" data-original-index="${index}"></div>`
-                : `<div class="word-char">${char}</div>`
-            ).join('')}
-        </div>
-        <div id="fill-blank-choices" class="flex justify-center gap-3 flex-wrap">
-            ${choices.map((letter, i) => `<button class="letter-choice" data-letter="${letter}" data-instance="${i}">${letter}</button>`).join('')}
-        </div>
-        <div class="text-center mt-6">
-            <button id="fill-blank-listen-btn" class="px-4 py-2 bg-blue-500 text-white rounded-lg">Nghe lại từ</button>
-        </div>
-    `;
-    
-    gameContainer.querySelectorAll('.letter-choice').forEach(btn => {
-        btn.onclick = () => {
-            const firstEmptySlot = gameContainer.querySelector('.blank-slot:empty');
+    const answerArea = document.getElementById('answer-area');
+    const letterTilesArea = document.getElementById('letter-tiles');
+    answerArea.innerHTML = '';
+    letterTilesArea.innerHTML = '';
+
+    wordChars.forEach(char => {
+        const charEl = document.createElement('div');
+        charEl.textContent = char;
+        charEl.className = char === '_' ? 'blank-slot' : 'word-char';
+        answerArea.appendChild(charEl);
+    });
+
+    choices.forEach(letter => {
+        const tile = document.createElement('div');
+        tile.className = 'letter-choice';
+        tile.textContent = letter;
+        tile.onclick = () => {
+            const firstEmptySlot = document.querySelector('.blank-slot:empty');
             if (firstEmptySlot) {
-                firstEmptySlot.textContent = btn.textContent;
-                btn.classList.add('hidden');
-                checkIfComplete();
+                firstEmptySlot.textContent = letter;
+                tile.classList.add('hidden');
             }
         };
+        letterTilesArea.appendChild(tile);
     });
     
-    gameContainer.querySelectorAll('.blank-slot').forEach(slot => {
-        slot.onclick = () => {
-            if (slot.textContent) {
-                const letter = slot.textContent;
-                slot.textContent = '';
-                // Hiện lại nút đã chọn
-                const choiceToUnhide = gameContainer.querySelector(`.letter-choice.hidden[data-letter="${letter}"]`);
-                if (choiceToUnhide) {
-                    choiceToUnhide.classList.remove('hidden');
-                }
-            }
-        };
-    });
+    document.getElementById('check-fill-blank-btn').onclick = () => checkFillBlankAnswer(targetWord, currentWord.id);
+    document.getElementById('fill-blank-listen-btn').onclick = () => speakWord(currentWord.english, 'en-US');
 
-    document.getElementById('fill-blank-listen-btn').onclick = () => speakWord(targetWord, 'en-US');
+    openModal('fillBlankGameModal');
+}
 
-    function checkIfComplete() {
-        const filledSlots = gameContainer.querySelectorAll('.blank-slot');
-        if ([...filledSlots].every(slot => slot.textContent !== '')) {
-            let userAnswer = wordChars.map((char, index) => {
-                return char === '_' ? (gameContainer.querySelector(`.blank-slot[data-original-index="${index}"]`)?.textContent || '') : char;
-            }).join('');
-
-            if (userAnswer === targetWord) {
-                playSound('success_2');
-                updateMasteryScore(currentWord.id, 2);
-                filledSlots.forEach(s => s.classList.add('correct'));
-                setTimeout(() => startFillBlankGame(words), 1500);
-            } else {
-                playSound('fail');
-                gameContainer.querySelector('#fill-blank-answer-area').classList.add('shake-animation');
-                setTimeout(() => {
-                    gameContainer.querySelector('#fill-blank-answer-area').classList.remove('shake-animation');
-                    filledSlots.forEach(slot => {
-                         if (slot.textContent) {
-                             const letter = slot.textContent;
-                             slot.textContent = '';
-                             const choiceToUnhide = gameContainer.querySelector(`.letter-choice.hidden[data-letter="${letter}"]`);
-                             if (choiceToUnhide) choiceToUnhide.classList.remove('hidden');
-                         }
-                    });
-                }, 800);
-            }
-        }
+function checkFillBlankAnswer(targetWord, wordId) {
+    const userAnswer = Array.from(document.querySelectorAll('#answer-area > div')).map(el => el.textContent).join('');
+    if (userAnswer === targetWord) {
+        playSound('success_2');
+        updateMasteryScore(wordId, 2);
+        setTimeout(() => startFillBlankGame(), 1500);
+    } else {
+        playSound('fail');
+        document.getElementById('answer-area').classList.add('error');
+        setTimeout(() => document.getElementById('answer-area').classList.remove('error'), 500);
     }
 }
 
+
 // =======================================================
-// == GAME 4: GHÉP ÂM THANH & TỪ (SOUND MATCH) == (PHẦN BỊ THIẾU)
+// == GAME 4: GHÉP ÂM THANH & TỪ
 // =======================================================
 
-/**
- * Khởi động trò chơi Ghép Âm thanh & Từ. Chế độ chơi liên tục.
- * @param {Array} words - Các thẻ từ trong chủ đề đã chọn.
- * @param {number} numCards - Số lượng thẻ trên bàn (9 hoặc 12).
- * @param {Function} onGameEnd - Callback khi người dùng thoát.
- */
-export function startSoundMatchGame(words, numCards, onGameEnd) {
-    const gameContainer = document.getElementById('game-container');
-    if (words.length < 4) {
-        gameContainer.innerHTML = `<p class="text-center text-red-500">Cần ít nhất 4 từ để bắt đầu trò chơi này.</p>`;
-        setTimeout(() => onGameEnd(false, 0), 2000);
-        return;
-    }
-
+export function startSoundMatchGame(words, numCards) {
+    const board = document.getElementById('sound-match-board');
+    board.innerHTML = '';
     let selectedCards = [];
-    let isChecking = true; // Bắt đầu với trạng thái khóa để người dùng ghi nhớ
-    let matchedPairs = 0;
+    let isChecking = true;
 
     const numPairs = numCards === 12 ? 4 : 3;
     const numBlanks = numCards - (numPairs * 2);
-
-    if (words.length < numPairs) {
-        gameContainer.innerHTML = `<p class="text-center text-red-500">Chủ đề này cần ít nhất ${numPairs} từ để chơi ở chế độ này.</p>`;
-        setTimeout(() => onGameEnd(false, 0), 2000);
-        return;
+    
+    const gameWords = [...words].sort(() => 0.5 - Math.random()).slice(0, numPairs);
+    if (gameWords.length < numPairs) {
+        alert(`Chủ đề này cần ít nhất ${numPairs} từ để chơi.`);
+        return closeModal('soundMatchModal');
     }
 
-    function setupNewRound() {
-        const gameWords = [...words].sort(() => 0.5 - Math.random()).slice(0, numPairs);
-        let boardItems = [];
-        matchedPairs = 0;
+    let boardItems = [];
+    gameWords.forEach(word => {
+        boardItems.push({ type: 'audio', word: word.english, pairId: word.id });
+        boardItems.push({ type: 'text', word: word.english, pairId: word.id });
+    });
+    for (let i = 0; i < numBlanks; i++) boardItems.push({ type: 'blank' });
+    shuffleArray(boardItems);
 
-        gameWords.forEach(word => {
-            boardItems.push({ type: 'audio', word: word.word, id: word.id });
-            boardItems.push({ type: 'text', word: word.word, id: word.id });
-        });
-        for (let i = 0; i < numBlanks; i++) {
-            boardItems.push({ type: 'blank' });
-        }
-        shuffleArray(boardItems);
+    boardItems.forEach((item) => {
+        const cardEl = document.createElement('div');
+        cardEl.className = 'match-card w-[90px] h-[70px] cursor-pointer';
+        cardEl.innerHTML = `
+            <div class="card-face card-back w-full h-full rounded-lg flex justify-center items-center text-4xl">?</div>
+            <div class="card-face card-front w-full h-full rounded-lg flex justify-center items-center p-1 text-center font-bold text-base">
+                ${item.type === 'audio' ? '🔊' : (item.type === 'text' ? item.word : '')}
+            </div>`;
+        cardEl.onclick = () => handleCardClick(cardEl, item);
+        board.appendChild(cardEl);
+    });
 
-        gameContainer.innerHTML = `
-            <p class="text-center text-gray-600 mb-4">Ghi nhớ vị trí và ghép cặp Âm thanh - Văn bản.</p>
-            <div class="sound-match-board grid gap-3 ${numCards === 12 ? 'grid-cols-4' : 'grid-cols-3'}">
-                ${boardItems.map((item, index) => `
-                    <div class="match-card aspect-video" data-index="${index}">
-                        <div class="card-face card-back">?</div>
-                        <div class="card-face card-front ${item.type}">
-                            ${item.type === 'audio' ? '🔊' : (item.type === 'text' ? item.word : '')}
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        `;
-
-        const allCards = gameContainer.querySelectorAll('.match-card');
-        allCards.forEach((card, index) => {
-            card.addEventListener('click', () => handleCardClick(card, boardItems[index]));
-        });
-
-        // Giai đoạn ghi nhớ
-        setTimeout(() => allCards.forEach(card => card.classList.add('flipped')), 500);
-        setTimeout(() => {
-            allCards.forEach(card => card.classList.remove('flipped'));
-            isChecking = false;
-        }, 3500);
-    }
-
-    function handleCardClick(cardElement, cardData) {
-        if (isChecking || cardElement.classList.contains('flipped') || cardData.type === 'blank') return;
-        
+    function handleCardClick(element, data) {
+        if (isChecking || element.classList.contains('flipped') || data.type === 'blank') return;
         playSound('click');
-        cardElement.classList.add('flipped');
-        if(cardData.type === 'audio') {
-            speakWord(cardData.word, 'en-US');
-        }
+        element.classList.add('flipped');
+        if (data.type === 'audio') speakWord(data.word, 'en-US');
         
-        selectedCards.push({ element: cardElement, data: cardData });
-
+        selectedCards.push({ element, data });
         if (selectedCards.length === 2) {
             isChecking = true;
-            setTimeout(checkMatch, 1000);
+            setTimeout(checkMatch, 1200);
         }
     }
 
     function checkMatch() {
         const [card1, card2] = selectedCards;
-
-        if (card1.data.id === card2.data.id && card1.data.type !== card2.data.type) {
+        if (card1.data.pairId === card2.data.pairId && card1.data.type !== card2.data.type) {
             playSound('success_2');
-            card1.element.classList.add('matched');
-            card2.element.classList.add('matched');
-            updateMasteryScore(card1.data.id, 1.5); // +1.5 điểm
-            matchedPairs++;
-
-            if (matchedPairs === numPairs) {
+            updateMasteryScore(card1.data.pairId, 1.5);
+            [card1.element, card2.element].forEach(el => el.classList.add('matched'));
+            const matchedCount = document.querySelectorAll('.match-card.matched').length;
+            if (matchedCount === numPairs * 2) {
                 playSound('tada');
-                setTimeout(setupNewRound, 1500);
+                setTimeout(() => startSoundMatchGame(words, numCards), 1500);
             }
         } else {
             playSound('fail');
-            card1.element.classList.remove('flipped');
-            card2.element.classList.remove('flipped');
+            [card1.element, card2.element].forEach(el => el.classList.remove('flipped'));
         }
-
         selectedCards = [];
         isChecking = false;
     }
 
-    setupNewRound();
+    openModal('soundMatchModal');
+    
+    // Giai đoạn ghi nhớ
+    const allCards = board.querySelectorAll('.match-card');
+    setTimeout(() => allCards.forEach(card => card.classList.add('flipped')), 500);
+    setTimeout(() => {
+        allCards.forEach(card => card.classList.remove('flipped'));
+        isChecking = false;
+    }, 3500);
 }

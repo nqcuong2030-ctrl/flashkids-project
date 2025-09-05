@@ -1,49 +1,70 @@
-// public/js/dom.js (PHIÊN BẢN ĐÃ SỬA LỖI ID)
-import { getState, getUserProgress, getFilteredCards } from './state.js';
-import { CATEGORY_COLORS, GAMES_CONFIG, QUIZ_CONFIG } from './config.js';
+// File: public/js/dom.js
+// Nhiệm vụ: Chứa tất cả các hàm thao tác trực tiếp với HTML (DOM).
 
-// Cache các element DOM - ĐÃ SỬA LẠI ID CHO ĐÚNG VỚI FILE INDEX.HTML
+import { getState, getUserProgress } from './state.js';
+import { MASTERY_THRESHOLD, GAMES_CONFIG, QUIZ_CONFIG, CATEGORY_COLORS } from './config.js';
+
+// Cache các element DOM thường dùng để tối ưu hiệu năng
 const domCache = {
-    loadingOverlay: document.getElementById('loading-indicator'),
-    levelSelect: document.querySelectorAll('.level-badge'), // Sửa: Dùng querySelectorAll
-    categoryList: document.getElementById('categories-container'), // Sửa: ID đúng
-    flashcardContainer: document.getElementById('current-flashcard'), // Sửa: ID đúng
-    progressBar: document.getElementById('progress-bar'), // Giả định ID này sẽ được thêm sau
-    progressText: document.getElementById('card-counter'), // Sửa: Dùng card-counter
-    prevBtn: document.getElementById('prev-card'), // Sửa: ID đúng
-    nextBtn: document.getElementById('next-card'), // Sửa: ID đúng
-    cardFront: document.querySelector('.flashcard-front'), // Sửa: Dùng querySelector
-    cardBack: document.querySelector('.flashcard-back'), // Sửa: Dùng querySelector
-    mainContent: document.querySelector('main'), // Sửa: Dùng querySelector
-    homeTab: document.getElementById('home'),
-    flashcardsTab: document.getElementById('flashcards'),
-    gamesTab: document.getElementById('games'),
-    quizTab: document.getElementById('quiz'),
-    rewardsTab: document.getElementById('rewards'),
-    statsTab: document.getElementById('stats'),
-    userProfileName: document.getElementById('welcome-message'), // Sửa: Dùng welcome-message
-    userProfileAvatar: document.querySelector('#user-menu-button img'), // Sửa: Dùng querySelector
-    userLevel: document.getElementById('xp-level'),
-    userXp: document.getElementById('xp-text'),
+    loadingIndicator: document.getElementById('loading-indicator'),
+    categoriesContainer: document.getElementById('categories-container'),
+    flashcard: document.getElementById('current-flashcard'),
+    englishWord: document.getElementById('english-word'),
+    phoneticText: document.getElementById('phonetic-text'),
+    vietnameseWord: document.getElementById('vietnamese-word'),
+    cardImage: document.getElementById('card-image'),
+    cardCounter: document.getElementById('card-counter'),
+    prevCardBtn: document.getElementById('prev-card'),
+    nextCardBtn: document.getElementById('next-card'),
+    xpLevel: document.getElementById('xp-level'),
+    xpBar: document.getElementById('xp-bar'),
+    xpText: document.getElementById('xp-text'),
+    welcomeMessage: document.getElementById('welcome-message'),
     masteryChartCanvas: document.getElementById('mastery-chart'),
+    gamesContainer: document.getElementById('games-container'),
+    quizTypesContainer: document.getElementById('quiz-types'),
 };
 
-let masteryChart = null;
+let masteryChartInstance = null; // Biến để lưu trữ instance của Chart.js
 
+/**
+ * Hiển thị chỉ báo đang tải.
+ */
 export function showLoading() {
-    if (domCache.loadingOverlay) domCache.loadingOverlay.classList.remove('hidden');
+    domCache.loadingIndicator?.classList.remove('hidden');
 }
 
+/**
+ * Ẩn chỉ báo đang tải.
+ */
 export function hideLoading() {
-    if (domCache.loadingOverlay) domCache.loadingOverlay.classList.add('hidden');
+    domCache.loadingIndicator?.classList.add('hidden');
 }
 
+/**
+ * Mở một modal dựa trên ID.
+ * @param {string} modalId - ID của modal cần mở.
+ */
+export function openModal(modalId) {
+    document.getElementById(modalId)?.classList.add('show');
+}
+
+/**
+ * Đóng một modal dựa trên ID.
+ * @param {string} modalId - ID của modal cần đóng.
+ */
+export function closeModal(modalId) {
+    document.getElementById(modalId)?.classList.remove('show');
+}
+
+/**
+ * Render danh sách các chủ đề ra trang chủ.
+ */
 export function loadCategories() {
-    const { categories, currentLevel } = getState();
-    const progress = getUserProgress();
-    if (!domCache.categoryList) return;
-    domCache.categoryList.innerHTML = '';
-    
+    const { categories } = getState();
+    if (!domCache.categoriesContainer) return;
+    domCache.categoriesContainer.innerHTML = '';
+
     categories.forEach((category, index) => {
         const progressPercent = getCategoryProgress(category.id);
         const color = CATEGORY_COLORS[index % CATEGORY_COLORS.length];
@@ -55,91 +76,117 @@ export function loadCategories() {
                 <h4 class="text-lg font-bold">${category.name}</h4>
                 <span class="bg-white text-gray-700 text-xs font-bold px-2 py-1 rounded-full">${category.wordCount} từ</span>
             </div>
-            <div class="flex justify-between items-end">
-                <div>
-                    <div class="text-sm mb-1">Tiến độ: ${progressPercent}%</div>
-                    <div class="w-32 bg-white bg-opacity-30 rounded-full h-2">
-                        <div class="bg-white h-2 rounded-full" style="width: ${progressPercent}%"></div>
-                    </div>
+            <div>
+                <div class="text-sm mb-1">Tiến độ: ${progressPercent}%</div>
+                <div class="w-full bg-white bg-opacity-30 rounded-full h-2">
+                    <div class="bg-white h-2 rounded-full" style="width: ${progressPercent}%"></div>
                 </div>
             </div>
         `;
-        domCache.categoryList.appendChild(categoryElement);
+        domCache.categoriesContainer.appendChild(categoryElement);
     });
 }
 
-export function renderFlashcards() {
-    const { currentCardIndex } = getState();
-    const filteredCards = getFilteredCards();
-    updateProgressBar();
-    updateFlashcard(filteredCards[currentCardIndex]);
-}
+/**
+ * Cập nhật nội dung của thẻ từ vựng hiện tại.
+ */
+export function updateFlashcard() {
+    const { flashcards, currentCardIndex, currentCategoryId } = getState();
+    const filteredCards = currentCategoryId ? flashcards.filter(c => c.categoryId === currentCategoryId) : flashcards;
+    const card = filteredCards[currentCardIndex];
 
-export function updateFlashcard(card) {
-    if (!domCache.cardFront || !domCache.cardBack) return;
     if (!card) {
-        domCache.cardFront.innerHTML = `<div>Không có từ vựng nào.</div>`;
-        domCache.cardBack.innerHTML = `<div>Vui lòng chọn chủ đề khác.</div>`;
+        domCache.englishWord.textContent = 'Trống';
+        domCache.vietnameseWord.textContent = 'Vui lòng chọn chủ đề';
         return;
     }
+    domCache.englishWord.textContent = card.english;
+    domCache.phoneticText.textContent = card.phonetic || '';
+    domCache.vietnameseWord.textContent = card.vietnamese;
     
-    document.getElementById('english-word').textContent = card.english;
-    document.getElementById('phonetic-text').textContent = card.phonetic || '';
-    document.getElementById('vietnamese-word').textContent = card.vietnamese;
+    // Xử lý hiển thị ảnh hoặc icon
+    if (card.image && (card.image.startsWith('http'))) {
+        domCache.cardImage.innerHTML = `<img src="${card.image}" alt="${card.english}" class="w-full h-full object-contain">`;
+    } else {
+        domCache.cardImage.innerHTML = ''; // Hoặc hiển thị icon mặc định nếu có
+    }
     
-    if (domCache.flashcardContainer) domCache.flashcardContainer.classList.remove('flipped');
+    domCache.flashcard.classList.remove('flipped');
+    updateCardCounter();
 }
 
-export function updateProgressBar() {
-    const { currentCardIndex } = getState();
-    const filteredCards = getFilteredCards();
-    const total = filteredCards.length;
-
-    if (!domCache.progressText) return;
-    domCache.progressText.textContent = `${currentCardIndex + 1}/${total}`;
-
-    if (domCache.prevBtn) domCache.prevBtn.disabled = currentCardIndex === 0;
-    if (domCache.nextBtn) domCache.nextBtn.disabled = currentCardIndex === total - 1;
+/**
+ * Cập nhật bộ đếm thẻ (ví dụ: 1 / 20).
+ */
+export function updateCardCounter() {
+    const { flashcards, currentCardIndex, currentCategoryId } = getState();
+    const filteredCards = currentCategoryId ? flashcards.filter(c => c.categoryId === currentCategoryId) : [];
+    
+    if (domCache.cardCounter) {
+        domCache.cardCounter.textContent = `${currentCardIndex + 1} / ${filteredCards.length}`;
+    }
+    if (domCache.prevCardBtn) domCache.prevCardBtn.disabled = currentCardIndex === 0;
+    if (domCache.nextCardBtn) domCache.nextCardBtn.disabled = currentCardIndex >= filteredCards.length - 1;
 }
 
+/**
+ * Cập nhật thông tin người dùng trên header.
+ */
 export function updateUserProfileDisplay() {
     const { userProfile } = getUserProgress();
-    if (domCache.userProfileName) domCache.userProfileName.textContent = `Xin chào, ${userProfile.username}!`;
-    if (domCache.userProfileAvatar) domCache.userProfileAvatar.src = userProfile.avatar;
-    if (domCache.userLevel) domCache.userLevel.textContent = userProfile.level;
-    if (domCache.userXp) document.getElementById('xp-bar').style.width = `${(userProfile.xp / userProfile.xpToNextLevel) * 100}%`;
+    if (domCache.welcomeMessage) domCache.welcomeMessage.textContent = `Xin chào, ${userProfile.username}!`;
+    if (domCache.xpLevel) domCache.xpLevel.textContent = userProfile.level;
+    if (domCache.xpText) domCache.xpText.textContent = `${userProfile.xp}/${userProfile.xpToNextLevel}`;
+    if (domCache.xpBar) domCache.xpBar.style.width = `${(userProfile.xp / userProfile.xpToNextLevel) * 100}%`;
 }
 
-// Sửa lại hàm này để hoạt động với cấu trúc tab mới
-export function showScreen(tabId) {
-    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
-    const activeTab = document.getElementById(tabId);
-    if (activeTab) {
-        activeTab.classList.remove('hidden');
-    }
-}
-
-// Các hàm renderGameScreen và renderQuizScreen cần được điều chỉnh để trỏ đúng ID
-export function renderGameScreen(gameId, categoryName) {
-    const game = GAMES_CONFIG.find(g => g.id === gameId);
-    openModal(`${game.modalId || 'matchingGameModal'}`);
-}
-
-export function renderQuizScreen(quizId, categoryName) {
-    const quiz = QUIZ_CONFIG.find(q => q.id === quizId);
-    openModal(`${quiz.modalId || 'multipleChoiceQuizModal'}`);
-}
-
+/**
+ * Render biểu đồ tròn thể hiện mức độ thông thạo từ vựng.
+ */
 export function renderMasteryChart() {
-    // ... logic vẽ biểu đồ giữ nguyên ...
+    const progress = getUserProgress();
+    const { flashcards } = getState();
+    const ctx = domCache.masteryChartCanvas?.getContext('2d');
+    if (!ctx) return;
+
+    let masteredCount = 0;
+    let learningCount = 0;
+    const wordIdsInLevel = new Set(flashcards.map(word => word.id));
+
+    for (const wordId in progress.masteryScores) {
+        if (wordIdsInLevel.has(parseInt(wordId))) {
+            const score = progress.masteryScores[wordId];
+            if (score >= MASTERY_THRESHOLD) masteredCount++;
+            else if (score > 0) learningCount++;
+        }
+    }
+    const unlearnedCount = flashcards.length - masteredCount - learningCount;
+
+    if (masteryChartInstance) masteryChartInstance.destroy();
+    
+    masteryChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Thông thạo', 'Đang học', 'Chưa học'],
+            datasets: [{
+                data: [masteredCount, learningCount, unlearnedCount],
+                backgroundColor: ['#10B981', '#F59E0B', '#E5E7EB'],
+                hoverOffset: 4
+            }]
+        }
+    });
 }
 
-// Hàm này cần tồn tại để các module khác gọi
-export function getCategoryProgress(categoryId) {
-	const progress = getUserProgress();
+/**
+ * Helper function để tính toán tiến độ của một chủ đề.
+ * @param {string} categoryId - ID của chủ đề.
+ * @returns {number} Phần trăm hoàn thành.
+ */
+function getCategoryProgress(categoryId) {
+    const progress = getUserProgress();
+    const { flashcards } = getState();
     const wordsInCat = flashcards.filter(card => card.categoryId === categoryId);
     if (wordsInCat.length === 0) return 0;
-
-    let masteredCount = wordsInCat.filter(word => (progress.masteryScores[word.id] || 0) >= 3).length;
+    const masteredCount = wordsInCat.filter(word => (progress.masteryScores[word.id] || 0) >= MASTERY_THRESHOLD).length;
     return Math.round((masteredCount / wordsInCat.length) * 100);
 }
