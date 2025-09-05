@@ -2,7 +2,7 @@
 // ===== 0. VERSIONING & DATA MIGRATION
 // ===================================================================================
 
-const APP_VERSION = '1.1_09082025_1'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
+const APP_VERSION = '1.1_09082025_2'; // Bất cứ khi nào bạn có thay đổi lớn, hãy tăng số này (ví dụ: '1.2')
 const MASTERY_THRESHOLD = 3;
 
 function checkAppVersion() {
@@ -249,18 +249,24 @@ function pruneAudioCache(itemsToRemove = 50) {
 // ===================================================================================
 
 const soundEffects = {
-	click: new Audio('data/click.mp3'),
-	success: new Audio('data/success.mp3'),
-	success_2: new Audio('data/success_2.mp3'),
-	fail: new Audio('data/fail.mp3'),
-	error: new Audio('data/error.mp3'),			
-	tada: new Audio('data/tada.mp3')
+	click: new Audio('/sound/click.mp3'),
+	success: new Audio('/sound/success.mp3'),
+	success_2: new Audio('/sound/success_2.mp3'),
+	fail: new Audio('/sound/fail.mp3'),
+	error: new Audio('/sound/error.mp3'),			
+	tada: new Audio('/sound/tada.mp3')
 };
 
 function playSound(soundName) {
 	if (soundEnabled && soundEffects[soundName]) {
 		soundEffects[soundName].currentTime = 0; // Tua về đầu để có thể phát lại ngay
 		soundEffects[soundName].play();
+		if (playPromise !== undefined) {
+			playPromise.catch(error => {
+				// Lỗi này sẽ không làm dừng ứng dụng, chỉ thông báo trong console.
+				console.error(`Không thể phát âm thanh "${soundName}":`, error);
+			});
+		}
 	}
 }
 
