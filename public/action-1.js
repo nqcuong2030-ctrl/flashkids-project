@@ -9,7 +9,7 @@
  * @description Chứa các hằng số và cấu hình không thay đổi trong suốt quá trình chạy.
  */
 const config = {
-    APP_VERSION: '1.1_09082025_5',
+    APP_VERSION: '1.1_09082025_6',
     MASTERY_THRESHOLD: 4,
     INACTIVITY_DELAY: 10000, // 10 giây
     LOCAL_STORAGE_KEYS: {
@@ -1282,9 +1282,9 @@ const gameManager = {
             }
             
             questions.push({
-                correctAnswer: correctWord,
-                options: util.shuffleArray(options)
-            });
+				correctAnswer: correctWord,
+				options: util.shuffleArray(options)
+			});
         }
         return questions;
     },
@@ -1880,11 +1880,15 @@ const util = {
      * @param {Array} array - Mảng cần xáo trộn.
      */
     shuffleArray: function(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
-    },
+    // Tạo một bản sao của mảng để không thay đổi mảng gốc
+    const shuffledArray = [...array]; 
+    for (let i = shuffledArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffledArray[i], shuffledArray[j]] = [shuffledArray[j], shuffledArray[i]];
+    }
+    // SỬA LỖI: Trả về mảng đã xáo trộn
+    return shuffledArray; 
+},
 
     /**
      * @description Lấy danh sách flashcards đã được lọc theo chủ đề hiện tại.
@@ -2117,7 +2121,6 @@ const app = {
 		}
 
 		dom.levelBadges.forEach(badge => {
-			// Gán sự kiện dựa trên data-level bạn đã thêm ở Bước 1
 			badge.addEventListener('click', () => {
 				const level = badge.dataset.level;
 				if (level) {
@@ -2153,17 +2156,15 @@ const app = {
 		const userMenu = document.getElementById('user-menu');
 		if (userMenuButton && userMenu) {
 			userMenuButton.addEventListener('click', (event) => {
-				event.stopPropagation(); // Ngăn sự kiện click lan ra window và đóng menu ngay lập tức
+				event.stopPropagation();
 				userMenu.classList.toggle('hidden');
 			});
-			// Đóng menu khi click ra ngoài
 			window.addEventListener('click', () => {
 				if (!userMenu.classList.contains('hidden')) {
 					userMenu.classList.add('hidden');
 				}
 			});
 		}
-		// Link Cài đặt trong menu
 		const menuSettingsLink = document.getElementById('menu-settings-link');
 		if (menuSettingsLink) {
 			menuSettingsLink.addEventListener('click', (event) => {
@@ -2173,24 +2174,22 @@ const app = {
 			});
 		}
 
-		// --- Modals (Gán sự kiện cho các nút đóng) ---
+		// --- LOGIC MỚI: Xử lý đóng tất cả Modals ---
 		dom.modals.forEach(modal => {
-			const closeButton = modal.querySelector('button[id*="close-"]'); // Tìm bất kỳ nút nào có id chứa "close-"
-			if (closeButton) {
-				closeButton.addEventListener('click', () => uiManager.closeModal(modal.id));
-			}
-			const confirmButton = modal.querySelector('#confirm-action-btn');
-			if (confirmButton) {
-				// Logic cho nút xác nhận có thể được thêm ở đây nếu cần
-			}
-		});
-		// Gán sự kiện đóng cho nút "Đóng" của Completion Modal
-		const closeCompletionBtn = document.querySelector('#completionModal button');
-		if(closeCompletionBtn) {
-			closeCompletionBtn.addEventListener('click', () => uiManager.closeModal('completionModal'));
-		}
-	},
+			// Logic 1: Click ra ngoài (vào lớp nền mờ) để đóng
+			modal.addEventListener('click', (event) => {
+				if (event.target === modal) { // Chỉ đóng khi click trực tiếp vào modal overlay
+					uiManager.closeModal(modal.id);
+				}
+			});
 
+			// Logic 2: Click vào bất kỳ nút nào có class .close-modal-btn để đóng
+			const closeButtons = modal.querySelectorAll('.close-modal-btn');
+			closeButtons.forEach(button => {
+				button.addEventListener('click', () => uiManager.closeModal(modal.id));
+			});
+		});
+	},
     /**
      * @description Kiểm tra phiên bản ứng dụng định kỳ.
      */
