@@ -9,7 +9,7 @@
  * @description Chứa các hằng số và cấu hình không thay đổi trong suốt quá trình chạy.
  */
 const config = {
-    APP_VERSION: '1.1_09082025_1',
+    APP_VERSION: '1.1_09082025_2',
     MASTERY_THRESHOLD: 4,
     INACTIVITY_DELAY: 10000, // 10 giây
     LOCAL_STORAGE_KEYS: {
@@ -1168,11 +1168,12 @@ const gameManager = {
 	},
 	
     // --- GAME 1: GHÉP TỪ (MATCHING GAME) ---
-
+	
 	startMatchingGame: function(words) {
 		const s = state.games.matching;
 		s.selectedEnglishWord = null;
-		s.userPairs = {}; // Lưu các cặp người dùng đã chọn { englishId: vietnameseId }
+		s.selectedVietnameseWord = null;
+		s.matchedPairs = [];
 		
 		const gameWords = [...words].sort(() => 0.5 - Math.random()).slice(0, 5);
 		const englishContainer = document.getElementById('english-words');
@@ -1180,122 +1181,121 @@ const gameManager = {
 		englishContainer.innerHTML = '';
 		vietnameseContainer.innerHTML = '';
 
-		// Tạo các từ Tiếng Anh
 		gameWords.forEach(word => {
 			const enWordEl = document.createElement('div');
 			enWordEl.className = 'word-card bg-blue-100 p-3 rounded-lg text-blue-800 font-semibold cursor-pointer';
 			enWordEl.dataset.wordId = word.id;
 			enWordEl.textContent = word.english;
-			enWordEl.addEventListener('click', () => this.selectEnglishWord(enWordEl, word.id));
+			// Gán sự kiện cho hàm chọn từ (đã đổi tên để rõ ràng hơn)
+			enWordEl.addEventListener('click', () => this.selectMatchingWord(enWordEl, word.id, 'en'));
 			englishContainer.appendChild(enWordEl);
 		});
-		
-		// Tạo và xáo trộn các từ Tiếng Việt
+
 		const shuffledVietnamese = [...gameWords].sort(() => 0.5 - Math.random());
 		shuffledVietnamese.forEach(word => {
 			const viWordEl = document.createElement('div');
 			viWordEl.className = 'word-card bg-gray-100 p-3 rounded-lg text-gray-800 cursor-pointer';
 			viWordEl.dataset.wordId = word.id;
 			viWordEl.textContent = word.vietnamese;
-			viWordEl.addEventListener('click', () => this.selectVietnameseWord(viWordEl, word.id));
+			viWordEl.addEventListener('click', () => this.selectMatchingWord(viWordEl, word.id, 'vi'));
 			vietnameseContainer.appendChild(viWordEl);
 		});
 
 		// Gán sự kiện cho các nút điều khiển
-		document.getElementById('check-answers').onclick = () => this.checkMatchingAnswers();
+		const checkButton = document.getElementById('check-answers');
+		checkButton.textContent = 'Kiểm tra đáp án';
+		checkButton.disabled = false;
+		checkButton.onclick = () => this.checkMatchingAnswers(); // Hàm mới cho nút
+
 		document.getElementById('restart-matching-game').onclick = () => this.restartMatchingGame();
 		
 		uiManager.openModal('matchingGameModal');
 	},
 
-	selectEnglishWord: function(element, wordId) {
-		soundManager.play('click');
-		if (element.classList.contains('paired')) return;
+	selectMatchingWord: function(element, wordId, lang) {
+		soundManager.speak(element.textContent, lang === 'en' ? 'en-US' : 'vi-VN');
+		if (element.classList.contains('matched')) return;
 
-		document.querySelectorAll('#english-words .word-card.selected').forEach(el => el.classList.remove('selected'));
-		element.classList.add('selected');
-		state.games.matching.selectedEnglishWord = wordId;
-	},
-
-	selectVietnameseWord: function(element, wordId) {
-		soundManager.play('click');
 		const s = state.games.matching;
+		const containerSelector = lang === 'en' ? '#english-words' : '#vietnamese-words';
+		
+		// Bỏ chọn từ đang được chọn trong cùng một cột
+		const currentlySelected = document.querySelector(`${containerSelector} .word-card.selected`);
+		if (currentlySelected) {
+			currentlySelected.classList.remove('selected');
+		}
+		
+		element.classList.add('selected');
 
-		if (s.selectedEnglishWord && !element.classList.contains('paired')) {
-			const enWordEl = document.querySelector(`#english-words .word-card[data-word-id="${s.selectedEnglishWord}"]`);
-			
-			// Xóa các cặp cũ nếu có
-			if (s.userPairs[s.selectedEnglishWord]) {
-				const oldViId = s.userPairs[s.selectedEnglishWord];
-				const oldViEl = document.querySelector(`#vietnamese-words .word-card[data-word-id="${oldViId}"]`);
-				if(oldViEl) oldViEl.classList.remove('paired');
-			}
-			const pairedViId = Object.keys(s.userPairs).find(key => s.userPairs[key] === wordId);
-			if(pairedViId){
-				 const oldEnEl = document.querySelector(`#english-words .word-card[data-word-id="${pairedViId}"]`);
-				 if(oldEnEl) oldEnEl.classList.remove('paired');
-				 delete s.userPairs[pairedViId];
-			}
+		if (lang === 'en') s.selectedEnglishWord = wordId;
+		else s.selectedVietnameseWord = wordId;
 
-			// Tạo cặp mới
-			s.userPairs[s.selectedEnglishWord] = wordId;
-			enWordEl.classList.add('paired');
-			element.classList.add('paired');
-			
-			// Reset lựa chọn
-			enWordEl.classList.remove('selected');
-			s.selectedEnglishWord = null;
+		// Tự động kiểm tra ngay khi chọn đủ 1 cặp
+		if (s.selectedEnglishWord && s.selectedVietnameseWord) {
+			this.checkWordMatch();
 		}
 	},
 
+	checkWordMatch: function() {
+		const s = state.games.matching;
+		const englishElement = document.querySelector(`#english-words .word-card[data-word-id="${s.selectedEnglishWord}"]`);
+		const vietnameseElement = document.querySelector(`#vietnamese-words .word-card[data-word-id="${s.selectedVietnameseWord}"]`);
+		if (!englishElement || !vietnameseElement) return;
+
+		if (s.selectedEnglishWord === s.selectedVietnameseWord) {
+			soundManager.play('success_2');
+			englishElement.classList.remove('selected');
+			vietnameseElement.classList.remove('selected');
+			englishElement.classList.add('matched');
+			vietnameseElement.classList.add('matched');
+			// Chỉ thêm vào mảng nếu chưa tồn tại
+			if (!s.matchedPairs.includes(s.selectedEnglishWord)) {
+				s.matchedPairs.push(s.selectedEnglishWord);
+			}
+		} else {
+			soundManager.play('fail');
+			englishElement.classList.add('error');
+			vietnameseElement.classList.add('error');
+			setTimeout(() => {
+				englishElement.classList.remove('selected', 'error');
+				vietnameseElement.classList.remove('selected', 'error');
+			}, 800);
+		}
+
+		// Reset lựa chọn để người dùng có thể ghép cặp tiếp theo
+		s.selectedEnglishWord = null;
+		s.selectedVietnameseWord = null;
+
+		// Logic hoàn thành game sẽ được chuyển sang hàm checkMatchingAnswers
+	},
+
+	// Hàm này DÀNH RIÊNG cho nút "Kiểm tra đáp án"
 	checkMatchingAnswers: function() {
 		soundManager.play('click');
 		const s = state.games.matching;
-		let correctCount = 0;
+		const totalPairs = document.querySelectorAll('#english-words .word-card').length;
+		const score = Math.round((s.matchedPairs.length / totalPairs) * 100);
 
-		// Vô hiệu hóa các nút để tránh click nhiều lần
-		document.getElementById('check-answers').disabled = true;
-		document.getElementById('restart-matching-game').disabled = true;
+		const checkButton = document.getElementById('check-answers');
+		checkButton.textContent = `Đúng ${s.matchedPairs.length}/${totalPairs}`;
+		checkButton.disabled = true;
 
-		// Kiểm tra các cặp đã được người dùng ghép
-		for (const enId in s.userPairs) {
-			const viId = s.userPairs[enId];
-			const enEl = document.querySelector(`#english-words .word-card[data-word-id="${enId}"]`);
-			const viEl = document.querySelector(`#vietnamese-words .word-card[data-word-id="${viId}"]`);
-
-			if (enId === viId) {
-				correctCount++;
-				enEl.classList.replace('paired', 'matched');
-				viEl.classList.replace('paired', 'matched');
-			} else {
-				enEl.classList.replace('paired', 'error');
-				viEl.classList.replace('paired', 'error');
-			}
-		}
-
-		// Xử lý các từ chưa được ghép
-		document.querySelectorAll('#english-words .word-card:not(.matched):not(.error)').forEach(el => el.classList.add('error'));
-		document.querySelectorAll('#vietnamese-words .word-card:not(.matched):not(.error)').forEach(el => el.classList.add('error'));
-
-		// Phản hồi dựa trên kết quả
-		if (correctCount === 5) {
+		if (s.matchedPairs.length === totalPairs && totalPairs > 0) {
 			soundManager.play('tada');
-			uiManager.showCompletionMessage(100, state.currentActivity.id, state.currentActivity.categoryId);
-		} else {
-			soundManager.play('error');
 		}
 
-		// Tải game mới sau 3 giây
+		// Tải lại game mới sau 2 giây
 		setTimeout(() => {
 			this.restartMatchingGame();
-		}, 3000);
+		}, 2000);
 	},
 
 	restartMatchingGame: function() {
 		soundManager.play('click');
 		const { id, categoryId } = state.currentActivity;
 		if (id && categoryId) {
-			this.playGame(id, categoryId);
+			uiManager.closeModal('matchingGameModal');
+			setTimeout(() => this.playGame(id, categoryId), 300);
 		}
 	},
 
