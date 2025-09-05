@@ -9,7 +9,7 @@
  * @description Chứa các hằng số và cấu hình không thay đổi trong suốt quá trình chạy.
  */
 const config = {
-    APP_VERSION: '1.1_09082025_2',
+    APP_VERSION: '1.1_09082025_3',
     MASTERY_THRESHOLD: 4,
     INACTIVITY_DELAY: 10000, // 10 giây
     LOCAL_STORAGE_KEYS: {
@@ -1772,41 +1772,98 @@ const app = {
      * @description Gán tất cả các sự kiện cho các phần tử DOM tĩnh (static).
      */
     bindEventListeners: function() {
-        // --- Điều hướng chính ---
-        dom.navButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const tabId = button.dataset.tab;
-                if (tabId === 'flashcards') {
-                    this.navigateToFlashcardsTab();
-                } else if (tabId) {
-                    this.changeTab(tabId);
-                }
-            });
-        });
+		// --- Điều hướng chính (Navigation) ---
+		dom.navButtons.forEach(button => {
+			button.addEventListener('click', () => {
+				const tabId = button.dataset.tab;
+				if (tabId === 'flashcards') {
+					this.navigateToFlashcardsTab();
+				} else if (tabId) {
+					this.changeTab(tabId);
+				}
+			});
+		});
 
-        // --- Thẻ từ vựng ---
-        dom.currentFlashcard.addEventListener('click', this.handleFlashcardFlip);
-        dom.prevCardBtn.addEventListener('click', this.previousCard);
-        dom.nextCardBtn.addEventListener('click', this.nextCard);
-        dom.markLearnedBtn.addEventListener('click', progressManager.markCurrentWordAsLearned);
+		// --- Trang chủ (Home) ---
+		const startNowBtn = document.getElementById('start-now-btn');
+		if (startNowBtn) {
+			startNowBtn.addEventListener('click', () => this.navigateToFlashcardsTab());
+		}
 
-        // Nút nghe trên 2 mặt thẻ
-        const listenBtnFront = dom.currentFlashcard.querySelector('.flashcard-front .listen-btn');
-        const listenBtnBack = dom.currentFlashcard.querySelector('.flashcard-back .listen-btn');
-        
-        if (listenBtnFront) {
-            listenBtnFront.addEventListener('click', (event) => {
-                event.stopPropagation();
-                this.speakCurrentWord('english');
-            });
-        }
-        if (listenBtnBack) {
-            listenBtnBack.addEventListener('click', (event) => {
-                event.stopPropagation();
-                this.speakCurrentWord('vietnamese');
-            });
-        }
-    },
+		dom.levelBadges.forEach(badge => {
+			// Gán sự kiện dựa trên data-level bạn đã thêm ở Bước 1
+			badge.addEventListener('click', () => {
+				const level = badge.dataset.level;
+				if (level) {
+					this.changeLevel(level, true);
+				}
+			});
+		});
+
+		// --- Thẻ từ vựng (Flashcards) ---
+		dom.currentFlashcard.addEventListener('click', this.handleFlashcardFlip);
+		dom.prevCardBtn.addEventListener('click', this.previousCard);
+		dom.nextCardBtn.addEventListener('click', this.nextCard);
+		dom.markLearnedBtn.addEventListener('click', progressManager.markCurrentWordAsLearned);
+
+		// Nút nghe trên 2 mặt thẻ
+		const listenBtnFront = dom.currentFlashcard.querySelector('.flashcard-front .listen-btn');
+		if (listenBtnFront) {
+			listenBtnFront.addEventListener('click', (event) => {
+				event.stopPropagation();
+				this.speakCurrentWord('english');
+			});
+		}
+		const listenBtnBack = dom.currentFlashcard.querySelector('.flashcard-back .listen-btn');
+		if (listenBtnBack) {
+			listenBtnBack.addEventListener('click', (event) => {
+				event.stopPropagation();
+				this.speakCurrentWord('vietnamese');
+			});
+		}
+
+		// --- Menu Người dùng (User Menu) ---
+		const userMenuButton = document.getElementById('user-menu-button');
+		const userMenu = document.getElementById('user-menu');
+		if (userMenuButton && userMenu) {
+			userMenuButton.addEventListener('click', (event) => {
+				event.stopPropagation(); // Ngăn sự kiện click lan ra window và đóng menu ngay lập tức
+				userMenu.classList.toggle('hidden');
+			});
+			// Đóng menu khi click ra ngoài
+			window.addEventListener('click', () => {
+				if (!userMenu.classList.contains('hidden')) {
+					userMenu.classList.add('hidden');
+				}
+			});
+		}
+		// Link Cài đặt trong menu
+		const menuSettingsLink = document.getElementById('menu-settings-link');
+		if (menuSettingsLink) {
+			menuSettingsLink.addEventListener('click', (event) => {
+				event.preventDefault();
+				this.changeTab('settings');
+				if (userMenu) userMenu.classList.add('hidden');
+			});
+		}
+
+		// --- Modals (Gán sự kiện cho các nút đóng) ---
+		dom.modals.forEach(modal => {
+			const closeButton = modal.querySelector('button[id*="close-"]'); // Tìm bất kỳ nút nào có id chứa "close-"
+			if (closeButton) {
+				closeButton.addEventListener('click', () => uiManager.closeModal(modal.id));
+			}
+			const confirmButton = modal.querySelector('#confirm-action-btn');
+			if (confirmButton) {
+				// Logic cho nút xác nhận có thể được thêm ở đây nếu cần
+			}
+		});
+		// Gán sự kiện đóng cho nút "Đóng" của Completion Modal
+		const closeCompletionBtn = document.querySelector('#completionModal button');
+		if(closeCompletionBtn) {
+			closeCompletionBtn.addEventListener('click', () => uiManager.closeModal('completionModal'));
+		}
+	},
 
     /**
      * @description Kiểm tra phiên bản ứng dụng định kỳ.
