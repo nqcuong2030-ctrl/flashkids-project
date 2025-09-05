@@ -1286,7 +1286,7 @@ const gameManager = {
 			// Không cần đóng modal, chỉ cần tải lại nội dung
 			this.playGame(id, categoryId);
 		}
-	}
+	},
 
 	// --- GAME 2: CHỌN TỪ (IMAGE QUIZ) ---
     startImageQuiz: function(words) {
