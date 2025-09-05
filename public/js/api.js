@@ -2,7 +2,7 @@
 import { showLoading, hideLoading, pruneAudioCache } from './dom.js';
 
 // --- QUẢN LÝ VERSION & CACHE ---
-const APP_VERSION = '1.2_1';
+const APP_VERSION = '1.2_2';
 
 function checkAppVersion() {
     const storedVersion = localStorage.getItem('flashkids_app_version');
