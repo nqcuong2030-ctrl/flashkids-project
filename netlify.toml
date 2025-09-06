@@ -1,3 +1,4 @@
+# Cấu hình Build & Functions (GIỮ NGUYÊN)
 [build]
   # Chỉ định thư mục deploy chính
   publish = "public/"
@@ -11,3 +12,20 @@
   
   # Giữ lại dòng quan trọng này để function có thể đọc file data
   included_files = ["data/**"]
+
+# === Cấu hình Header Bảo mật (PHẦN MỚI THÊM VÀO) ===
+# Quy tắc này sẽ được áp dụng cho tất cả các trang trên website của bạn.
+[[headers]]
+  for = "/*"
+
+  [headers.values]
+    # Content-Security-Policy là tiêu chuẩn hiện đại và mạnh mẽ nhất.
+    # Nó chỉ thị cho trình duyệt rằng trang web này chỉ được phép nhúng vào:
+    # 1. 'self'      : Chính nó (ví dụ: flashkids.netlify.app có thể nhúng một trang con của nó).
+    # 2. URL của bạn : Trang web thời khóa biểu của bạn.
+    #
+    # !!! QUAN TRỌNG: Hãy thay thế URL bên dưới bằng ĐÚNG địa chỉ trang web thời khóa biểu của bạn.
+    Content-Security-Policy = "frame-ancestors 'self' https://superkid.netlify.app;"
+
+    # X-Frame-Options là một header cũ hơn để tăng khả năng tương thích với các trình duyệt cũ.
+    X-Frame-Options = "DENY"
