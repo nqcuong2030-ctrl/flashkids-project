@@ -6,7 +6,7 @@
  * @description Chứa các hằng số và cấu hình không thay đổi trong suốt quá trình chạy.
  */
 const config = {
-    APP_VERSION: '1.2_0908_7_FULL_FEATURE', // Đặt phiên bản mới cho ứng dụng tái cấu trúc
+    APP_VERSION: '1.2_0908_1_FULL_FEATURE', // Đặt phiên bản mới cho ứng dụng tái cấu trúc
     MASTERY_THRESHOLD: 4,
     INACTIVITY_DELAY: 10000, // 10 giây
 
@@ -1424,8 +1424,7 @@ const gameManager = {
 		
 		document.getElementById('image-quiz-progress').textContent = `Câu ${s.currentQuestionIndex + 1} / ${s.questions.length}`;
 		
-		// Nếu có ảnh, hiển thị ảnh. Nếu không, hiển thị nghĩa tiếng Việt.
-		if (question.correctAnswer.image && question.correctAnswer.image.startsWith('http')) {
+		if (question.correctAnswer.image && (question.correctAnswer.image.startsWith('http') || question.correctAnswer.image.startsWith('/'))) {
 			imageContainer.innerHTML = `<img id="image-quiz-img" src="${question.correctAnswer.image}" alt="Quiz image" class="max-w-full max-h-full object-contain">`;
 		} else {
 			imageContainer.innerHTML = `<div class="text-4xl md:text-5xl font-bold text-center text-blue-800 p-4">${question.correctAnswer.vietnamese}</div>`;
@@ -1435,9 +1434,11 @@ const gameManager = {
 		const optionsContainer = document.getElementById('image-quiz-options');
 		optionsContainer.innerHTML = '';
 		const prefixes = ['A.', 'B.', 'C.', 'D.'];
-		question.options.forEach(option => {
+        
+        // --- SỬA LỖI: Thêm (option, index) để lấy chỉ số của vòng lặp ---
+		question.options.forEach((option, index) => {
 			const optionButton = document.createElement('button');
-			optionButton.className = 'quiz-option p-4 border rounded-lg text-lg font-semibold text-gray-700 bg-white';
+			optionButton.className = 'quiz-option p-4 border rounded-lg text-lg font-semibold text-gray-700 bg-white text-left';
 			optionButton.textContent = `${prefixes[index]} ${option.english}`;
 			optionButton.addEventListener('click', () => this.handleImageQuizOptionClick(optionButton, option, question.correctAnswer));
 			optionsContainer.appendChild(optionButton);
@@ -1949,6 +1950,7 @@ const gameManager = {
 	},
 
     // --- QUIZ 3: ĐỌC HIỂU (READING COMPREHENSION) ---
+	
 	startReadingQuiz: function(words) {
 		const allWordsWithSentence = state.flashcards.filter(w => w.exampleSentence);
 		const wordsForGame = util.shuffleArray(words);
@@ -1968,10 +1970,12 @@ const gameManager = {
 
 		const optionsContainer = document.getElementById('reading-quiz-options-container');
 		optionsContainer.innerHTML = '';
-		const prefixes = ['A.', 'B.', 'C.', 'D.'];
-		shuffledOptions.forEach(option => {
+        const prefixes = ['A.', 'B.', 'C.', 'D.'];
+
+        // --- SỬA LỖI: Thêm (option, index) để lấy chỉ số của vòng lặp ---
+		shuffledOptions.forEach((option, index) => {
 			const optionButton = document.createElement('button');
-			optionButton.className = 'quiz-option p-4 border rounded-lg text-lg font-semibold text-gray-700 bg-white';
+			optionButton.className = 'quiz-option p-4 border rounded-lg text-lg font-semibold text-gray-700 bg-white text-left';
 			optionButton.textContent = `${prefixes[index]} ${option.english}`;
 			optionButton.onclick = () => this.handleReadingQuizOptionClick(optionButton, option, currentWord, wordsForGame);
 			optionsContainer.appendChild(optionButton);
