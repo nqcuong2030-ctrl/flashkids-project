@@ -6,7 +6,7 @@
  * @description Chứa các hằng số và cấu hình không thay đổi trong suốt quá trình chạy.
  */
 const config = {
-    APP_VERSION: '1.1_0908_2_REFACTORED', // Đặt phiên bản mới cho ứng dụng tái cấu trúc
+    APP_VERSION: '1.1_0908_3_REFACTORED', // Đặt phiên bản mới cho ứng dụng tái cấu trúc
     MASTERY_THRESHOLD: 3,
     INACTIVITY_DELAY: 10000, // 10 giây
 
