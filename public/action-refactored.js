@@ -6,7 +6,7 @@
  * @description Chứa các hằng số và cấu hình không thay đổi trong suốt quá trình chạy.
  */
 const config = {
-    APP_VERSION: '1.1_0908_3_REFACTORED', // Đặt phiên bản mới cho ứng dụng tái cấu trúc
+    APP_VERSION: '1.1_0908_1_REFACTORED', // Đặt phiên bản mới cho ứng dụng tái cấu trúc
     MASTERY_THRESHOLD: 3,
     INACTIVITY_DELAY: 10000, // 10 giây
 
@@ -208,24 +208,17 @@ const soundManager = {
      * @param {string} type - Loại sóng âm ('sine', 'square', 'sawtooth', 'triangle').
      */
     playBeep: function(frequency, duration, type = 'sine') {
-        // Đọc trạng thái từ `state` object của chúng ta
         if (!state.soundEnabled) return;
-        
         try {
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
             const oscillator = audioContext.createOscillator();
             const gainNode = audioContext.createGain();
-            
             oscillator.connect(gainNode);
             gainNode.connect(audioContext.destination);
-            
             oscillator.frequency.value = frequency;
             oscillator.type = type;
-            
-            // Tạo hiệu ứng âm thanh giảm dần (fade out) mượt mà
             gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
             gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
-            
             oscillator.start(audioContext.currentTime);
             oscillator.stop(audioContext.currentTime + duration / 1000);
         } catch (e) {
@@ -233,32 +226,31 @@ const soundManager = {
         }
     },
 
-    /**
-     * @description Ánh xạ tên hiệu ứng và các thông số của nó.
-     */
-    effects: {
-        tick: () => this.playBeep(800, 100),
-        correct: () => this.playBeep(523.25, 200, 'sine'), // C (Do)
-        wrong: () => this.playBeep(200, 300, 'sawtooth'),
-        timeUp: () => this.playBeep(150, 500, 'triangle'),
-        start: () => this.playBeep(440, 150, 'sine'), // A (La)
-        click: () => this.playBeep(1000, 50, 'sine') // Âm click mới
+    // SỬA LỖI: Khởi tạo effects trong một hàm riêng để 'this' được nhận diện đúng
+    _initEffects: function() {
+        this.effects = {
+            tick: () => this.playBeep(800, 100),
+            correct: () => this.playBeep(523.25, 200, 'sine'),
+            wrong: () => this.playBeep(200, 300, 'sawtooth'),
+            timeUp: () => this.playBeep(150, 500, 'triangle'),
+            start: () => this.playBeep(440, 150, 'sine'),
+            click: () => this.playBeep(1000, 50, 'sine')
+        };
     },
 
-    /**
-     * @description Giao diện công khai để phát hiệu ứng âm thanh.
-     * @param {string} soundName - Tên hiệu ứng ('correct', 'wrong', 'click'...).
-     */
     play: function(soundName) {
+        // Đảm bảo effects đã được khởi tạo
+        if (!this.effects) {
+            this._initEffects();
+        }
+
         if (this.effects[soundName]) {
-            // Gọi hàm beep tương ứng được định nghĩa trong `effects`
             this.effects[soundName]();
         } else {
             console.warn(`Hiệu ứng âm thanh "${soundName}" không tồn tại.`);
         }
     },
-
-
+	
     // --- Phần 2: Hệ thống đọc từ vựng (Text-to-Speech) ---
     /**
      * @description Hàm dự phòng, dùng API giọng đọc có sẵn của trình duyệt.
