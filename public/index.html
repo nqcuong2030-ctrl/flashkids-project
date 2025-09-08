@@ -8,9 +8,142 @@
     <script src="https://cdn.tailwindcss.com"></script>
 	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link href="/css/style.css" rel="stylesheet"> </head>
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f0f9ff;
+            overflow-x: hidden;
+        }
+
+        /* General Components */
+        .btn-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); transition: all 0.3s ease; }
+        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 10px 15px rgba(37, 99, 235, 0.2); }
+        .btn-secondary { background: linear-gradient(135deg, #f472b6, #ec4899); transition: all 0.3s ease; }
+        .btn-secondary:hover { transform: translateY(-3px); box-shadow: 0 10px 15px rgba(236, 72, 153, 0.2); }
+        .btn-success { background: linear-gradient(135deg, #10b981, #059669); transition: all 0.3s ease; }
+        .btn-success:hover { transform: translateY(-3px); box-shadow: 0 10px 15px rgba(5, 150, 105, 0.2); }
+        .btn-warning { background: linear-gradient(135deg, #f59e0b, #d97706); transition: all 0.3s ease; }
+        .btn-warning:hover { transform: translateY(-3px); box-shadow: 0 10px 15px rgba(217, 119, 6, 0.2); }
+
+        .tab-active { border-bottom: 3px solid #3b82f6; color: #3b82f6; }
+		.lift-on-hover { transition: all 0.3s ease; }
+        .lift-on-hover:hover { transform: translateY(-3px); box-shadow: 0 10px 15px rgba(0, 0, 0, 0.15); }
+		
+		.no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .loading-spinner { border: 4px solid rgba(0, 0, 0, 0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #3b82f6; animation: spin 1s linear infinite; }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+        .success-shake { animation: shake 0.6s cubic-bezier(.36,.07,.19,.97) both; }
+
+        /* Level Badges */
+        .level-badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 9999px; font-weight: bold; font-size: 0.875rem; margin-right: 0.5rem; cursor: pointer; transition: all 0.2s ease; }
+        .level-badge:hover { transform: translateY(-2px); }
+        .level-badge.active { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
+        .level-a1 { background-color: #e9f5ff; color: #3b82f6; border: 1px solid #3b82f6; }
+        .level-a1.active { background-color: #3b82f6; color: white; }
+        .level-a2 { background-color: #f0fdf4; color: #10b981; border: 1px solid #10b981; }
+        .level-a2.active { background-color: #10b981; color: white; }
+        .level-b1 { background-color: #fef3c7; color: #d97706; border: 1px solid #d97706; }
+        .level-b1.active { background-color: #d97706; color: white; }
+        .level-b2 { background-color: #fce7f3; color: #db2777; border: 1px solid #db2777; }
+        .level-b2.active { background-color: #db2777; color: white; }
+		.level-c1 { background-color: #f1f5f9; color: #475569; border: 1px solid #475569; }
+		.level-c1.active { background-color: #475569; color: white; }
+		.level-c2 { background-color: #fee2e2; color: #b91c1c; border: 1px solid #b91c1c; }
+		.level-c2.active { background-color: #b91c1c; color: white; }
+
+        /* Flashcard Styles */
+        .flashcard { perspective: 1000px; height: 300px; cursor: pointer; max-width: 500px; margin: 0 auto; }
+        .flashcard-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.8s; transform-style: preserve-3d; }
+        .flashcard.flipped .flashcard-inner { transform: rotateY(180deg); }
+        .flashcard-front, .flashcard-back { position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 16px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); background-color: white; color: black; padding: 20px; }
+        .flashcard-back { transform: rotateY(180deg); }
+		.flashcard-back.no-padding { padding: 0; }
+        .listen-btn { position: absolute; top: 15px; right: 15px; background-color: #f3f4f6; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; }
+        .listen-btn:hover { background-color: #e5e7eb; transform: scale(1.1); }
+
+        /* Modal Styles */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 1000; display: flex; justify-content: center; align-items: center; visibility: hidden; opacity: 0; transition: all 0.3s ease; }
+        .modal.show { visibility: visible; opacity: 1; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+        .modal-content { background-color: white; border-radius: 16px; padding: 24px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; transform: translateY(20px); transition: all 0.3s ease; position: relative; }
+        .modal.show .modal-content { transform: translateY(0); }
+        #matching-success-feedback, #unscramble-success-feedback, #fill-blank-success-feedback { z-index: 10; }
+
+        /* Quiz & Game General Styles */
+        .quiz-option { transition: all 0.2s ease; cursor: pointer; }
+        .quiz-option:hover { background-color: #f3f4f6; }
+        .quiz-option.selected { background-color: #dbeafe; border-color: #3b82f6; }
+        .quiz-option.correct { background-color: #d1fae5; border-color: #10b981; }
+        .quiz-option.incorrect { background-color: #fee2e2; border-color: #ef4444; }
+
+        /* Game: Matching */
+        .word-card { transition: all 0.2s ease; cursor: pointer; }
+        .word-card:hover { transform: translateY(-2px); }
+		.word-card.selected { border: 3px solid #2563eb; background-color: #bfdbfe; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); }
+		.word-card.matched { border-color: #10b981; background-color: #d1fae5; opacity: 0.7; cursor: not-allowed; }
+        .word-card.error { border-color: #ef4444; background-color: #fee2e2; animation: shake 0.5s; }
+
+        /* Game: Unscramble / Fill Blank */
+		.letter-tile { width: 48px; height: 48px; background-color: #fef3c7; border: 2px solid #fcd34d; border-radius: 0.375rem; display: flex; justify-content: center; align-items: center; font-weight: 700; font-size: 1.5rem; color: #92400e; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); cursor: pointer; transition: transform 0.2s; }
+		.letter-tile:hover { transform: scale(1.1); background-color: #fde68a; }
+		.answer-slot { width: 48px; height: 48px; background-color: white; border: 2px dashed #9ca3af; border-radius: 0.375rem; }
+		#answer-area.error, #unscramble-answer-area.error { animation: shake 0.5s; }
+        
+        /* Game: Fill Blank (New Styles) */
+        .word-char, .blank-slot { width: 40px; height: 48px; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 1.5rem; border-radius: 0.375rem; margin: 2px; }
+		.word-char { background-color: #e5e7eb; color: #1f2937; }
+		.blank-slot { background-color: white; border: 2px dashed #60a5fa; color: #1d4ed8; cursor: pointer; min-width: 40px; }
+		.blank-slot:empty:hover { background-color: #eff6ff; }
+		.letter-choice { width: 48px; height: 48px; background-color: #fef3c7; border: 2px solid #fcd34d; border-radius: 0.375rem; display: flex; justify-content: center; align-items: center; font-weight: 700; font-size: 1.5rem; color: #92400e; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); cursor: pointer; transition: all 0.2s; }
+		.letter-choice:hover { transform: scale(1.1); background-color: #fde68a; }
+		.letter-choice.hidden { visibility: hidden; opacity: 0; }
+        
+        /* Game: Sound Match */
+        .match-card { position: relative; transform-style: preserve-3d; transition: transform 0.6s; }
+		.match-card.flipped { transform: rotateY(180deg); }
+		.match-card.matched { transform: rotateY(180deg); cursor: not-allowed; opacity: 0.5; }
+		.card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+		.card-front { transform: rotateY(180deg); }
+		.card-back { background-color: #1e40af; color: white; font-size: 2.25rem; }
+		.card-back.back-audio { background-color: #3b82f6; }
+		@media (min-width: 768px) {
+			#sound-match-board.grid-12-cards { grid-template-columns: repeat(4, 1fr); }
+			.match-card { width: 100px; height: 85px; }
+		}
+
+        /* Confetti Animation */
+        .confetti { position: fixed; width: 10px; height: 10px; background-color: #f00; animation: confetti-fall 3s linear forwards; z-index: 9999; }
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+		
+		.heatmap-container { display: grid; grid-template-rows: repeat(7, 1fr); grid-auto-flow: column; gap: 4px; }
+		.heatmap-day { width: 20px; height: 20px; background-color: #ebedf0; border-radius: 3px; position: relative; }
+		.heatmap-day:hover .tooltip { display: block; }
+		.heatmap-level-1 { background-color: #9be9a8; }
+		.heatmap-level-2 { background-color: #40c463; }
+		.heatmap-level-3 { background-color: #30a14e; }
+		.heatmap-level-4 { background-color: #216e39; }
+
+		.tooltip { display: none; position: absolute; bottom: 125%; left: 50%; transform: translateX(-50%); background-color: #333; color: white;
+			padding: 5px 10px; border-radius: 5px; font-size: 12px; white-space: nowrap; z-index: 10; }
+		.tooltip::after { content: ''; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: #333 transparent transparent transparent; }
+		
+	</style>
+</head>
 <body>
     <div id="app" class="min-h-screen">
+        <!-- Header -->
         <header class="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-4 shadow-lg">
             <div class="container mx-auto flex justify-between items-center">
                 <div class="flex items-center">
@@ -20,18 +153,20 @@
                     <div class="flex items-center space-x-2 bg-white bg-opacity-20 rounded-full pl-3 pr-4 py-1 text-sm">
 						<span class="font-bold">LV <span id="xp-level">1</span></span>
 					</div>
-                    <div class="relative">
-						<img id="user-avatar" src="https://upload.wikimedia.org/wikipedia/commons/1/14/H%C6%B0%C6%A1u_cao_c%E1%BB%95.png" alt="User" class="h-10 w-10 rounded-full bg-white p-1 cursor-pointer">
-						<div id="user-menu-button" class="absolute inset-0 cursor-pointer"></div>
+					
+                    <div class="relative" id="user-menu-button">
+						<img src="https://upload.wikimedia.org/wikipedia/commons/1/14/H%C6%B0%C6%A1u_cao_c%E1%BB%95.png" alt="User" class="h-10 w-10 rounded-full bg-white p-1 cursor-pointer">
 						<div class="absolute top-0 right-0 h-3 w-3 bg-green-500 rounded-full border-2 border-white"></div>
+						
 						<div id="user-menu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-							<a href="#" id="menu-settings-link" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Hồ sơ & Cài đặt</a>
+							<a href="#" id="menu-settings-link" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Hồ sơ cá nhân</a>
 						</div>
 					</div>
                 </div>
             </div>
         </header>
 
+        <!-- Main Navigation -->
         <nav class="bg-white shadow-md">
 			<div class="container mx-auto">
 				<div class="flex overflow-x-auto py-2 px-4 space-x-6 text-gray-600 font-semibold no-scrollbar">
@@ -46,7 +181,9 @@
 			</div>
 		</nav>
 
+        <!-- Main Content -->
         <main class="container mx-auto py-6 px-4">
+            <!-- Loading Indicator -->
             <div id="loading-indicator" class="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
                 <div class="bg-white p-5 rounded-lg flex flex-col items-center">
                     <div class="loading-spinner mb-3"></div>
@@ -54,100 +191,175 @@
                 </div>
             </div>
 
+            <!-- Home Tab -->
             <div id="home" class="tab-content">
+                <!-- Welcome Banner -->
                 <div class="bg-gradient-to-r from-yellow-400 to-orange-500 rounded-2xl p-6 mb-8 text-white shadow-lg flex items-center justify-between">
                     <div>
                         <h2 id="welcome-message" class="text-3xl font-bold mb-2">Xin chào, Bạn nhỏ!</h2>
                         <p class="mb-4">Hôm nay bạn đã sẵn sàng học từ vựng mới chưa?</p>
                         <button id="start-now-btn" class="bg-white text-orange-500 font-bold py-2 px-6 rounded-full shadow-md hover:shadow-lg transition duration-300 flex items-center">
                             <span>Bắt đầu ngay</span>
-                            </button>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="hidden md:block">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="8" r="7"></circle>
+                            <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
+                        </svg>
                     </div>
                 </div>
 
+                <!-- Level Selection -->
                 <div class="bg-white rounded-2xl p-6 mb-8 shadow-md">
-                    <h3 class="text-xl font-bold text-gray-800 mb-4">Chọn cấp độ từ vựng</h3>
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Chọn cấp độ từ vựng (hơn 3000 từ)</h3>
                     <div class="flex flex-wrap gap-3">
                         <button class="level-badge level-a1" data-level="a1">A1 - Cơ bản</button>
                         <button class="level-badge level-a2" data-level="a2">A2 - Sơ cấp</button>
                         <button class="level-badge level-b1" data-level="b1">B1 - Trung cấp</button>
                         <button class="level-badge level-b2" data-level="b2">B2 - Cao cấp</button>
+						<button class="level-badge level-c1 hidden" data-level="c1">C1 - Thông thạo</button>
+						<button class="level-badge level-c2 hidden" data-level="c2">C2 - Thành thạo</button>
                     </div>
                 </div>
 
+                <!-- Daily Progress -->
+                <div class="bg-white rounded-2xl p-6 mb-8 shadow-md">
+					<div class="flex justify-between items-center mb-2">
+						<h3 class="text-xl font-bold text-gray-800">Thời gian học hôm nay</h3>
+						<div class="flex items-center space-x-2">
+							<span class="text-blue-500 font-bold text-2xl w-20 text-center" id="daily-timer-display">10:00</span>
+							<button id="toggle-timer-btn" class="text-gray-500 hover:text-gray-700 hidden" title="Tạm dừng/Tiếp tục">
+								<svg id="pause-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6" />
+								</svg>
+								<svg id="play-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+								</svg>
+							</button>
+						</div>
+					</div>
+					<p id="timer-status-text" class="text-sm text-gray-500">Đồng hồ sẽ chạy khi bạn bắt đầu học.</p>					
+				</div>
+
+                <!-- Categories -->
                 <h3 class="text-xl font-bold text-gray-800 mb-4">Chủ đề từ vựng</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8" id="categories-container"></div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8" id="categories-container">
+                    <!-- Categories will be loaded dynamically -->
+                </div>
             </div>
-			
-			<!-- Flashcards Tab -->
+
+            <!-- Flashcards Tab -->
             <div id="flashcards" class="tab-content hidden">
-                 <div class="mb-6 flex space-x-2 overflow-x-auto py-2 no-scrollbar" id="category-filters"></div>
+                <!-- Category Selection -->
+                <div class="mb-6 flex space-x-2 overflow-x-auto py-2 no-scrollbar" id="category-filters">
+                    <!-- Category filters will be loaded dynamically -->
+                </div>
+
+                <!-- Flashcard Display -->
                 <div class="mb-8">
                     <div class="flashcard mx-auto" id="current-flashcard">
                         <div class="flashcard-inner">
                             <div class="flashcard-front">
-                                <div class="listen-btn"></div>
-                                <h3 class="text-6xl font-bold mb-4" id="english-word"></h3>
-                                <p class="text-xl text-gray-600 mb-6" id="phonetic-text"></p>
+                                <div class="listen-btn">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071a1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243a1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828a1 1 0 010-1.415z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                                <h3 class="text-6xl font-bold mb-4" id="english-word">Family</h3>
+                                <p class="text-xl text-gray-600 mb-6" id="phonetic-text">/ˈfæməli/</p>
                             </div>
                             <div class="flashcard-back">
-                                <div class="listen-btn"></div>
-                                <h3 class="text-6xl font-bold mb-4" id="vietnamese-word"></h3>
-                                <div class="flex justify-center mb-4" id="card-image"></div>
+                                <div class="listen-btn">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071a1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243a1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828a1 1 0 010-1.415z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                                <h3 class="text-6xl font-bold mb-4" id="vietnamese-word">Gia đình</h3>
+                                <div class="flex justify-center mb-4" id="card-image">
+								</div>
                             </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- Flashcard Navigation -->
                 <div class="flex justify-center space-x-4 mb-8">
-                    <button id="prev-card" class="btn-primary text-white py-2 px-6 rounded-full shadow-md flex items-center">Trước</button>
-                    <span id="card-counter" class="bg-white py-2 px-4 rounded-full shadow-md text-gray-700">0 / 0</span>
-                    <button id="next-card" class="btn-primary text-white py-2 px-6 rounded-full shadow-md flex items-center">Tiếp</button>
+                    <button class="btn-primary text-white py-2 px-6 rounded-full shadow-md flex items-center" id="prev-card">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        Trước
+                    </button>
+                    <span class="bg-white py-2 px-4 rounded-full shadow-md text-gray-700" id="card-counter">0 / 0</span>
+                    <button class="btn-primary text-white py-2 px-6 rounded-full shadow-md flex items-center" id="next-card">
+                        Tiếp
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
                 </div>
-                <div class="flex justify-center mb-8">
-                    <button id="mark-learned-btn" class="btn-success text-white py-2 px-6 rounded-full shadow-md flex items-center">Đánh dấu đã học</button>
+
+                <!-- Mark as Learned Button -->
+                <div class="flex justify-center mb-8 hidden">
+                    <button class="btn-success text-white py-2 px-6 rounded-full shadow-md flex items-center" id="mark-learned-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        Đánh dấu đã học
+                    </button>
                 </div>
             </div>
-			
-			<!-- Game Tab -->
-            <div id="games" class="tab-content hidden">
-				<h2 class="text-2xl font-bold text-gray-800 mb-6">Luyện tập qua Trò chơi</h2>
-				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8" id="games-container">
-					</div>
-			</div>
-			
-			<!-- Quiz Tab -->
+
+            <!-- Games Tab -->
+            <div id="games" class="tab-content hidden">                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8" id="games-container">
+                    <!-- Games will be loaded dynamically -->
+                </div>
+            </div>
+
+            <!-- Quiz Tab -->
             <div id="quiz" class="tab-content hidden">  
-				<h2 class="text-2xl font-bold text-gray-800 mb-2">Bài kiểm tra</h2>
-				<p class="text-gray-600 mb-6">Hoàn thành các bài kiểm tra để tăng điểm thông thạo cho từ vựng.</p>
-				<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8" id="quiz-types">
-					</div>
-			</div>
-			
-			<!-- Rewards Tab -->
+				<h4 class="text-2xl font-bold text-gray-800 mb-6">Bạn cần ít nhất +4 điểm/từ để ghi nhận từ vựng đã học & cập nhật tiến độ của bạn.</h4>
+                <!-- Quiz Types -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8" id="quiz-types">
+                    <!-- Quiz types will be loaded dynamically -->
+                </div>
+            </div>
+
+            <!-- Rewards Tab -->
             <div id="rewards" class="tab-content hidden">
-				<h2 class="text-2xl font-bold text-gray-800 mb-6">Phần thưởng & Thành tích</h2>
-
-				<div class="bg-white rounded-2xl p-6 shadow-md mb-8">					
-					<div class="flex justify-between items-center mb-4">
-						<h3 class="text-xl font-bold text-gray-800">Cấp độ của bạn</h3>
-						<span class="bg-blue-500 text-white text-sm font-bold px-3 py-1 rounded-full">Cấp <span id="xp-level">1</span></span>
-					</div>
-					<div class="mb-4">
-						<div class="flex justify-between text-sm mb-1">
-							<span>Tiến độ</span>
-							<span id="xp-text" class="font-semibold text-xs">0/100 XP</span>
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Phần thưởng</h2>
+                
+                <!-- Level Progress -->
+                <div class="bg-white rounded-2xl p-6 shadow-md mb-8">					
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold text-gray-800">Cấp độ của bạn</h3>
+                        <span class="bg-blue-500 text-white text-sm font-bold px-3 py-1 rounded-full" id="xp-level">Cấp 1</span>
+                    </div>
+                    <div class="mb-4">
+                        <div class="flex justify-between text-sm mb-1">
+                            <span>Tiến độ</span>
+                            <span id="xp-text" class="font-semibold text-xs">0/100 XP</span>
+                        </div>
+						<div class="flex items-center space-x-2 bg-white bg-opacity-20 rounded-full pl-3 pr-4 py-1 text-sm">
+							<div class="w-full bg-gray-200 rounded-full h-3">
+								<div class="bg-yellow-400 h-2.5 rounded-full" id="xp-bar" style="width: 0%"></div>
+							</div>
 						</div>
-						<div class="w-full bg-gray-200 rounded-full h-3">
-							<div class="bg-yellow-400 h-3 rounded-full" id="xp-bar" style="width: 0%"></div>
-						</div>
-					</div>
-				</div>
+                    </div>
+                </div>
 
-				<h3 class="text-xl font-bold text-gray-800 mb-4">Huy hiệu</h3>
-				<div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8" id="badges-container">
-					</div>
-			</div>
-			
+                <!-- Badges -->
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Huy hiệu</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8" id="badges-container">
+                    <!-- Badges will be loaded dynamically -->
+                </div>
+            </div>
+
             <!-- Stats Tab -->
             <div id="stats" class="tab-content hidden">
 				<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -195,105 +407,398 @@
 
 				</div>
 			</div>
-			
-			<!-- Settings Tab -->
+
+            <!-- Settings Tab -->
             <div id="settings" class="tab-content hidden">
-				<h2 class="text-2xl font-bold text-gray-800 mb-6">Cài đặt & Hồ sơ</h2>
-				
-				<div class="bg-white rounded-2xl p-6 shadow-md mb-8">
-					<h3 class="text-lg font-bold text-gray-800 mb-4">Hồ sơ cá nhân</h3>
-					<div class="flex flex-col md:flex-row md:items-center mb-6">
-						<div class="mb-4 md:mb-0 md:mr-6">
-							<div id="avatar-selection-grid" class="grid grid-cols-4 gap-2 w-48">
-								</div>
-						</div>
-						<div class="flex-1">
-							<div class="mb-4">
-								<label class="block text-gray-700 text-sm font-bold mb-2" for="username">Tên người dùng</label>
-								<input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="username" type="text" placeholder="Tên của bạn">
-							</div>
-							<div class="mb-4">
-								<label class="block text-gray-700 text-sm font-bold mb-2" for="age">Tuổi</label>
-								<input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="age" type="number" placeholder="Tuổi của bạn">
-							</div>
-							<button id="save-profile-btn" class="btn-primary text-white py-2 px-6 rounded-lg shadow-md">Lưu Hồ sơ</button>
-						</div>
-					</div>
-				</div>				
-				
-				<div class="bg-white rounded-2xl p-6 shadow-md mb-8">
-					<h3 class="text-lg font-bold text-gray-800 mb-4">Cài đặt ứng dụng</h3>                    
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Cài đặt</h2>
+                
+                <!-- Profile Settings -->
+                <div class="bg-white rounded-2xl p-6 shadow-md mb-8">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Hồ sơ cá nhân</h3>
+                    <div class="flex flex-col md:flex-row md:items-center mb-6">
+                        <div class="mb-4 md:mb-0 md:mr-6">
+                            <div class="w-24 h-24 rounded-full bg-blue-100 flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <div class="mb-4">
+                                <label class="block text-gray-700 text-sm font-bold mb-2" for="username">Tên người dùng</label>
+                                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="username" type="text" placeholder="Tên của bạn">
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-700 text-sm font-bold mb-2" for="age">Tuổi</label>
+                                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="age" type="number" placeholder="Tuổi của bạn">
+                            </div>
+                            <button class="btn-primary text-white py-2 px-6 rounded-lg shadow-md">Lưu thay đổi</button>
+                        </div>
+                    </div>
+                </div>				
+                
+                <!-- App Settings -->
+                <div class="bg-white rounded-2xl p-6 shadow-md mb-8">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Công cụ nâng cao</h3>                    
+                    
+					<!-- Sound Click -->
+                    <div class="mb-4 hidden">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Âm thanh</label>
+                        <div class="flex items-center">
+                            <input id="sound-toggle" type="checkbox" class="h-4 w-4 text-blue-600" checked>
+                            <label for="sound-toggle" class="ml-2 text-gray-700">Bật âm thanh</label>
+                        </div>
+                    </div>
 					
-					<div class="flex items-center justify-between mb-4">
-						<label class="text-gray-700 font-bold">Âm thanh hiệu ứng</label>
-						<label for="sound-toggle" class="flex items-center cursor-pointer">
-							<div class="relative">
-								<input type="checkbox" id="sound-toggle" class="sr-only">
-								<div class="block bg-gray-600 w-14 h-8 rounded-full"></div>
-								<div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition"></div>
-							</div>
-						</label>
-					</div>
-					
-					<div class="bg-gray-50 rounded-lg p-4 mt-6">
+					<!-- Text to speech -->
+					<div class="bg-white rounded-2xl p-6 shadow-md mb-8">
 						<h3 class="text-lg font-bold text-gray-800 mb-4">Công cụ đọc văn bản</h3>
 						<div class="relative">
 							<input type="text" id="text-to-speech-input" class="shadow appearance-none border rounded w-full py-3 pl-3 pr-32 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Nhập câu hoặc từ để đọc...">
+							
 							<div class="absolute inset-y-0 right-0 flex items-center pr-3 space-x-2">
-								<button id="download-speech-btn" class="text-gray-500 hover:text-green-500 hidden" title="Tải file MP3">
-									</button>
-								<button id="tts-lang-toggle-btn" data-lang="en-US" class="text-sm font-bold bg-gray-200 text-gray-600 rounded-md w-12 h-8 hover:bg-gray-300 transition-colors">Eng</button>
-								<button id="speak-text-btn" class="text-gray-500 hover:text-blue-500" title="Đọc / Dừng">
+								<button id="download-speech-btn" class="text-gray-500 hover:text-green-500 ml-2 hidden">
+									<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+									</svg>
+								</button>
+								
+								<button id="tts-lang-toggle-btn" data-lang="auto" class="text-sm font-bold bg-gray-200 text-gray-600 rounded-md w-10 h-8 hover:bg-gray-300 transition-colors">Eng</button>
+
+								<button id="speak-text-btn" class="text-gray-500 hover:text-blue-500">
 									<svg id="tts-speak-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-										</svg>
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+									</svg>
 									<svg id="tts-stop-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-										</svg>
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22ZM12 20C16.4183 20 20 16.4183 20 12C20 7.58172 16.4183 4 12 4C7.58172 4 4 7.58172 4 12C4 16.4183 7.58172 20 12 20ZM9 9H15V15H9V9Z"></path>
+									</svg>
 								</button>								
 							</div>
 						</div>
 						<div class="mt-4">
-							<label for="tts-speed-slider" class="block text-gray-700 text-sm font-bold mb-2">Tốc độ đọc: <span id="tts-speed-value" class="font-normal">1.0x</span></label>
+							<label for="tts-speed-slider" class="block text-gray-700 text-sm font-bold mb-2">
+								Tốc độ đọc: <span id="tts-speed-value" class="font-normal">1.0x</span>
+							</label>
 							<input type="range" id="tts-speed-slider" min="0.5" max="2" value="1" step="0.1" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
 						</div>
 					</div>
-				</div>
-			</div>
+					
+					<!-- Data Management -->
+					<div class="bg-white rounded-2xl p-6 shadow-md hidden">
+						<h3 class="text-lg font-bold text-gray-800 mb-4">Quản lý dữ liệu</h3>
+						
+						<div class="flex space-x-4 mb-4">
+							<button class="btn-primary text-white py-2 px-6 rounded-lg shadow-md flex items-center">
+								<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+									<path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
+								</svg>
+								Xuất dữ liệu
+							</button>
+							
+							<button class="btn-warning text-white py-2 px-6 rounded-lg shadow-md flex items-center">
+								<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+									<path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+								</svg>
+								Nhập dữ liệu
+							</button>
+						</div>
+						
+						<button class="text-red-500 py-2 px-6 rounded-lg border border-red-500 flex items-center mx-auto">
+							<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+								<path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+							</svg>
+							Xóa tất cả dữ liệu
+						</button>
+					</div>                    
+                    <button class="btn-primary text-white py-2 px-6 rounded-lg shadow-md mt-6">Lưu cài đặt</button>
+                </div>
+            </div>
         </main>
     </div>
 
+    <!-- Modals -->
+    <div id="jsonFileModal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-800">Tải từ vựng từ file JSON</h3>
+                <button class="text-gray-500 hover:text-gray-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Nhập URL của file JSON</label>
+                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="json-url" type="text" placeholder="https://example.com/flashcards.json">
+            </div>
+            <div class="mb-4">
+                <p class="text-sm text-gray-600">Hoặc nhập dữ liệu JSON trực tiếp:</p>
+                <textarea class="mt-2 shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-40" id="json-data" placeholder='{"categories": [...], "flashcards": [...]}'></textarea>
+            </div>
+            <div class="flex justify-end">
+                <button class="bg-gray-300 text-gray-700 py-2 px-4 rounded-lg mr-2">Hủy</button>
+                <button class="btn-primary text-white py-2 px-4 rounded-lg">Tải</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Selection Modal -->
     <div id="categorySelectionModal" class="modal">
         <div class="modal-content">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xl font-bold text-gray-800">Chọn chủ đề từ vựng</h3>
-                <button class="text-gray-500 hover:text-gray-700 close-modal-btn">
-                    </button>
+                <button id="close-category-modal-btn" class="text-gray-500 hover:text-gray-700  close-modal-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4" id="category-selection-container"></div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4" id="category-selection-container">
+                <!-- Categories will be loaded dynamically -->
+            </div>
         </div>
     </div>
-    
+
+    <!-- Matching Game Modal -->
     <div id="matchingGameModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 600px">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xl font-bold text-gray-800">Trò chơi ghép từ</h3>
-                <button class="text-gray-500 hover:text-gray-700 close-modal-btn"></button>
+                <button class="text-gray-500 hover:text-gray-700  close-modal-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
             </div>
+			
+            <div id="matching-success-feedback" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-6xl hidden">👍</div>
+            <p class="text-gray-600 mb-4">Chọn từ tiếng Anh bên trái và sau đó chọn nghĩa tiếng Việt tương ứng bên phải.</p>
+            
             <div class="flex flex-row justify-between gap-4 mb-4">
                 <div class="flex-1">
                     <h4 class="font-bold text-gray-700 mb-2">Tiếng Anh</h4>
-                    <div id="english-words" class="space-y-2"></div>
+                    <div id="english-words" class="space-y-2">
+                        <!-- English words will be loaded dynamically -->
+                    </div>
                 </div>
+                
                 <div class="flex-1">
                     <h4 class="font-bold text-gray-700 mb-2">Tiếng Việt</h4>
-                    <div id="vietnamese-words" class="space-y-2"></div>
+                    <div id="vietnamese-words" class="space-y-2">
+                        <!-- Vietnamese words will be loaded dynamically -->
+                    </div>
                 </div>
             </div>
+            
             <div class="flex justify-center mt-6 space-x-4">
-				<button id="restart-matching-game" class="btn-warning text-white py-2 px-6 rounded-lg shadow-md">Đổi câu hỏi</button>
-				<button id="check-answers" class="btn-primary text-white py-2 px-6 rounded-lg shadow-md">Kiểm tra đáp án</button>
+				<button id="restart-matching-game" class="btn-warning text-white py-2 px-6 rounded-lg shadow-md">
+					Đổi câu hỏi
+				</button>
+				<button id="check-answers" class="btn-primary text-white py-2 px-6 rounded-lg shadow-md">
+					Kiểm tra đáp án
+				</button>
 			</div>
         </div>
     </div>
-    <script src="action-refactored.js"></script>
+	
+	<!-- Image Quiz Game Modal -->
+	<div id="imageQuizModal" class="modal">
+		<div class="modal-content" style="max-width: 500px">
+			<div class="flex justify-between items-center mb-4">
+				<h3 class="text-xl font-bold text-gray-800">Chọn từ phù hợp</h3>
+				<span id="image-quiz-progress" class="text-gray-600 font-bold"></span>
+			</div>
+			
+			<div id="image-quiz-image-container" class="w-full h-64 bg-gray-100 rounded-lg mb-4 flex items-center justify-center p-2">
+				<img id="image-quiz-img" src="" alt="Quiz image" class="max-w-full max-h-full object-contain">
+			</div>
+			
+			<div id="image-quiz-options" class="grid grid-cols-2 gap-4">
+				</div>
+		</div>
+	</div>
+		
+	<!-- Sound Matching Game Modal 9 cards -->
+	<div id="soundMatchModal" class="modal">
+		<div class="modal-content" style="max-width: 500px;">
+			<div class="flex justify-between items-center mb-4">
+				<h3 class="text-xl font-bold text-gray-800">Ghép Âm thanh & Từ</h3>
+				<button class="text-gray-500 hover:text-gray-700 close-modal-btn">
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+					</svg>
+				</button>
+			</div>
+
+			<div id="sound-match-board" class="grid grid-cols-3 gap-4" style="perspective: 1000px;">
+				</div>
+		</div>
+	</div>
+	
+	<!-- Sound Matching Game Modal 12 cards -->
+	<div id="gameOptionsModal" class="modal">
+		<div class="modal-content" style="max-width: 400px;">
+			<div class="flex justify-between items-center mb-4">
+				<h3 class="text-xl font-bold text-gray-800">Chọn độ khó</h3>
+				<button class="text-gray-500 hover:text-gray-700 close-modal-btn">
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+				</button>
+			</div>
+			<div class="flex flex-col space-y-3">
+				<button id="option-9-cards" class="btn-primary text-white w-full py-3 rounded-lg shadow-md">9 Thẻ (3 cặp)</button>
+				<button id="option-12-cards" class="btn-warning text-white w-full py-3 rounded-lg shadow-md">12 Thẻ (4 cặp)</button>
+			</div>
+		</div>
+	</div>
+	
+	<!-- Fill Blank Game Modal -->
+	<div id="fillBlankGameModal" class="modal">
+		<div class="modal-content text-center">
+			<div id="fill-blank-success-feedback" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-6xl hidden">👍</div>
+			<div class="flex justify-between items-center mb-4">
+				<h3 class="text-xl font-bold text-gray-800">Điền vào chỗ trống</h3>
+				<button class="text-gray-500 hover:text-gray-700 close-modal-btn">
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+					</svg>
+				</button>
+			</div>
+			<p class="text-gray-600 mb-4">Sắp xếp các chữ cái dưới đây để tạo thành một từ tiếng Anh có nghĩa.</p>
+			<div class="flex justify-center my-4">
+				<button id="fill-blank-listen-btn" class="listen-btn" style="position: static; transform: scale(1.2);">
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+						<path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071a1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243a1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828a1 1 0 010-1.415z" clip-rule="evenodd"/>
+					</svg>
+				</button>
+			</div>
+			<div id="answer-area" class="flex justify-center flex-wrap gap-2 my-4 min-h-[4rem] bg-gray-200 rounded-lg p-2">
+				</div>
+			<div id="letter-tiles" class="flex justify-center flex-wrap gap-2 my-6 min-h-[4rem]">
+				</div>
+			<div class="flex justify-center gap-4 mt-4">
+				<button id="change-word-fill-blank-btn" class="btn-warning text-white py-2 px-6 rounded-lg shadow-md">Đổi từ</button>
+				<button id="check-fill-blank-btn" class="btn-primary text-white py-2 px-6 rounded-lg shadow-md">Kiểm tra</button>				
+			</div>
+		</div>
+	</div>
+
+	<!-- Quiz: Reading Comprehension Modal -->
+	<div id="readingQuizModal" class="modal">
+		<div class="modal-content" style="max-width: 600px">
+			<div class="flex justify-between items-center mb-4">
+				<h3 class="text-xl font-bold text-gray-800">Đọc và Chọn từ</h3>
+				<button class="text-gray-500 hover:text-gray-700 close-modal-btn">
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+					</svg>
+				</button>
+			</div>
+			
+			<p class="text-gray-600 mb-6">Đọc câu dưới đây và chọn từ đúng nhất để điền vào chỗ trống.</p>
+			
+			<!-- THAY ĐỔI Ở DÒNG DƯỚI: Đã xóa "flex items-center justify-center" -->
+			<div id="reading-quiz-sentence-container" class="bg-blue-50 p-6 rounded-lg text-center text-xl md:text-2xl text-gray-800 font-semibold mb-6 min-h-[100px] leading-relaxed">
+				<!-- Sentence will be loaded here -->
+			</div>
+			
+			<div id="reading-quiz-options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+				<!-- Options will be loaded here -->
+			</div>
+		</div>
+	</div>
+
+	<!-- Quiz Modal 3333 -->
+	<div id="unscrambleGameModal" class="modal">
+		<div class="modal-content text-center">
+			<div id="unscramble-success-feedback" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-6xl hidden">👍</div>
+			<div class="flex justify-between items-center mb-4">
+				<h3 class="text-xl font-bold text-gray-800">Xếp chữ</h3>
+				<button class="text-gray-500 hover:text-gray-700 close-modal-btn">
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+					</svg>
+				</button>
+			</div>
+			<p class="text-gray-600 mb-4">Sắp xếp các chữ cái dưới đây để tạo thành một từ tiếng Anh có nghĩa.</p>
+			<div class="flex justify-center my-4">
+				<button id="unscramble-listen-btn" class="listen-btn" style="position: static; transform: scale(1.2);">
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+						<path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071a1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243a1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828a1 1 0 010-1.415z" clip-rule="evenodd"/>
+					</svg>
+				</button>
+			</div>
+			<div id="unscramble-answer-area" class="flex justify-center flex-wrap gap-2 my-4 min-h-[4rem] bg-gray-200 rounded-lg p-2">
+				</div>
+			<div id="unscramble-letter-tiles" class="flex justify-center flex-wrap gap-2 my-6 min-h-[4rem]">
+				</div>
+			<div class="flex justify-center gap-4 mt-4">
+				<button id="change-word-btn" class="btn-warning text-white py-2 px-6 rounded-lg shadow-md">Đổi từ</button>
+				<button id="check-unscramble-btn" class="btn-primary text-white py-2 px-6 rounded-lg shadow-md">Kiểm tra đáp án</button>				
+			</div>
+		</div>
+	</div>
+	
+    <!-- Multiple Choice Quiz Modal -->
+    <div id="multipleChoiceQuizModal" class="modal">
+		<div class="modal-content" style="max-width: 600px">
+			<div class="flex justify-between items-center mb-4">
+				<h3 class="text-xl font-bold text-gray-800">Bài kiểm tra trắc nghiệm</h3>
+				<button class="text-gray-500 hover:text-gray-700 close-modal-btn">
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+					</svg>
+				</button>
+			</div>
+			
+			<p class="text-gray-600 mb-4">Chọn nghĩa tiếng Việt đúng cho mỗi từ tiếng Anh.</p>
+			
+			<div class="space-y-6" id="quiz-questions">
+				</div>
+			
+			<div class="flex justify-center mt-6 space-x-4">
+				<button id="submit-quiz" class="btn-primary text-white py-2 px-6 rounded-lg shadow-md">
+					Nộp bài
+				</button>
+				<button id="next-quiz-btn" class="btn-success text-white py-2 px-6 rounded-lg shadow-md hidden">
+					Làm bài tiếp
+				</button>
+			</div>
+		</div>
+	</div>
+
+    <!-- Completion Message Modal -->
+    <div id="completionModal" class="modal">
+        <div class="modal-content text-center">
+            <div class="mb-4">
+                <div class="w-20 h-20 mx-auto rounded-full bg-green-100 flex items-center justify-center mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2" id="completion-title">Chúc mừng!</h3>
+                <p class="text-gray-600 mb-4" id="completion-message">Bạn đã hoàn thành hoạt động.</p>
+                <p class="text-gray-600" id="completion-progress">Tiến độ học tập của bạn đã được cập nhật.</p>
+            </div>
+            <button class="btn-primary text-white py-2 px-6 rounded-lg shadow-md close-modal-btn">
+                Đóng
+            </button>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmationModal" class="modal">
+        <div class="modal-content">
+            <div class="mb-4">
+                <h3 class="text-xl font-bold text-gray-800 mb-2" id="confirmation-title">Xác nhận</h3>
+                <p class="text-gray-600" id="confirmation-message">Bạn có chắc chắn muốn thực hiện hành động này?</p>
+            </div>
+            <div class="flex justify-end space-x-4">
+                <button class="bg-gray-300 text-gray-700 py-2 px-4 rounded-lg">Hủy</button>
+                <button class="bg-red-500 text-white py-2 px-4 rounded-lg" id="confirm-action-btn">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="action.min.js"></script>
 </body>
 </html>
