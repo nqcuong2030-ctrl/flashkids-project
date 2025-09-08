@@ -2035,7 +2035,7 @@ const util = {
 	detectLanguage: function(text) {
         const vietnameseRegex = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i;
         return vietnameseRegex.test(text) ? 'vi-VN' : 'en-US';
-    }
+    },
 
     /**
      * @description Lấy danh sách flashcards đã được lọc theo chủ đề hiện tại.
