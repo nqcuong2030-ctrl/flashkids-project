@@ -6,7 +6,7 @@
  * @description Chứa các hằng số và cấu hình không thay đổi trong suốt quá trình chạy.
  */
 const config = {
-    APP_VERSION: '1.2_0908_5_FULL_FEATURE', // Đặt phiên bản mới cho ứng dụng tái cấu trúc
+    APP_VERSION: '1.2_0908_6_FULL_FEATURE', // Đặt phiên bản mới cho ứng dụng tái cấu trúc
     MASTERY_THRESHOLD: 4,
     INACTIVITY_DELAY: 10000, // 10 giây
 
@@ -565,7 +565,7 @@ const progressManager = {
         
         this.updateCategoryProgress(progress);
         this.saveUserProgress(progress);
-        uiManager.updateUserStats();
+        uiManager.updateHeaderStats();
     },
 
     updateDailyActivity: function(progress) {
@@ -593,7 +593,7 @@ const progressManager = {
         progress.completedGames[`${gameId}_${categoryId}`] = { score: score, timestamp: Date.now() };
         this.updateDailyActivity(progress);
         this.saveUserProgress(progress);
-        uiManager.updateUserStats();
+        uiManager.updateHeaderStats();
     },
 
     updateQuizProgress: function(quizId, categoryId, score) {
@@ -601,7 +601,7 @@ const progressManager = {
         progress.completedQuizzes[`${quizId}_${categoryId}`] = { score: score, timestamp: Date.now() };
         this.updateDailyActivity(progress);
         this.saveUserProgress(progress);
-        uiManager.updateUserStats();
+        uiManager.updateHeaderStats();
     },
     
     // --- CÁC HÀM TÍNH TOÁN & LẤY DỮ LIỆU ---
@@ -1011,6 +1011,13 @@ const uiManager = {
             if (dom.xpText) dom.xpText.textContent = `${profile.xp}/${profile.xpToNextLevel}`;
             if (dom.xpBar) dom.xpBar.style.width = `${percent}%`;
         }
+    },
+
+	updateHeaderStats: function() {
+        const progress = progressManager.getUserProgress();
+        const totalLearned = Object.values(progress.masteryScores).filter(score => score >= config.MASTERY_THRESHOLD).length;
+        if (dom.wordsLearned) dom.wordsLearned.textContent = totalLearned;
+        if (dom.streakDays) dom.streakDays.textContent = progress.streakDays || 0;
     },
 
     loadBadges: function() {
