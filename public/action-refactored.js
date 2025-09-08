@@ -797,7 +797,7 @@ const uiManager = {
                 this.updateMarkLearnedButton(wordId); // Cập nhật lại trạng thái cuối cùng
             }, 2000);
         }
-    }
+    },
 	
 	// --- CÁC HÀM CHO TAB GAME & QUIZ ---
     loadGames: function() {
@@ -911,7 +911,7 @@ const uiManager = {
 				});
 			}
 		}
-	}
+	},
 	
     // --- CÁC HÀM CHO TAB PHẦN THƯỞNG (BỔ SUNG) ---
     updateXpDisplay: function(progress) {
