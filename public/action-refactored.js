@@ -6,7 +6,7 @@
  * @description Chứa các hằng số và cấu hình không thay đổi trong suốt quá trình chạy.
  */
 const config = {
-    APP_VERSION: '1.2_0908_5_FULL_FEATURE', // Đặt phiên bản mới cho ứng dụng tái cấu trúc
+    APP_VERSION: '1.2_0908_6_FULL_FEATURE', // Đặt phiên bản mới cho ứng dụng tái cấu trúc
     MASTERY_THRESHOLD: 4,
     INACTIVITY_DELAY: 10000, // 10 giây
 
@@ -93,14 +93,16 @@ const state = {
             questions: [],
             currentQuestionIndex: 0,
             score: 0,
-			timerId: null
+			timerId: null,
+			nextQuestionTimeoutId: null
         },
         unscramble: {
             targetWord: '',
             targetWordId: null,
             wordPool: [],
             lastWordId: null,
-			timerId: null
+			timerId: null,
+			nextQuestionTimeoutId: null
         },
         soundMatch: {
             selectedCards: [],
@@ -114,7 +116,8 @@ const state = {
 			timerId: null
         },
 		readingQuiz: {
-			timerId: null
+			timerId: null,
+			nextQuestionTimeoutId: null
 		}
     },
 
@@ -1139,7 +1142,6 @@ const gameManager = {
         state.currentActivity = { type: 'game', id: gameId };
         this.showCategorySelectionModal();
     },
-
     startQuiz: function(quizId) {
         soundManager.play('click');
         state.currentActivity = { type: 'quiz', id: quizId };
@@ -1250,20 +1252,26 @@ const gameManager = {
 	 // --- HÀM MỚI: DỌN DẸP GAME KHI ĐÓNG MODAL ---
     resetCurrentGame: function() {
         if (!state.currentActivity) return;
+        console.log(`Dọn dẹp triệt để hoạt động: ${state.currentActivity.type} - ID: ${state.currentActivity.id}`);
 
-        console.log(`Dọn dẹp hoạt động: ${state.currentActivity.type} - ID: ${state.currentActivity.id}`);
+        // Dừng tất cả các timer interval và timeout
+        const quizState = state.games.imageQuiz; // Dùng cho cả Quiz 1 và Game 2
+        if (quizState.timerId) clearInterval(quizState.timerId);
+        if (quizState.nextQuestionTimeoutId) clearTimeout(quizState.nextQuestionTimeoutId);
+
+        const unscrambleState = state.games.unscramble;
+        if (unscrambleState.timerId) clearInterval(unscrambleState.timerId);
+        if (unscrambleState.nextQuestionTimeoutId) clearTimeout(unscrambleState.nextQuestionTimeoutId);
         
-        // Dừng timer của các game có bộ đếm
-        if (state.games.imageQuiz.timerId) {
-            clearInterval(state.games.imageQuiz.timerId);
-            state.games.imageQuiz.timerId = null;
-        }
-        if (state.games.fillBlank.timerId) {
-            clearInterval(state.games.fillBlank.timerId);
-            state.games.fillBlank.timerId = null;
-        }
+        const fillBlankState = state.games.fillBlank;
+        if (fillBlankState.timerId) clearInterval(fillBlankState.timerId);
+        if (fillBlankState.nextQuestionTimeoutId) clearTimeout(fillBlankState.nextQuestionTimeoutId);
 
-        // Đặt lại trạng thái hoạt động
+        const readingState = state.games.readingQuiz;
+        if (readingState.timerId) clearInterval(readingState.timerId);
+        if (readingState.nextQuestionTimeoutId) clearTimeout(readingState.nextQuestionTimeoutId);
+
+        // Reset lại state
         state.currentActivity = null;
     },
 	
@@ -1403,7 +1411,9 @@ const gameManager = {
 		}
 	},
     
-    // --- GAME 2: CHỌN TỪ (IMAGE) ---
+	// ===================================================================================
+	// GAME 2: CHỌN TỪ (IMAGE QUIZ)
+	// ===================================================================================
 	startImageQuiz: function(words) {
 		const s = state.games.imageQuiz;
 		if (s.timerId) clearInterval(s.timerId);
@@ -1414,7 +1424,7 @@ const gameManager = {
 		this.displayImageQuizQuestion();
 		uiManager.openModal('imageQuizModal');
 	},
-	
+
 	_startImageQuizTimer: function() {
 		const s = state.games.imageQuiz;
 		if (s.timerId) clearInterval(s.timerId);
@@ -1428,8 +1438,8 @@ const gameManager = {
 			timeLeft--;
 			timerElement.textContent = timeLeft;
 			if (timeLeft <= 3 && timeLeft > 0) {
-                soundManager.play('tick');
-            }
+				soundManager.play('tick');
+			}
 			if (timeLeft <= 3) {
 				timerElement.classList.add('warning');
 			}
@@ -1439,21 +1449,23 @@ const gameManager = {
 			}
 		}, 1000);
 	},
-	
+
 	_handleImageQuizTimeUp: function() {
 		soundManager.play('wrong');
 		document.querySelectorAll('#image-quiz-options button').forEach(btn => {
 			btn.disabled = true;
-			// Highlight đáp án đúng
 			const s = state.games.imageQuiz;
-			const correctOption = s.questions[s.currentQuestionIndex].correctAnswer;
-			if (btn.textContent.includes(correctOption.english)) {
-				btn.classList.add('correct');
+			if (s.questions[s.currentQuestionIndex]) {
+				const correctOption = s.questions[s.currentQuestionIndex].correctAnswer;
+				if (btn.textContent.includes(correctOption.english)) {
+					btn.classList.add('correct');
+				}
 			}
 		});
 
-		setTimeout(() => {
-			state.games.imageQuiz.currentQuestionIndex++;
+		const s = state.games.imageQuiz;
+		s.nextQuestionTimeoutId = setTimeout(() => {
+			s.currentQuestionIndex++;
 			this.displayImageQuizQuestion();
 		}, 2000);
 	},
@@ -1466,7 +1478,6 @@ const gameManager = {
 			const correctWord = wordsForQuestions[i];
 			
 			const options = [correctWord];
-			// Lấy các đáp án sai từ toàn bộ từ vựng của level hiện tại để đa dạng hơn
 			const distractors = state.flashcards.filter(w => w.id !== correctWord.id);
 			const shuffledDistractors = util.shuffleArray(distractors);
 
@@ -1505,8 +1516,7 @@ const gameManager = {
 		const optionsContainer = document.getElementById('image-quiz-options');
 		optionsContainer.innerHTML = '';
 		const prefixes = ['A.', 'B.', 'C.', 'D.'];
-        
-        // --- SỬA LỖI: Thêm (option, index) để lấy chỉ số của vòng lặp ---
+		
 		question.options.forEach((option, index) => {
 			const optionButton = document.createElement('button');
 			optionButton.className = 'quiz-option p-4 border rounded-lg text-lg font-semibold text-gray-700 bg-white text-left';
@@ -1525,14 +1535,14 @@ const gameManager = {
 		if (selectedOption.id === correctOption.id) {
 			button.classList.add('correct');
 			s.score++;
-			soundManager.play('correct'); // ÂM THANH MỚI
+			soundManager.play('correct');
 		} else {
 			button.classList.add('incorrect');
-			soundManager.play('wrong'); // ÂM THANH MỚI
+			soundManager.play('wrong');
 			
-			// Tìm và hiển thị đáp án đúng
 			document.querySelectorAll('#image-quiz-options button').forEach(btn => {
-				if (btn.textContent === correctOption.english) {
+				const correctPrefix = btn.textContent.split(' ')[0];
+				if (btn.textContent === `${correctPrefix} ${correctOption.english}`) {
 					btn.classList.add('correct');
 				}
 			});
@@ -1540,7 +1550,7 @@ const gameManager = {
 
 		soundManager.speak(correctOption.english, 'en-US');
 
-		setTimeout(() => {
+		s.nextQuestionTimeoutId = setTimeout(() => {
 			s.currentQuestionIndex++;
 			this.displayImageQuizQuestion();
 		}, 1500);
@@ -1548,6 +1558,7 @@ const gameManager = {
 
 	endImageQuiz: function() {
 		clearInterval(state.games.imageQuiz.timerId);
+		clearTimeout(state.games.imageQuiz.nextQuestionTimeoutId);
 		uiManager.closeModal('imageQuizModal');
 		const s = state.games.imageQuiz;
 		const scorePercentage = s.questions.length > 0 ? Math.round((s.score / s.questions.length) * 100) : 0;
@@ -1560,14 +1571,16 @@ const gameManager = {
 			uiManager.createConfetti();
 		}
 		setTimeout(() => {
-            const imageContainer = document.getElementById('image-quiz-image-container');
-            const optionsContainer = document.getElementById('image-quiz-options');
-            if(imageContainer) imageContainer.innerHTML = '';
-            if(optionsContainer) optionsContainer.innerHTML = '';
-        }, 300);
+			const imageContainer = document.getElementById('image-quiz-image-container');
+			const optionsContainer = document.getElementById('image-quiz-options');
+			if(imageContainer) imageContainer.innerHTML = '';
+			if(optionsContainer) optionsContainer.innerHTML = '';
+		}, 300);
 	},
 
-    // --- GAME 3: ĐIỀN TỪ (FILL BLANK) ---
+	// ===================================================================================
+	// GAME 3: ĐIỀN TỪ (FILL BLANK)
+	// ===================================================================================
 	startFillBlankGame: function(words) {
 		const s = state.games.fillBlank;
 		if (s.timerId) clearInterval(s.timerId);
@@ -1657,7 +1670,7 @@ const gameManager = {
 
 		uiManager.openModal('fillBlankGameModal');
 	},
-	
+
 	_startFillBlankTimer: function(correctWord) {
 		const s = state.games.fillBlank;
 		if (s.timerId) clearInterval(s.timerId);
@@ -1671,8 +1684,8 @@ const gameManager = {
 			timeLeft--;
 			timerElement.textContent = timeLeft;
 			if (timeLeft <= 3 && timeLeft > 0) {
-                soundManager.play('tick');
-            }
+				soundManager.play('tick');
+			}
 			if (timeLeft <= 3) {
 				timerElement.classList.add('warning');
 			}
@@ -1682,43 +1695,41 @@ const gameManager = {
 			}
 		}, 1000);
 	},
-	
+
 	_handleFillBlankTimeUp: function(correctWord) {
 		soundManager.play('wrong');
-		// Vô hiệu hóa các nút
 		document.getElementById('check-fill-blank-btn').disabled = true;
 		document.querySelectorAll('#letter-tiles .letter-choice').forEach(tile => tile.onclick = null);
-
-		// Hiển thị đáp án đúng
 		const answerArea = document.getElementById('answer-area');
 		answerArea.innerHTML = `<div class="w-full text-red-500 font-bold text-2xl">${correctWord}</div>`;
 
-		setTimeout(() => {
+		const s = state.games.fillBlank;
+		s.nextQuestionTimeoutId = setTimeout(() => {
 			document.getElementById('check-fill-blank-btn').disabled = false;
-			this.startFillBlankGame(); // Tải từ mới
+			this.startFillBlankGame();
 		}, 2500);
 	},
 
 	checkFillBlankAnswer: function() {
 		clearInterval(state.games.fillBlank.timerId);
+		const s = state.games.fillBlank;
 		const userAnswer = Array.from(document.querySelectorAll('#answer-area > div')).map(slot => slot.textContent || '_').join('');
 
-		if (userAnswer === state.games.fillBlank.targetWord) {
-			soundManager.play('correct'); // ÂM THANH MỚI
+		if (userAnswer === s.targetWord) {
+			soundManager.play('correct');
 			const successIcon = document.getElementById('fill-blank-success-feedback');
 			successIcon.classList.remove('hidden');
 			successIcon.classList.add('success-shake');
-			setTimeout(() => {
+			s.nextQuestionTimeoutId = setTimeout(() => {
 				successIcon.classList.add('hidden');
 				successIcon.classList.remove('success-shake');
 				this.startFillBlankGame();
 			}, 1500);
 		} else {
-			soundManager.play('wrong'); // ÂM THANH MỚI
+			soundManager.play('wrong');
 			const answerArea = document.getElementById('answer-area');
 			answerArea.classList.add('error');
 			setTimeout(() => answerArea.classList.remove('error'), 500);
-
 			setTimeout(() => {
 				document.querySelectorAll('#answer-area .blank-slot').forEach(slot => {
 					if (slot.textContent) {
@@ -1855,27 +1866,27 @@ const gameManager = {
 		s.isChecking = false;
 	},
 
-    // --- QUIZ 1: TRẮC NGHIỆM (MULTIPLE CHOICE) ---
+    // ===================================================================================
+	// QUIZ 1: TRẮC NGHIỆM (MULTIPLE CHOICE)
+	// ===================================================================================
 	startMultipleChoiceQuiz: function(words) {
 		const progress = progressManager.getUserProgress();
 		const unlearnedWords = words.filter(word => (progress.masteryScores[word.id] || 0) < config.MASTERY_THRESHOLD);
 		const wordsForQuiz = unlearnedWords.length > 0 ? unlearnedWords : words;
-
 		if (wordsForQuiz.length < 4) {
 			alert("Chủ đề này không đủ 4 từ vựng.");
 			return;
 		}
 
-		// Tạo câu hỏi một lần duy nhất
-		state.games.imageQuiz.questions = this.generateMCQuizQuestions(wordsForQuiz, words);
-		state.games.imageQuiz.currentQuestionIndex = 0;
-		state.games.imageQuiz.score = 0;
+		const s = state.games.imageQuiz; // Tái sử dụng state
+		s.questions = this.generateMCQuizQuestions(wordsForQuiz, words);
+		s.currentQuestionIndex = 0;
+		s.score = 0;
 		if (words.length > 0) state.currentActivity.categoryId = words[0].categoryId;
 
-		// Ẩn các nút không cần thiết
 		document.getElementById('submit-quiz').classList.add('hidden');
 		document.getElementById('next-quiz-btn').classList.add('hidden');
-
+		
 		this.displayMultipleChoiceQuestion();
 		uiManager.openModal('multipleChoiceQuizModal');
 	},
@@ -1899,13 +1910,13 @@ const gameManager = {
 	},
 
 	displayMultipleChoiceQuestion: function() {
-		const s = state.games.imageQuiz; // Tái sử dụng state của imageQuiz
+		const s = state.games.imageQuiz;
 		if (s.currentQuestionIndex >= s.questions.length) {
 			this.endMultipleChoiceQuiz();
 			return;
 		}
 		this._startMultipleChoiceTimer();
-
+		
 		const question = s.questions[s.currentQuestionIndex];
 		const container = document.getElementById('quiz-questions');
 		container.innerHTML = '';
@@ -1913,7 +1924,7 @@ const gameManager = {
 
 		const questionElement = document.createElement('div');
 		questionElement.className = 'bg-white p-4 rounded-lg shadow';
-
+		
 		let questionHTML = `<h4 class="font-bold text-gray-800 mb-3">${s.currentQuestionIndex + 1}. ${question.correctAnswer.english}</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-3">`;
 		question.options.forEach((option, index) => {
 			questionHTML += `<div class="quiz-option p-3 border rounded-lg cursor-pointer text-left" data-value="${option}">${prefixes[index]} ${option}</div>`;
@@ -1949,7 +1960,7 @@ const gameManager = {
 			soundManager.play('wrong');
 		}
 
-		setTimeout(() => {
+		s.nextQuestionTimeoutId = setTimeout(() => {
 			s.currentQuestionIndex++;
 			this.displayMultipleChoiceQuestion();
 		}, 2000);
@@ -1957,6 +1968,7 @@ const gameManager = {
 
 	endMultipleChoiceQuiz: function() {
 		clearInterval(state.games.imageQuiz.timerId);
+		clearTimeout(state.games.imageQuiz.nextQuestionTimeoutId);
 		uiManager.closeModal('multipleChoiceQuizModal');
 		const s = state.games.imageQuiz;
 		const scorePercentage = s.questions.length > 0 ? Math.round((s.score / s.questions.length) * 100) : 0;
@@ -1966,7 +1978,7 @@ const gameManager = {
 		uiManager.showCompletionMessage(scorePercentage, id, categoryId, true);
 		if (scorePercentage >= 60) uiManager.createConfetti();
 	},
-	
+
 	_startMultipleChoiceTimer: function() {
 		const s = state.games.imageQuiz;
 		if(s.timerId) clearInterval(s.timerId);
@@ -1991,7 +2003,7 @@ const gameManager = {
 		soundManager.play('wrong');
 		const s = state.games.imageQuiz;
 		const question = s.questions[s.currentQuestionIndex];
-		// Vô hiệu hóa và hiển thị đáp án đúng
+		
 		document.querySelectorAll('#quiz-questions .quiz-option').forEach(opt => {
 			opt.disabled = true;
 			if (opt.dataset.value === question.correctAnswer.vietnamese) {
@@ -1999,13 +2011,15 @@ const gameManager = {
 			}
 		});
 
-		setTimeout(() => {
+		s.nextQuestionTimeoutId = setTimeout(() => {
 			s.currentQuestionIndex++;
 			this.displayMultipleChoiceQuestion();
 		}, 2000);
 	},
-	
-    // --- QUIZ 2: XẾP CHỮ (UNSCRAMBLE) ---
+
+	// ===================================================================================
+	// QUIZ 2: XẾP CHỮ (UNSCRAMBLE)
+	// ===================================================================================
 	startUnscrambleGame: function(words) {
 		const s = state.games.unscramble;
 		if (words) s.wordPool = words;
@@ -2081,7 +2095,9 @@ const gameManager = {
 		soundManager.play('wrong');
 		document.getElementById('check-unscramble-btn').disabled = true;
 		document.getElementById('answer-area').innerHTML = `<div class="w-full text-red-500 font-bold text-2xl">${correctWord}</div>`;
-		setTimeout(() => {
+		
+		const s = state.games.unscramble;
+		s.nextQuestionTimeoutId = setTimeout(() => {
 			document.getElementById('check-unscramble-btn').disabled = false;
 			this.startUnscrambleGame();
 		}, 2500);
@@ -2090,15 +2106,12 @@ const gameManager = {
 	moveLetter: function(tile) {
 		if (!tile) return;
 		soundManager.play('click');
-
 		const answerArea = document.getElementById('unscramble-answer-area');
 		const letterTilesArea = document.getElementById('unscramble-letter-tiles');
 
 		if (tile.parentElement.id === 'unscramble-letter-tiles') {
 			const emptySlot = Array.from(answerArea.children).find(slot => !slot.firstChild);
-			if (emptySlot) {
-				emptySlot.appendChild(tile);
-			}
+			if (emptySlot) emptySlot.appendChild(tile);
 		} else {
 			letterTilesArea.appendChild(tile);
 		}
@@ -2109,42 +2122,43 @@ const gameManager = {
 		soundManager.play('click');
 		const s = state.games.unscramble;
 		const answerArea = document.getElementById('unscramble-answer-area');
-		const letterTilesArea = document.getElementById('unscramble-letter-tiles');
 		const userAnswer = Array.from(answerArea.children).map(slot => slot.firstChild?.textContent || '').join('');
 
 		if (userAnswer === s.targetWord) {
 			progressManager.updateMasteryScore(s.targetWordId, 3);
-			soundManager.play('start'); // ÂM THANH MỚI
+			soundManager.play('tada');
 			soundManager.speak(s.targetWord, 'en-US'); 
 			
 			const successIcon = document.getElementById('unscramble-success-feedback');
 			successIcon.classList.remove('hidden');
 			successIcon.classList.add('success-shake');
 
-			setTimeout(() => {
+			s.nextQuestionTimeoutId = setTimeout(() => {
 				successIcon.classList.add('hidden');
 				successIcon.classList.remove('success-shake');
 				this.startUnscrambleGame();
 			}, 1500);
-
 		} else {
-			soundManager.play('wrong'); // ÂM THANH MỚI
+			soundManager.play('wrong');
 			answerArea.classList.add('error');
 			setTimeout(() => answerArea.classList.remove('error'), 500);
-
 			setTimeout(() => {
 				Array.from(answerArea.children).forEach(slot => {
 					if (slot.firstChild) {
-						letterTilesArea.appendChild(slot.firstChild);
+						document.getElementById('unscramble-letter-tiles').appendChild(slot.firstChild);
 					}
 				});
 			}, 500);
 		}
 	},
 
-    // --- QUIZ 3: ĐỌC HIỂU (READING COMPREHENSION) ---
-	
+	// ===================================================================================
+	// QUIZ 3: ĐỌC HIỂU (READING COMPREHENSION)
+	// ===================================================================================
 	startReadingQuiz: function(words) {
+		if (words.length > 0) {
+			state.currentActivity.categoryId = words[0].categoryId;
+		}
 		const allWordsWithSentence = state.flashcards.filter(w => w.exampleSentence);
 		const wordsForGame = util.shuffleArray(words);
 		const currentWord = wordsForGame[0];
@@ -2159,7 +2173,7 @@ const gameManager = {
 		document.getElementById('reading-quiz-sentence-container').innerHTML = currentWord.exampleSentence.replace('___', `<span class="text-blue-500 font-bold mx-2">_________</span>`);
 		const optionsContainer = document.getElementById('reading-quiz-options-container');
 		optionsContainer.innerHTML = '';
-        const prefixes = ['A.', 'B.', 'C.', 'D.'];
+		const prefixes = ['A.', 'B.', 'C.', 'D.'];
 
 		shuffledOptions.forEach((option, index) => {
 			const optionButton = document.createElement('button');
@@ -2175,14 +2189,14 @@ const gameManager = {
 
 	_startReadingQuizTimer: function(correctOption, wordPool) {
 		const s = state.games.readingQuiz;
-        if (s.timerId) clearInterval(s.timerId);
+		if (s.timerId) clearInterval(s.timerId);
 
 		let timeLeft = 8;
 		const timerElement = document.getElementById('reading-quiz-timer');
 		timerElement.textContent = timeLeft;
 		timerElement.classList.remove('warning');
 		
-        s.timerId = setInterval(() => {
+		s.timerId = setInterval(() => {
 			timeLeft--;
 			timerElement.textContent = timeLeft;
 			if (timeLeft <= 3 && timeLeft > 0) soundManager.play('tick');
@@ -2202,21 +2216,21 @@ const gameManager = {
 				btn.classList.add('correct');
 			}
 		});
-		setTimeout(() => {
+		const s = state.games.readingQuiz;
+		s.nextQuestionTimeoutId = setTimeout(() => {
 			const nextWordPool = wordPool.filter(w => w.id !== correctOption.id);
 			if (nextWordPool.length > 0) this.startReadingQuiz(nextWordPool);
 			else {
 				uiManager.closeModal('readingQuizModal');
-                // CẢI TIẾN: Dùng modal thay vì alert
-                const { id, categoryId } = state.currentActivity;
-                progressManager.updateQuizProgress(id, categoryId, 100); // Giả sử 100% khi hoàn thành
-                uiManager.showCompletionMessage(100, id, categoryId, true);
+				const { id, categoryId } = state.currentActivity;
+				progressManager.updateQuizProgress(id, categoryId, 100);
+				uiManager.showCompletionMessage(100, id, categoryId, true);
 			}
 		}, 2000);
 	},
 
 	handleReadingQuizOptionClick: function(button, selectedOption, correctOption, wordPool) {
-		clearInterval(state.games.readingQuiz.timerId); // SỬA LỖI: Dùng state
+		clearInterval(state.games.readingQuiz.timerId);
 		soundManager.play('click');
 		button.blur();
 		document.querySelectorAll('#reading-quiz-options-container button').forEach(btn => btn.disabled = true);
@@ -2230,22 +2244,23 @@ const gameManager = {
 			button.classList.add('incorrect');
 			soundManager.play('wrong');
 			document.querySelectorAll('#reading-quiz-options-container button').forEach(btn => {
-				if (btn.textContent.includes(correctOption.english)) {
+				const correctPrefix = btn.textContent.split(' ')[0];
+				if (btn.textContent === `${correctPrefix} ${correctOption.english}`) {
 					btn.classList.add('correct');
 				}
 			});
 		}
 
-		setTimeout(() => {
+		const s = state.games.readingQuiz;
+		s.nextQuestionTimeoutId = setTimeout(() => {
 			const nextWordPool = wordPool.filter(w => w.id !== correctOption.id);
 			if (nextWordPool.length > 0) {
 				this.startReadingQuiz(nextWordPool);
 			} else {
 				uiManager.closeModal('readingQuizModal');
-                // CẢI TIẾN: Dùng modal thay vì alert
-                const { id, categoryId } = state.currentActivity;
-                progressManager.updateQuizProgress(id, categoryId, 100);
-                uiManager.showCompletionMessage(100, id, categoryId, true);
+				const { id, categoryId } = state.currentActivity;
+				progressManager.updateQuizProgress(id, categoryId, 100);
+				uiManager.showCompletionMessage(100, id, categoryId, true);
 			}
 		}, 2000);
 	}
