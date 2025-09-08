@@ -2061,7 +2061,6 @@ const app = {
 
         // 4. Cập nhật các thành phần UI ban đầu dựa trên tiến độ
         uiManager.updateWelcomeMessage(progress);
-        uiManager.updateUserStats();
         uiManager.updateXpDisplay(progress);
         
         // 5. Xác định và tải dữ liệu cho level hiện tại
