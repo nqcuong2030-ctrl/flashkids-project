@@ -6,7 +6,7 @@
  * @description Chứa các hằng số và cấu hình không thay đổi trong suốt quá trình chạy.
  */
 const config = {
-    APP_VERSION: '1.2_0908_4_FULL_FEATURE', // Đặt phiên bản mới cho ứng dụng tái cấu trúc
+    APP_VERSION: '1.2_0908_5_FULL_FEATURE', // Đặt phiên bản mới cho ứng dụng tái cấu trúc
     MASTERY_THRESHOLD: 4,
     INACTIVITY_DELAY: 10000, // 10 giây
 
@@ -1076,7 +1076,7 @@ const uiManager = {
             document.body.appendChild(confetti);
             setTimeout(() => confetti.remove(), 4000);
         }
-    }
+    },
 	
     updateTimerDisplay: function() {
         if (!dom.dailyTimerDisplay) return;
