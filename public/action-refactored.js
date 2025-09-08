@@ -6,7 +6,7 @@
  * @description Chứa các hằng số và cấu hình không thay đổi trong suốt quá trình chạy.
  */
 const config = {
-    APP_VERSION: '1.2_0908_6_FULL_FEATURE', // Đặt phiên bản mới cho ứng dụng tái cấu trúc
+    APP_VERSION: '1.2_0908_7_FULL_FEATURE', // Đặt phiên bản mới cho ứng dụng tái cấu trúc
     MASTERY_THRESHOLD: 4,
     INACTIVITY_DELAY: 10000, // 10 giây
 
@@ -1379,6 +1379,10 @@ const gameManager = {
 		s.questions = this.generateImageQuizQuestions(words);
 		s.currentQuestionIndex = 0;
 		s.score = 0;
+        
+        if (words.length > 0) {
+            state.currentActivity.categoryId = words[0].categoryId;
+        }
 
 		this.displayImageQuizQuestion();
 		uiManager.openModal('imageQuizModal');
@@ -1430,10 +1434,11 @@ const gameManager = {
 
 		const optionsContainer = document.getElementById('image-quiz-options');
 		optionsContainer.innerHTML = '';
+		const prefixes = ['A.', 'B.', 'C.', 'D.'];
 		question.options.forEach(option => {
 			const optionButton = document.createElement('button');
 			optionButton.className = 'quiz-option p-4 border rounded-lg text-lg font-semibold text-gray-700 bg-white';
-			optionButton.textContent = option.english;
+			optionButton.textContent = `${prefixes[index]} ${option.english}`;
 			optionButton.addEventListener('click', () => this.handleImageQuizOptionClick(optionButton, option, question.correctAnswer));
 			optionsContainer.appendChild(optionButton);
 		});
@@ -1480,6 +1485,12 @@ const gameManager = {
 		if (scorePercentage >= 60) {
 			uiManager.createConfetti();
 		}
+		setTimeout(() => {
+            const imageContainer = document.getElementById('image-quiz-image-container');
+            const optionsContainer = document.getElementById('image-quiz-options');
+            if(imageContainer) imageContainer.innerHTML = '';
+            if(optionsContainer) optionsContainer.innerHTML = '';
+        }, 300);
 	},
 
     // --- GAME 3: ĐIỀN TỪ (FILL BLANK) ---
@@ -1957,10 +1968,11 @@ const gameManager = {
 
 		const optionsContainer = document.getElementById('reading-quiz-options-container');
 		optionsContainer.innerHTML = '';
+		const prefixes = ['A.', 'B.', 'C.', 'D.'];
 		shuffledOptions.forEach(option => {
 			const optionButton = document.createElement('button');
 			optionButton.className = 'quiz-option p-4 border rounded-lg text-lg font-semibold text-gray-700 bg-white';
-			optionButton.textContent = option.english;
+			optionButton.textContent = `${prefixes[index]} ${option.english}`;
 			optionButton.onclick = () => this.handleReadingQuizOptionClick(optionButton, option, currentWord, wordsForGame);
 			optionsContainer.appendChild(optionButton);
 		});
