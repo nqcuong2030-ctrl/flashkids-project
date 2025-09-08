@@ -78,7 +78,8 @@
                 <h3 class="text-xl font-bold text-gray-800 mb-4">Chủ đề từ vựng</h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8" id="categories-container"></div>
             </div>
-
+			
+			<!-- Flashcards Tab -->
             <div id="flashcards" class="tab-content hidden">
                  <div class="mb-6 flex space-x-2 overflow-x-auto py-2 no-scrollbar" id="category-filters"></div>
                 <div class="mb-8">
@@ -106,20 +107,157 @@
                     <button id="mark-learned-btn" class="btn-success text-white py-2 px-6 rounded-full shadow-md flex items-center">Đánh dấu đã học</button>
                 </div>
             </div>
-
+			
+			<!-- Game Tab -->
             <div id="games" class="tab-content hidden">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8" id="games-container"></div>
-            </div>
-            <div id="quiz" class="tab-content hidden">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8" id="quiz-types"></div>
-            </div>
+				<h2 class="text-2xl font-bold text-gray-800 mb-6">Luyện tập qua Trò chơi</h2>
+				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8" id="games-container">
+					</div>
+			</div>
+			
+			<!-- Quiz Tab -->
+            <div id="quiz" class="tab-content hidden">  
+				<h2 class="text-2xl font-bold text-gray-800 mb-2">Bài kiểm tra</h2>
+				<p class="text-gray-600 mb-6">Hoàn thành các bài kiểm tra để tăng điểm thông thạo cho từ vựng.</p>
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8" id="quiz-types">
+					</div>
+			</div>
+			
+			<!-- Rewards Tab -->
             <div id="rewards" class="tab-content hidden">
-                <div id="badges-container" class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8"></div>
-            </div>
+				<h2 class="text-2xl font-bold text-gray-800 mb-6">Phần thưởng & Thành tích</h2>
+
+				<div class="bg-white rounded-2xl p-6 shadow-md mb-8">					
+					<div class="flex justify-between items-center mb-4">
+						<h3 class="text-xl font-bold text-gray-800">Cấp độ của bạn</h3>
+						<span class="bg-blue-500 text-white text-sm font-bold px-3 py-1 rounded-full">Cấp <span id="xp-level">1</span></span>
+					</div>
+					<div class="mb-4">
+						<div class="flex justify-between text-sm mb-1">
+							<span>Tiến độ</span>
+							<span id="xp-text" class="font-semibold text-xs">0/100 XP</span>
+						</div>
+						<div class="w-full bg-gray-200 rounded-full h-3">
+							<div class="bg-yellow-400 h-3 rounded-full" id="xp-bar" style="width: 0%"></div>
+						</div>
+					</div>
+				</div>
+
+				<h3 class="text-xl font-bold text-gray-800 mb-4">Huy hiệu</h3>
+				<div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8" id="badges-container">
+					</div>
+			</div>
+			
+            <!-- Stats Tab -->
             <div id="stats" class="tab-content hidden">
-                </div>
+				<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+					<div class="flex flex-col gap-6">
+						<div class="grid grid-cols-2 md:grid-cols-2 gap-6">
+							<div class="bg-white rounded-2xl p-6 shadow-md flex items-center">
+								<div class="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mr-4">
+									<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M4 1V4H1V6H4V9H6V6H9V4H6V1H4ZM11 5C11 8.31371 8.31371 11 5 11C4.29873 11 3.62556 10.8797 3 10.6586V20.0066C3 20.5551 3.44694 21 3.99826 21H14V15C14 14.45 14.45 14 15 14H21V3.9985C21 3.44749 20.5552 3 20.0066 3H10.6586C10.8797 3.62556 11 4.29873 11 5ZM21 16L16 20.997V16H21Z"></path></svg>
+								</div>
+								<div>
+									<div class="text-4xl font-bold text-blue-500 mb-1" id="words-learned">0</div>
+									<p class="text-gray-600 font-semibold">Từ vựng Thông thạo</p>
+								</div>
+							</div>
+							<div class="bg-white rounded-2xl p-6 shadow-md flex items-center">
+								<div class="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mr-4">
+									 <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+								</div>
+								<div>
+									<div class="text-4xl font-bold text-green-500 mb-1" id="streak-days">0</div>
+									<p class="text-gray-600 font-semibold">Ngày học liên tục</p>
+								</div>
+							</div>
+						</div>
+						
+						<div class="bg-white rounded-2xl p-6 shadow-md">
+							<h3 class="text-xl font-bold text-gray-800 mb-4">Tổng quan từ vựng</h3>
+							<div class="h-64 flex items-center justify-center">
+								 <canvas id="mastery-chart"></canvas>
+							</div>
+						</div>
+						
+						<div class="bg-white rounded-2xl p-6 shadow-md">
+							<h3 class="text-xl font-bold text-gray-800 mb-4">Lịch sử học tập (90 ngày qua)</h3>
+							<div id="activity-heatmap" class="heatmap-container">
+								</div>
+						</div>
+					</div>
+
+					<div class="bg-white rounded-2xl p-6 shadow-md">
+						<h3 class="text-xl font-bold text-gray-800 mb-4">Tiến độ theo chủ đề</h3>
+						<div id="category-progress-container">
+							</div>
+					</div>
+
+				</div>
+			</div>
+			
+			<!-- Settings Tab -->
             <div id="settings" class="tab-content hidden">
-                </div>
+				<h2 class="text-2xl font-bold text-gray-800 mb-6">Cài đặt & Hồ sơ</h2>
+				
+				<div class="bg-white rounded-2xl p-6 shadow-md mb-8">
+					<h3 class="text-lg font-bold text-gray-800 mb-4">Hồ sơ cá nhân</h3>
+					<div class="flex flex-col md:flex-row md:items-center mb-6">
+						<div class="mb-4 md:mb-0 md:mr-6">
+							<div id="avatar-selection-grid" class="grid grid-cols-4 gap-2 w-48">
+								</div>
+						</div>
+						<div class="flex-1">
+							<div class="mb-4">
+								<label class="block text-gray-700 text-sm font-bold mb-2" for="username">Tên người dùng</label>
+								<input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="username" type="text" placeholder="Tên của bạn">
+							</div>
+							<div class="mb-4">
+								<label class="block text-gray-700 text-sm font-bold mb-2" for="age">Tuổi</label>
+								<input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="age" type="number" placeholder="Tuổi của bạn">
+							</div>
+							<button id="save-profile-btn" class="btn-primary text-white py-2 px-6 rounded-lg shadow-md">Lưu Hồ sơ</button>
+						</div>
+					</div>
+				</div>				
+				
+				<div class="bg-white rounded-2xl p-6 shadow-md mb-8">
+					<h3 class="text-lg font-bold text-gray-800 mb-4">Cài đặt ứng dụng</h3>                    
+					
+					<div class="flex items-center justify-between mb-4">
+						<label class="text-gray-700 font-bold">Âm thanh hiệu ứng</label>
+						<label for="sound-toggle" class="flex items-center cursor-pointer">
+							<div class="relative">
+								<input type="checkbox" id="sound-toggle" class="sr-only">
+								<div class="block bg-gray-600 w-14 h-8 rounded-full"></div>
+								<div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition"></div>
+							</div>
+						</label>
+					</div>
+					
+					<div class="bg-gray-50 rounded-lg p-4 mt-6">
+						<h3 class="text-lg font-bold text-gray-800 mb-4">Công cụ đọc văn bản</h3>
+						<div class="relative">
+							<input type="text" id="text-to-speech-input" class="shadow appearance-none border rounded w-full py-3 pl-3 pr-32 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Nhập câu hoặc từ để đọc...">
+							<div class="absolute inset-y-0 right-0 flex items-center pr-3 space-x-2">
+								<button id="download-speech-btn" class="text-gray-500 hover:text-green-500 hidden" title="Tải file MP3">
+									</button>
+								<button id="tts-lang-toggle-btn" data-lang="en-US" class="text-sm font-bold bg-gray-200 text-gray-600 rounded-md w-12 h-8 hover:bg-gray-300 transition-colors">Eng</button>
+								<button id="speak-text-btn" class="text-gray-500 hover:text-blue-500" title="Đọc / Dừng">
+									<svg id="tts-speak-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+										</svg>
+									<svg id="tts-stop-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+										</svg>
+								</button>								
+							</div>
+						</div>
+						<div class="mt-4">
+							<label for="tts-speed-slider" class="block text-gray-700 text-sm font-bold mb-2">Tốc độ đọc: <span id="tts-speed-value" class="font-normal">1.0x</span></label>
+							<input type="range" id="tts-speed-slider" min="0.5" max="2" value="1" step="0.1" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+						</div>
+					</div>
+				</div>
+			</div>
         </main>
     </div>
 
