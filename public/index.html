@@ -139,6 +139,25 @@
 			padding: 5px 10px; border-radius: 5px; font-size: 12px; white-space: nowrap; z-index: 10; }
 		.tooltip::after { content: ''; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: #333 transparent transparent transparent; }
 		
+		/* Game Timer Styles */
+        .game-timer {
+            font-size: 1.5rem; /* 24px */
+            font-weight: 800;
+            color: white;
+            background-color: #9ca3af; /* gray-400 */
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        .game-timer.warning {
+            background-color: #f87171; /* red-400 */
+            transform: scale(1.1);
+        }
+		
 	</style>
 </head>
 <body>
@@ -606,6 +625,7 @@
 		<div class="modal-content" style="max-width: 500px">
 			<div class="flex justify-between items-center mb-4">
 				<h3 class="text-xl font-bold text-gray-800">Chọn từ phù hợp</h3>
+				<div id="image-quiz-timer" class="game-timer">8</div>
 				<span id="image-quiz-progress" class="text-gray-600 font-bold"></span>
 			</div>
 			
@@ -657,6 +677,7 @@
 			<div id="fill-blank-success-feedback" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-6xl hidden">👍</div>
 			<div class="flex justify-between items-center mb-4">
 				<h3 class="text-xl font-bold text-gray-800">Điền vào chỗ trống</h3>
+				<div id="fill-blank-timer" class="game-timer">8</div>
 				<button class="text-gray-500 hover:text-gray-700 close-modal-btn">
 					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
