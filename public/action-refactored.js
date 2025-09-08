@@ -6,8 +6,8 @@
  * @description Chứa các hằng số và cấu hình không thay đổi trong suốt quá trình chạy.
  */
 const config = {
-    APP_VERSION: '1.1_0908_3_REFACTORED', // Đặt phiên bản mới cho ứng dụng tái cấu trúc
-    MASTERY_THRESHOLD: 3,
+    APP_VERSION: '1.2_0908_4_FULL_FEATURE', // Đặt phiên bản mới cho ứng dụng tái cấu trúc
+    MASTERY_THRESHOLD: 4,
     INACTIVITY_DELAY: 10000, // 10 giây
 
     // Tập trung các key của localStorage vào một nơi
@@ -17,10 +17,19 @@ const config = {
         LAST_VERSION_CHECK: 'last_version_check',
         CURRENT_LEVEL: 'flashkids_currentLevel',
         LEVEL_DATA_PREFIX: 'flashkids_level_',
-        AUDIO_CACHE_PREFIX: 'audio_'
+        AUDIO_CACHE_PREFIX: 'audio_',
+		LAST_TTS_AUDIO: 'flashkids_last_tts_audio'
     },
 
     // Dữ liệu tĩnh của ứng dụng
+	availableAvatars: [
+        'https://upload.wikimedia.org/wikipedia/commons/1/14/H%C6%B0%C6%A1u_cao_c%E1%BB%95.png',
+        'https://cdn-icons-png.flaticon.com/512/235/235359.png',
+        'https://cdn-icons-png.flaticon.com/512/1998/1998627.png',
+        'https://cdn-icons-png.flaticon.com/512/1864/1864472.png',
+        'https://cdn-icons-png.flaticon.com/512/616/616430.png',
+        'https://cdn-icons-png.flaticon.com/512/2922/2922510.png'
+    ],
     categoryColors: [
         'from-blue-400 to-blue-600', 'from-purple-400 to-purple-600', 'from-pink-400 to-pink-600',
         'from-green-400 to-green-600', 'from-yellow-400 to-yellow-600', 'from-red-400 to-red-600',
@@ -132,7 +141,7 @@ function cacheDOMElements() {
     dom.loadingIndicator = document.getElementById('loading-indicator');
     dom.tabs = document.querySelectorAll('.tab-content');
     dom.navButtons = document.querySelectorAll('nav button');
-    dom.userAvatar = document.getElementById('user-avatar');
+    dom.userAvatar = document.querySelector('#user-menu-button img');
     dom.userMenuButton = document.getElementById('user-menu-button');
     dom.userMenu = document.getElementById('user-menu');
     dom.menuSettingsLink = document.getElementById('menu-settings-link');
@@ -142,6 +151,11 @@ function cacheDOMElements() {
     dom.levelBadges = document.querySelectorAll('.level-badge');
     dom.startNowBtn = document.getElementById('start-now-btn');
     dom.categoriesContainer = document.getElementById('categories-container');
+	dom.dailyTimerDisplay = document.getElementById('daily-timer-display');
+    dom.toggleTimerBtn = document.getElementById('toggle-timer-btn');
+    dom.pauseIcon = document.getElementById('pause-icon');
+    dom.playIcon = document.getElementById('play-icon');
+    dom.timerStatusText = document.getElementById('timer-status-text');
     
     // --- Tab Thẻ từ vựng (Flashcards) ---
     dom.categoryFilters = document.getElementById('category-filters');
@@ -178,7 +192,9 @@ function cacheDOMElements() {
     dom.usernameInput = document.getElementById('username');
     dom.ageInput = document.getElementById('age');
     dom.saveProfileBtn = document.getElementById('save-profile-btn');
-    // Công cụ TTS
+	dom.avatarSelectionGrid = document.getElementById('avatar-selection-grid');
+    
+	// Công cụ TTS
     dom.ttsInput = document.getElementById('text-to-speech-input');
     dom.ttsLangToggleBtn = document.getElementById('tts-lang-toggle-btn');
     dom.ttsSpeakBtn = document.getElementById('speak-text-btn');
@@ -234,7 +250,13 @@ const soundManager = {
             wrong: () => this.playBeep(200, 300, 'sawtooth'),
             timeUp: () => this.playBeep(150, 500, 'triangle'),
             start: () => this.playBeep(440, 150, 'sine'),
-            click: () => this.playBeep(1000, 50, 'sine')
+            click: () => this.playBeep(1000, 50, 'sine'),
+			tada: () => { 
+                this.playBeep(523.25, 100); 
+                setTimeout(() => this.playBeep(659.25, 100), 100);
+                setTimeout(() => this.playBeep(783.99, 100), 200);
+                setTimeout(() => this.playBeep(1046.50, 200), 300);
+            }
         };
     },
 
@@ -351,7 +373,66 @@ const soundManager = {
                 this.speakDefault(word, lang); // Gọi hàm nội bộ qua 'this'
             }
         }
-    }
+    },
+	
+	speakWordForTool: function(word, lang, onEndCallback) {
+        const textCacheKey = `${config.LOCAL_STORAGE_KEYS.AUDIO_CACHE_PREFIX}${lang}_${word.toLowerCase().substring(0, 50)}`;
+        const downloadCacheKey = config.LOCAL_STORAGE_KEYS.LAST_TTS_AUDIO;
+        const speed = parseFloat(dom.ttsSpeedSlider.value);
+        
+        if (state.ttsToolAudio) {
+            state.ttsToolAudio.pause();
+            state.ttsToolAudio = null;
+        }
+        
+        const playFromBase64 = (base64) => {
+            const audio = new Audio(`data:audio/mp3;base64,${base64}`);
+            audio.playbackRate = speed;
+            state.ttsToolAudio = audio;
+            audio.onended = onEndCallback;
+            audio.onerror = () => {
+                alert("Lỗi khi phát âm thanh.");
+                if (onEndCallback) onEndCallback();
+            };
+            audio.play();
+        };
+    
+        if (word.length <= 100) { // Tăng giới hạn cache một chút
+            const cachedItem = localStorage.getItem(textCacheKey);
+            if (cachedItem) {
+                try {
+                    const data = JSON.parse(cachedItem);
+                    localStorage.setItem(downloadCacheKey, JSON.stringify(data));
+                    dom.ttsDownloadBtn.classList.remove('hidden');
+                    playFromBase64(data.audioContent);
+                    return;
+                } catch (e) { localStorage.removeItem(textCacheKey); }
+            }
+        }
+    
+        fetch(`/.netlify/functions/text-to-speech`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: word, lang: lang }),
+        })
+        .then(response => response.ok ? response.json() : response.json().then(err => { throw new Error(err.details || 'Lỗi server') }))
+        .then(data => {
+            if (data.audioContent) {
+                const itemToCache = { audioContent: data.audioContent, originalText: word, timestamp: Date.now() };
+                localStorage.setItem(downloadCacheKey, JSON.stringify(itemToCache));
+                if (word.length <= 100) {
+                    try { localStorage.setItem(textCacheKey, JSON.stringify(itemToCache)); } catch (e) { dataManager.pruneAudioCache(); }
+                }
+                dom.ttsDownloadBtn.classList.remove('hidden');
+                playFromBase64(data.audioContent);
+            } else { throw new Error(data.error || 'Không có dữ liệu âm thanh.'); }
+        })
+        .catch(error => {
+            console.error('Lỗi khi gọi hoặc xử lý âm thanh:', error);
+            alert(`Đã xảy ra lỗi: ${error.message}`);
+            if (onEndCallback) onEndCallback();
+        });
+    }	
 };
 
 /** @description Chịu trách nhiệm tải dữ liệu của ứng dụng (từ vựng, chủ đề). */
@@ -600,11 +681,27 @@ const progressManager = {
     // --- HỒ SƠ & CÀI ĐẶT NGƯỜI DÙNG ---
     saveUserProfile: function() {
         const progress = this.getUserProgress();
-        progress.userProfile.username = dom.usernameInput.value.trim();
-        progress.userProfile.age = dom.ageInput.value;
+        // Lấy giá trị từ DOM cache
+        const username = dom.usernameInput.value.trim();
+        const age = dom.ageInput.value;
+
+        // Cập nhật vào đối tượng progress
+        if(progress.userProfile) {
+            progress.userProfile.username = username;
+            progress.userProfile.age = age;
+        } else {
+            progress.userProfile = { username: username, age: age };
+        }
+        
+        // Lưu lại
         this.saveUserProgress(progress);
+        
+        // Cập nhật lại lời chào ngay lập tức
         uiManager.updateWelcomeMessage(progress);
+        
+        // Thông báo cho người dùng
         alert('Đã lưu hồ sơ thành công!');
+        soundManager.play('click');
     },
 
     saveUserSettings: function() {
@@ -980,6 +1077,45 @@ const uiManager = {
             setTimeout(() => confetti.remove(), 4000);
         }
     }
+	
+    updateTimerDisplay: function() {
+        if (!dom.dailyTimerDisplay) return;
+        const minutes = Math.floor(state.timer.timeRemaining / 60);
+        const seconds = state.timer.timeRemaining % 60;
+        dom.dailyTimerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    },
+    
+    loadAvatarSelection: function() {
+        if (!dom.avatarSelectionGrid) return;
+        dom.avatarSelectionGrid.innerHTML = '';
+        const progress = progressManager.getUserProgress();
+        const currentAvatar = progress.userProfile.avatar;
+
+        config.availableAvatars.forEach(avatarUrl => {
+            const avatarElement = document.createElement('div');
+            const borderClass = (avatarUrl === currentAvatar) ? 'border-blue-500' : 'border-transparent';
+            avatarElement.className = `relative p-1 border-2 ${borderClass} rounded-full cursor-pointer hover:border-blue-500 transition-colors`;
+            avatarElement.innerHTML = `<img src="${avatarUrl}" alt="Avatar" class="w-16 h-16 rounded-full">`;
+            avatarElement.onclick = () => this.selectAvatar(avatarUrl, avatarElement);
+            dom.avatarSelectionGrid.appendChild(avatarElement);
+        });
+    },
+
+    selectAvatar: function(avatarUrl, selectedElement) {
+        if (dom.userAvatar) dom.userAvatar.src = avatarUrl;
+
+        const progress = progressManager.getUserProgress();
+        progress.userProfile.avatar = avatarUrl;
+        progressManager.saveUserProgress(progress);
+        soundManager.play('click');
+
+        document.querySelectorAll('#avatar-selection-grid > div').forEach(el => {
+            el.classList.remove('border-blue-500');
+            el.classList.add('border-transparent');
+        });
+        selectedElement.classList.remove('border-transparent');
+        selectedElement.classList.add('border-blue-500');
+    }
 };
 
 /** @description Chứa toàn bộ logic của các game và quiz. */
@@ -1047,10 +1183,30 @@ const gameManager = {
 
     showCategorySelectionModal: function() {
         const container = dom.categorySelectionContainer;
+        if (!container) return;
         container.innerHTML = '';
+
         state.categories.forEach(category => {
             const categoryElement = document.createElement('div');
-            // ... (Code tạo HTML cho category element)
+            const progress = progressManager.getCategoryProgress(category.id);
+            const colorClass = util.getCategoryColorClass(category.color);
+            
+            // --- PHẦN LOGIC TẠO HTML BỊ THIẾU ĐÃ ĐƯỢC BỔ SUNG ---
+            categoryElement.className = `bg-gradient-to-br ${colorClass} rounded-xl p-4 text-white cursor-pointer hover:shadow-lg transition duration-300 lift-on-hover`;
+            categoryElement.innerHTML = `
+                <div class="flex justify-between items-start mb-2">
+                    <h4 class="font-bold">${category.name}</h4>
+                    <span class="bg-white text-gray-700 text-xs font-bold px-2 py-1 rounded-full">${category.wordCount || 0} từ</span>
+                </div>
+                <div class="mt-2">
+                    <div class="text-sm mb-1">Tiến độ: ${progress}%</div>
+                    <div class="w-full bg-white bg-opacity-30 rounded-full h-2">
+                        <div class="bg-white h-2 rounded-full" style="width: ${progress}%"></div>
+                    </div>
+                </div>
+            `;
+            // --- KẾT THÚC PHẦN BỔ SUNG ---
+
             categoryElement.addEventListener('click', () => {
                 soundManager.play('click');
                 uiManager.closeModal('categorySelectionModal');
@@ -1077,7 +1233,7 @@ const gameManager = {
         });
         uiManager.openModal('categorySelectionModal');
     },
-
+	
     // --- GAME 1: GHÉP TỪ (Matching) ---
 	startMatchingGame: function(words) {
 		const s = state.games.matching;
@@ -1876,6 +2032,11 @@ const util = {
         return shuffledArray;
     },
 
+	detectLanguage: function(text) {
+        const vietnameseRegex = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i;
+        return vietnameseRegex.test(text) ? 'vi-VN' : 'en-US';
+    }
+
     /**
      * @description Lấy danh sách flashcards đã được lọc theo chủ đề hiện tại.
      * @returns {Array} - Mảng flashcards đã lọc.
@@ -2040,29 +2201,21 @@ const app = {
 	/*** @description Hàm khởi tạo chính, được gọi khi ứng dụng bắt đầu.*/
     init: function() {
         console.log("🚀 FlashKids App is initializing...");
-        
-        // 1. Nạp các phần tử DOM vào bộ nhớ đệm
         cacheDOMElements();
-        
-        // 2. Gán tất cả các sự kiện cho các nút bấm tĩnh
         this.bindEventListeners();
 
-        // 3. Tải tiến độ và cài đặt của người dùng
         const progress = progressManager.getUserProgress();
         progressManager.loadUserSettings(progress);
 
-        // 4. Cập nhật các thành phần UI ban đầu dựa trên tiến độ
         uiManager.updateWelcomeMessage(progress);
         uiManager.updateXpDisplay(progress);
+        uiManager.updateTimerDisplay(); // Hiển thị thời gian ban đầu
+        uiManager.loadAvatarSelection(); // Tải danh sách avatar
         
-        // 5. Xác định và tải dữ liệu cho level hiện tại
-        const savedLevel = localStorage.getItem(config.LOCAL_STORAGE_KEYS.CURRENT_LEVEL);
-        if (savedLevel) {
-            state.currentLevel = savedLevel;
-        }
+        const savedLevel = localStorage.getItem(config.LOCAL_STORAGE_KEYS.CURRENT_LEVEL) || 'a1';
+        state.currentLevel = savedLevel;
         this.changeLevel(state.currentLevel);
         
-        // 6. Tải các giao diện tĩnh cho các tab phụ
         uiManager.loadGames();
         uiManager.loadBadges();
         uiManager.loadQuizTypes();
@@ -2073,82 +2226,63 @@ const app = {
      * Hàm này chỉ được gọi một lần duy nhất khi ứng dụng khởi chạy.
      */
     bindEventListeners: function() {
-        // --- Điều hướng chính (Navigation) ---
+        // --- Navigation ---
         dom.navButtons.forEach(button => {
             button.addEventListener('click', () => {
                 const tabId = button.dataset.tab;
-                if (tabId === 'flashcards') this.navigateToFlashcardsTab();
-                else if (tabId) this.changeTab(tabId);
+                if (tabId) this.changeTab(tabId);
             });
         });
 
-        // --- Trang chủ (Home) ---
-        if (dom.startNowBtn) {
-            dom.startNowBtn.addEventListener('click', () => this.navigateToFlashcardsTab());
-        }
+        // --- Home ---
+        if (dom.startNowBtn) dom.startNowBtn.addEventListener('click', () => this.navigateToFlashcardsTab());
         dom.levelBadges.forEach(badge => {
             badge.addEventListener('click', () => {
-                const level = badge.dataset.level;
-                if (level) this.changeLevel(level, true);
+                if (badge.dataset.level) this.changeLevel(badge.dataset.level, true);
             });
         });
 
-        // --- Thẻ từ vựng (Flashcards) ---
-        if (dom.currentFlashcard) {
-            dom.currentFlashcard.addEventListener('click', () => this.handleFlashcardFlip());
-        }
-        // Nút nghe trên 2 mặt thẻ
+        // --- Timer ---
+        if (dom.toggleTimerBtn) dom.toggleTimerBtn.addEventListener('click', () => this.toggleTimer());
+
+        // --- Flashcards ---
+        if (dom.currentFlashcard) dom.currentFlashcard.addEventListener('click', () => this.handleFlashcardFlip());
         const listenBtnFront = dom.currentFlashcard?.querySelector('.flashcard-front .listen-btn');
         const listenBtnBack = dom.currentFlashcard?.querySelector('.flashcard-back .listen-btn');
-        if (listenBtnFront) {
-            listenBtnFront.addEventListener('click', (event) => {
-                event.stopPropagation();
-                this.speakCurrentWord('english');
-            });
-        }
-        if (listenBtnBack) {
-            listenBtnBack.addEventListener('click', (event) => {
-                event.stopPropagation();
-                this.speakCurrentWord('vietnamese');
-            });
-        }
+        if (listenBtnFront) listenBtnFront.addEventListener('click', (e) => { e.stopPropagation(); this.speakCurrentWord('english'); });
+        if (listenBtnBack) listenBtnBack.addEventListener('click', (e) => { e.stopPropagation(); this.speakCurrentWord('vietnamese'); });
         if (dom.prevCardBtn) dom.prevCardBtn.addEventListener('click', () => this.previousCard());
         if (dom.nextCardBtn) dom.nextCardBtn.addEventListener('click', () => this.nextCard());
         if (dom.markLearnedBtn) dom.markLearnedBtn.addEventListener('click', () => progressManager.markCurrentWordAsLearned());
 
-        // --- Menu Người dùng (User Menu) ---
+        // --- User Menu ---
         if (dom.userMenuButton && dom.userMenu) {
-            dom.userMenuButton.addEventListener('click', (event) => {
-                event.stopPropagation();
-                dom.userMenu.classList.toggle('hidden');
-            });
-            window.addEventListener('click', () => {
-                if (!dom.userMenu.classList.contains('hidden')) {
-                    dom.userMenu.classList.add('hidden');
-                }
-            });
+            dom.userMenuButton.addEventListener('click', (e) => { e.stopPropagation(); dom.userMenu.classList.toggle('hidden'); });
+            window.addEventListener('click', () => { if (!dom.userMenu.classList.contains('hidden')) dom.userMenu.classList.add('hidden'); });
         }
         if (dom.menuSettingsLink) {
-            dom.menuSettingsLink.addEventListener('click', (event) => {
-                event.preventDefault();
-                this.changeTab('settings');
-                if (dom.userMenu) dom.userMenu.classList.add('hidden');
-            });
+            dom.menuSettingsLink.addEventListener('click', (e) => { e.preventDefault(); this.changeTab('settings'); dom.userMenu.classList.add('hidden'); });
         }
 
-        // --- Xử lý đóng tất cả Modals ---
+        // --- Settings ---
+        if (dom.saveProfileBtn) dom.saveProfileBtn.addEventListener('click', (e) => { e.preventDefault(); progressManager.saveUserProfile(); });
+        if (dom.soundToggle) dom.soundToggle.addEventListener('change', () => { state.soundEnabled = dom.soundToggle.checked; progressManager.saveUserSettings(); });
+
+        // --- TTS Tool Events ---
+        if (dom.ttsSpeakBtn) dom.ttsSpeakBtn.addEventListener('click', () => this.handleSpeakRequest());
+        if (dom.ttsDownloadBtn) dom.ttsDownloadBtn.addEventListener('click', () => this.handleDownloadRequest());
+        if (dom.ttsInput) dom.ttsInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') this.handleSpeakRequest(); });
+        if (dom.ttsSpeedSlider) dom.ttsSpeedSlider.addEventListener('input', () => { dom.ttsSpeedValue.textContent = `${parseFloat(dom.ttsSpeedSlider.value).toFixed(1)}x`; });
+        if (dom.ttsLangToggleBtn) dom.ttsLangToggleBtn.addEventListener('click', function() {
+            if (this.dataset.lang === 'auto') { this.dataset.lang = 'en-US'; this.textContent = 'Eng'; } 
+            else if (this.dataset.lang === 'en-US') { this.dataset.lang = 'vi-VN'; this.textContent = 'VN'; } 
+            else { this.dataset.lang = 'auto'; this.textContent = 'Auto'; }
+        });
+        
+        // --- Modals ---
         dom.modals.forEach(modal => {
-            // Logic 1: Click ra ngoài (vào lớp nền mờ) để đóng
-            modal.addEventListener('click', (event) => {
-                if (event.target === modal) {
-                    uiManager.closeModal(modal.id);
-                }
-            });
-            // Logic 2: Click vào bất kỳ nút nào có class .close-modal-btn để đóng
-            const closeButtons = modal.querySelectorAll('.close-modal-btn');
-            closeButtons.forEach(button => {
-                button.addEventListener('click', () => uiManager.closeModal(modal.id));
-            });
+            modal.addEventListener('click', (e) => { if (e.target === modal) uiManager.closeModal(modal.id); });
+            modal.querySelectorAll('.close-modal-btn').forEach(btn => btn.addEventListener('click', () => uiManager.closeModal(modal.id)));
         });
     },
 	
@@ -2226,40 +2360,28 @@ const app = {
     /*** @description Xử lý việc chuyển đổi giữa các tab giao diện chính. * @param {string} tabId - ID của tab cần hiển thị (ví dụ: 'home', 'flashcards').*/
     changeTab: function(tabId) {	
         soundManager.play('click');
+        dom.tabs.forEach(tab => tab.classList.add('hidden'));
         
-        // Ẩn tất cả các tab content
-        dom.tabs.forEach(tab => {
-            tab.classList.add('hidden');
-        });
-        
-        // Hiển thị tab được chọn
         const tabContent = document.getElementById(tabId);
-        if (tabContent) {
-            tabContent.classList.remove('hidden');
-        } else {
-            console.error(`Lỗi: Không tìm thấy nội dung cho tab có id="${tabId}"`);
-            return;
-        }
+        if (tabContent) tabContent.classList.remove('hidden');
+        else { console.error(`Tab content not found: ${tabId}`); return; }
         
-        // Cập nhật trạng thái active của nút nav
-        dom.navButtons.forEach(button => {
-            button.classList.remove('tab-active');
-        });
-        const activeButton = document.querySelector(`nav button[data-tab='${tabId}']`);
-        if (activeButton) {
-            activeButton.classList.add('tab-active');
-        }
+        dom.navButtons.forEach(button => button.classList.toggle('tab-active', button.dataset.tab === tabId));
 
-        // Cập nhật trạng thái và các giao diện phụ thuộc
         state.isFlashcardsTabActive = (tabId === 'flashcards');
         
+        // Timer Logic
+        if (state.isFlashcardsTabActive || tabId === 'games' || tabId === 'quiz') {
+            this.startDailyTimer();
+        } else if (state.timer.isRunning) {
+            this.pauseDailyTimer();
+        }
+
+        // Specific Tab Actions
         if (state.isFlashcardsTabActive) {
-            // Khi vào tab flashcard, đảm bảo giao diện được cập nhật đúng
             uiManager.updateFlashcard();
             uiManager.updateCategoryFilters();
-        }
-        
-        if (tabId === 'stats') {
+        } else if (tabId === 'stats') {
             uiManager.renderStatsTab();
         }
     },
@@ -2307,19 +2429,105 @@ const app = {
     nextCard: function() {
         const filteredCards = util.getFilteredCards();
         if (filteredCards.length === 0) return;
-
+        this.resetInactivityTimer(); // Reset timer on interaction
         state.currentCardIndex = (state.currentCardIndex + 1) % filteredCards.length;
         uiManager.updateFlashcard();
     },
     
-    /*** @description Quay lại thẻ trước đó.*/
     previousCard: function() {
         const filteredCards = util.getFilteredCards();
         if (filteredCards.length === 0) return;
-
+        this.resetInactivityTimer(); // Reset timer on interaction
         state.currentCardIndex = (state.currentCardIndex - 1 + filteredCards.length) % filteredCards.length;
         uiManager.updateFlashcard();
-    }	
+    },
+	
+	// --- TIMER LOGIC ---
+    tick: function() {
+        if (state.timer.timeRemaining > 0) {
+            state.timer.timeRemaining--;
+            uiManager.updateTimerDisplay();
+        } else {
+            this.pauseDailyTimer();
+            if (dom.timerStatusText) dom.timerStatusText.textContent = "Đã hết thời gian học hôm nay!";
+            soundManager.play('timeUp');
+            alert("Chúc mừng! Bạn đã hoàn thành 10 phút học tập hôm nay.");
+        }
+    },
+    startDailyTimer: function() {
+        if (state.timer.isRunning || state.timer.timeRemaining <= 0) return;
+        state.timer.isRunning = true;
+        state.timer.interval = setInterval(() => this.tick(), 1000);
+        if (dom.pauseIcon) dom.pauseIcon.classList.remove('hidden');
+        if (dom.playIcon) dom.playIcon.classList.add('hidden');
+        if (dom.timerStatusText) dom.timerStatusText.textContent = "Thời gian đang đếm ngược...";
+        if (state.isFlashcardsTabActive) this.resetInactivityTimer();
+    },
+    pauseDailyTimer: function() {
+        state.timer.isRunning = false;
+        clearInterval(state.timer.interval);
+        clearTimeout(state.timer.inactivityTimeout);
+        if (dom.pauseIcon) dom.pauseIcon.classList.add('hidden');
+        if (dom.playIcon) dom.playIcon.classList.remove('hidden');
+        if (dom.timerStatusText) dom.timerStatusText.textContent = "Đồng hồ đã tạm dừng.";
+    },
+    toggleTimer: function() {
+        soundManager.play('click');
+        if (state.timer.isRunning) this.pauseDailyTimer();
+        else this.startDailyTimer();
+    },
+    resetInactivityTimer: function() {
+        clearTimeout(state.timer.inactivityTimeout);
+        state.timer.inactivityTimeout = setTimeout(() => {
+            if (state.timer.isRunning) {
+                this.pauseDailyTimer();
+                console.log("Timer paused due to inactivity.");
+            }
+        }, config.INACTIVITY_DELAY);
+    },
+
+    // --- TTS TOOL LOGIC ---
+    handleSpeakRequest: function() {
+        const text = dom.ttsInput.value.trim();
+        if (!text) return;
+
+        if (state.ttsToolAudio && !state.ttsToolAudio.paused) {
+            state.ttsToolAudio.pause();
+            state.ttsToolAudio = null;
+            dom.ttsSpeakIcon.classList.remove('hidden');
+            dom.ttsStopIcon.classList.add('hidden');
+            dom.ttsDownloadBtn.classList.add('hidden');
+            return;
+        }
+
+        let lang = dom.ttsLangToggleBtn.dataset.lang;
+        if (lang === 'auto') lang = util.detectLanguage(text);
+        
+        dom.ttsSpeakIcon.classList.add('hidden');
+        dom.ttsStopIcon.classList.remove('hidden');
+        dom.ttsDownloadBtn.classList.add('hidden');
+
+        soundManager.speakWordForTool(text, lang, () => {
+            dom.ttsSpeakIcon.classList.remove('hidden');
+            dom.ttsStopIcon.classList.add('hidden');
+            state.ttsToolAudio = null;
+        });
+    },
+    handleDownloadRequest: function() {
+        const cachedItem = localStorage.getItem(config.LOCAL_STORAGE_KEYS.LAST_TTS_AUDIO);
+        if (cachedItem) {
+            try {
+                const data = JSON.parse(cachedItem);
+                const link = document.createElement('a');
+                link.href = `data:audio/mp3;base64,${data.audioContent}`;
+                const textSnippet = (data.originalText || "audio").substring(0, 20).replace(/[^a-zA-Z0-9]/g, '_');
+                link.download = `FlashKids-TTS-${textSnippet}.mp3`;
+                link.click();
+                link.remove();
+                dom.ttsDownloadBtn.classList.add('hidden');
+            } catch (e) { alert("Lỗi tải file."); }
+        }
+    }
 };
 
 
