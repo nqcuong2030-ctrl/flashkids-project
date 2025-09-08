@@ -6,7 +6,7 @@
  * @description Chứa các hằng số và cấu hình không thay đổi trong suốt quá trình chạy.
  */
 const config = {
-    APP_VERSION: '1.2_0908_3_FULL_FEATURE', // Đặt phiên bản mới cho ứng dụng tái cấu trúc
+    APP_VERSION: '1.2_0908_4_FULL_FEATURE', // Đặt phiên bản mới cho ứng dụng tái cấu trúc
     MASTERY_THRESHOLD: 4,
     INACTIVITY_DELAY: 10000, // 10 giây
 
@@ -1243,6 +1243,26 @@ const gameManager = {
         uiManager.openModal('categorySelectionModal');
     },
 	
+	 // --- HÀM MỚI: DỌN DẸP GAME KHI ĐÓNG MODAL ---
+    resetCurrentGame: function() {
+        if (!state.currentActivity) return;
+
+        console.log(`Dọn dẹp hoạt động: ${state.currentActivity.type} - ID: ${state.currentActivity.id}`);
+        
+        // Dừng timer của các game có bộ đếm
+        if (state.games.imageQuiz.timerId) {
+            clearInterval(state.games.imageQuiz.timerId);
+            state.games.imageQuiz.timerId = null;
+        }
+        if (state.games.fillBlank.timerId) {
+            clearInterval(state.games.fillBlank.timerId);
+            state.games.fillBlank.timerId = null;
+        }
+
+        // Đặt lại trạng thái hoạt động
+        state.currentActivity = null;
+    },
+	
     // --- GAME 1: GHÉP TỪ (Matching) ---
 	startMatchingGame: function(words) {
 		const s = state.games.matching;
@@ -1403,6 +1423,9 @@ const gameManager = {
 		s.timerId = setInterval(() => {
 			timeLeft--;
 			timerElement.textContent = timeLeft;
+			if (timeLeft <= 3 && timeLeft > 0) {
+                soundManager.play('tick');
+            }
 			if (timeLeft <= 3) {
 				timerElement.classList.add('warning');
 			}
@@ -1643,6 +1666,9 @@ const gameManager = {
 		s.timerId = setInterval(() => {
 			timeLeft--;
 			timerElement.textContent = timeLeft;
+			if (timeLeft <= 3 && timeLeft > 0) {
+                soundManager.play('tick');
+            }
 			if (timeLeft <= 3) {
 				timerElement.classList.add('warning');
 			}
@@ -2392,8 +2418,26 @@ const app = {
         
         // --- Modals ---
         dom.modals.forEach(modal => {
-            modal.addEventListener('click', (e) => { if (e.target === modal) uiManager.closeModal(modal.id); });
-            modal.querySelectorAll('.close-modal-btn').forEach(btn => btn.addEventListener('click', () => uiManager.closeModal(modal.id)));
+            // Sự kiện đóng khi bấm ra ngoài
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    // SỬA LỖI: Gọi hàm dọn dẹp trước khi đóng modal
+                    if (modal.id.includes('Game') || modal.id.includes('Quiz')) {
+                        gameManager.resetCurrentGame();
+                    }
+                    uiManager.closeModal(modal.id);
+                }
+            });
+            // Sự kiện đóng khi bấm nút 'X'
+            modal.querySelectorAll('.close-modal-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // SỬA LỖI: Gọi hàm dọn dẹp trước khi đóng modal
+                    if (modal.id.includes('Game') || modal.id.includes('Quiz')) {
+                        gameManager.resetCurrentGame();
+                    }
+                    uiManager.closeModal(modal.id);
+                });
+            });
         });
     },
 	
