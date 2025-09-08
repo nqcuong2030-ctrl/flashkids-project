@@ -173,10 +173,20 @@ function cacheDOMElements() {
     dom.activityHeatmap = document.getElementById('activity-heatmap');
     dom.categoryProgressContainer = document.getElementById('category-progress-container');
 
-    // --- Tab Cài đặt (Settings) ---
-    // dom.soundToggle = document.getElementById('sound-toggle');
-    // dom.usernameInput = document.getElementById('username');
-    // dom.ageInput = document.getElementById('age');
+    // --- BỔ SUNG: Tab Cài đặt (Settings) ---
+    dom.soundToggle = document.getElementById('sound-toggle');
+    dom.usernameInput = document.getElementById('username');
+    dom.ageInput = document.getElementById('age');
+    dom.saveProfileBtn = document.getElementById('save-profile-btn');
+    // Công cụ TTS
+    dom.ttsInput = document.getElementById('text-to-speech-input');
+    dom.ttsLangToggleBtn = document.getElementById('tts-lang-toggle-btn');
+    dom.ttsSpeakBtn = document.getElementById('speak-text-btn');
+    dom.ttsSpeakIcon = document.getElementById('tts-speak-icon');
+    dom.ttsStopIcon = document.getElementById('tts-stop-icon');
+    dom.ttsDownloadBtn = document.getElementById('download-speech-btn');
+    dom.ttsSpeedSlider = document.getElementById('tts-speed-slider');
+    dom.ttsSpeedValue = document.getElementById('tts-speed-value');
     
     // --- Các Modals ---
     dom.modals = document.querySelectorAll('.modal');
@@ -187,521 +197,9 @@ function cacheDOMElements() {
 // II. CÁC MODULE QUẢN LÝ LOGIC (BỘ KHUNG)
 // ===================================================================================
 
-/** @description Xử lý tất cả các hoạt động liên quan đến âm thanh. */
-const soundManager = {};
-
-/** @description Chịu trách nhiệm tải dữ liệu của ứng dụng (từ vựng, chủ đề). */
-const dataManager = {};
-
-/** @description Quản lý tiến độ và dữ liệu của người dùng (lưu/đọc localStorage). */
-const progressManager = {};
-
-/** @description Chịu trách nhiệm cho mọi thay đổi trên giao diện người dùng (DOM). */
-const uiManager = {};
-
-/** @description Chứa toàn bộ logic của các game và quiz. */
-const gameManager = {};
-
-/** @description Chứa các hàm tiện ích có thể tái sử dụng. */
-const util = {};
-
-/**
- * @description ViewModel cho Tab Thống kê.
- * Thu thập và xử lý tất cả dữ liệu cần thiết cho việc hiển thị.
- * @returns {object} - Một đối tượng chứa dữ liệu đã được định dạng sẵn cho UI.
- */
-function createStatsViewModel() {
-    // 1. LẤY DỮ LIỆU THÔ TỪ CÁC MODULE
-    const progress = progressManager.getUserProgress();
-    const currentLevelData = state.flashcardCache[state.currentLevel];
-
-    // --- Xử lý cho các chỉ số chính ---
-    const totalLearned = Object.values(progress.masteryScores).filter(score => score >= config.MASTERY_THRESHOLD).length;
-    const streakDays = progress.streakDays || 0;
-
-    // --- Xử lý cho Biểu đồ tròn (Mastery Chart) ---
-    let chartData = {
-        labels: ['Thông thạo', 'Đang học', 'Chưa học'],
-        data: [0, 0, 0]
-    };
-    if (currentLevelData?.flashcards) {
-        const wordIdsInLevel = new Set(currentLevelData.flashcards.map(word => word.id));
-        let mastered = 0, learning = 0;
-        for (const wordId in progress.masteryScores) {
-            if (wordIdsInLevel.has(parseInt(wordId))) {
-                const score = progress.masteryScores[wordId];
-                if (score >= config.MASTERY_THRESHOLD) mastered++;
-                else if (score > 0) learning++;
-            }
-        }
-        const unlearned = currentLevelData.flashcards.length - mastered - learning;
-        chartData.data = [mastered, learning, unlearned];
-    }
-
-    // --- Xử lý cho Lịch sử học tập (Heatmap) ---
-    const heatmapData = [];
-    const history = progress.dailyActivitiesHistory || {};
-    const daysToShow = 91;
-    for (let i = daysToShow - 1; i >= 0; i--) {
-        const date = new Date();
-        date.setDate(date.getDate() - i);
-        const dateString = date.toDateString();
-        const activities = history[dateString] || 0;
-        
-        let level = 0;
-        if (activities > 0 && activities <= 2) level = 1;
-        else if (activities > 2 && activities <= 5) level = 2;
-        else if (activities > 5 && activities <= 10) level = 3;
-        else if (activities > 10) level = 4;
-
-        heatmapData.push({
-            level: level,
-            tooltip: activities > 0 ? `${activities} hoạt động - ${date.toLocaleDateString('vi-VN')}` : `Không hoạt động - ${date.toLocaleDateString('vi-VN')}`
-        });
-    }
-
-    // --- Xử lý cho Tiến độ theo chủ đề ---
-    const categoryProgress = state.categories.map(category => {
-        return {
-            name: category.name,
-            progress: progressManager.getCategoryProgress(category.id),
-            color: category.color || 'blue'
-        };
-    });
-
-    // 2. TRẢ VỀ MỘT ĐỐI TƯỢNG DUY NHẤT, SẠCH SẼ
-    return {
-        totalLearned,
-        streakDays,
-        chartData,
-        heatmapData,
-        categoryProgress
-    };
-}
-
-// ===================================================================================
-// III. MODULE ĐIỀU PHỐI CHÍNH CỦA ỨNG DỤNG (APP)
-// ===================================================================================
-
-/** @description "Nhạc trưởng" điều phối hoạt động của tất cả các module khác. */
-const app = {
-	/*** @description Hàm khởi tạo chính, được gọi khi ứng dụng bắt đầu.*/
-    init: function() {
-        console.log("🚀 FlashKids App is initializing...");
-        
-        // 1. Nạp các phần tử DOM vào bộ nhớ đệm
-        cacheDOMElements();
-        
-        // 2. Gán tất cả các sự kiện cho các nút bấm tĩnh
-        this.bindEventListeners();
-
-        // 3. Tải tiến độ và cài đặt của người dùng
-        const progress = progressManager.getUserProgress();
-        progressManager.loadUserSettings(progress);
-
-        // 4. Cập nhật các thành phần UI ban đầu dựa trên tiến độ
-        uiManager.updateWelcomeMessage(progress);
-        uiManager.updateUserStats();
-        uiManager.updateXpDisplay(progress);
-        
-        // 5. Xác định và tải dữ liệu cho level hiện tại
-        const savedLevel = localStorage.getItem(config.LOCAL_STORAGE_KEYS.CURRENT_LEVEL);
-        if (savedLevel) {
-            state.currentLevel = savedLevel;
-        }
-        this.changeLevel(state.currentLevel);
-        
-        // 6. Tải các giao diện tĩnh cho các tab phụ
-        uiManager.loadGames();
-        uiManager.loadBadges();
-        uiManager.loadQuizTypes();
-    },
-	
-	/**
-     * @description Gán tất cả các sự kiện cho các phần tử DOM tĩnh.
-     * Hàm này chỉ được gọi một lần duy nhất khi ứng dụng khởi chạy.
-     */
-    bindEventListeners: function() {
-        // --- Điều hướng chính (Navigation) ---
-        dom.navButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const tabId = button.dataset.tab;
-                if (tabId === 'flashcards') this.navigateToFlashcardsTab();
-                else if (tabId) this.changeTab(tabId);
-            });
-        });
-
-        // --- Trang chủ (Home) ---
-        if (dom.startNowBtn) {
-            dom.startNowBtn.addEventListener('click', () => this.navigateToFlashcardsTab());
-        }
-        dom.levelBadges.forEach(badge => {
-            badge.addEventListener('click', () => {
-                const level = badge.dataset.level;
-                if (level) this.changeLevel(level, true);
-            });
-        });
-
-        // --- Thẻ từ vựng (Flashcards) ---
-        if (dom.currentFlashcard) {
-            dom.currentFlashcard.addEventListener('click', () => this.handleFlashcardFlip());
-        }
-        // Nút nghe trên 2 mặt thẻ
-        const listenBtnFront = dom.currentFlashcard?.querySelector('.flashcard-front .listen-btn');
-        const listenBtnBack = dom.currentFlashcard?.querySelector('.flashcard-back .listen-btn');
-        if (listenBtnFront) {
-            listenBtnFront.addEventListener('click', (event) => {
-                event.stopPropagation();
-                this.speakCurrentWord('english');
-            });
-        }
-        if (listenBtnBack) {
-            listenBtnBack.addEventListener('click', (event) => {
-                event.stopPropagation();
-                this.speakCurrentWord('vietnamese');
-            });
-        }
-        if (dom.prevCardBtn) dom.prevCardBtn.addEventListener('click', () => this.previousCard());
-        if (dom.nextCardBtn) dom.nextCardBtn.addEventListener('click', () => this.nextCard());
-        if (dom.markLearnedBtn) dom.markLearnedBtn.addEventListener('click', () => progressManager.markCurrentWordAsLearned());
-
-        // --- Menu Người dùng (User Menu) ---
-        if (dom.userMenuButton && dom.userMenu) {
-            dom.userMenuButton.addEventListener('click', (event) => {
-                event.stopPropagation();
-                dom.userMenu.classList.toggle('hidden');
-            });
-            window.addEventListener('click', () => {
-                if (!dom.userMenu.classList.contains('hidden')) {
-                    dom.userMenu.classList.add('hidden');
-                }
-            });
-        }
-        if (dom.menuSettingsLink) {
-            dom.menuSettingsLink.addEventListener('click', (event) => {
-                event.preventDefault();
-                this.changeTab('settings');
-                if (dom.userMenu) dom.userMenu.classList.add('hidden');
-            });
-        }
-
-        // --- Xử lý đóng tất cả Modals ---
-        dom.modals.forEach(modal => {
-            // Logic 1: Click ra ngoài (vào lớp nền mờ) để đóng
-            modal.addEventListener('click', (event) => {
-                if (event.target === modal) {
-                    uiManager.closeModal(modal.id);
-                }
-            });
-            // Logic 2: Click vào bất kỳ nút nào có class .close-modal-btn để đóng
-            const closeButtons = modal.querySelectorAll('.close-modal-btn');
-            closeButtons.forEach(button => {
-                button.addEventListener('click', () => uiManager.closeModal(modal.id));
-            });
-        });
-    },
-	
-    /**
-     * @description Tải dữ liệu cho một level và cập nhật toàn bộ giao diện.
-     * @param {string} level - Tên của level (ví dụ: 'a1').
-     * @param {boolean} isUserAction - True nếu hành động này do người dùng click.
-     */
-    changeLevel: async function(level, isUserAction = false) {
-        // Hàm runPeriodicVersionCheck sẽ được chúng ta hoàn thiện ở bước sau
-        this.runPeriodicVersionCheck();
-        if (isUserAction) {
-            soundManager.play('click');
-        }
-        
-        state.currentLevel = level;
-        localStorage.setItem(config.LOCAL_STORAGE_KEYS.CURRENT_LEVEL, level);
-        
-        // Ra lệnh cho uiManager cập nhật giao diện các nút chọn level
-        uiManager.updateLevelBadges(level);
-
-        try {
-            // Yêu cầu dataManager tải dữ liệu
-            const data = await dataManager.loadLevel(level);
-            
-            // Cập nhật dữ liệu vào state trung tâm
-            state.categories = data.categories || [];
-            state.flashcards = data.flashcards || [];
-            
-            // Xử lý logic đếm số từ cho mỗi chủ đề
-            state.categories.forEach(category => {
-                const count = state.flashcards.filter(card => card.categoryId === category.id).length;
-                category.wordCount = count;
-            });
-
-            // Reset trạng thái chọn chủ đề và thẻ
-            state.currentCategoryId = null;
-            state.currentCardIndex = 0;
-            
-            // Ra lệnh cho uiManager vẽ lại các thành phần giao diện cần thiết
-            uiManager.loadCategories();
-            uiManager.loadCategoryFilters();
-            uiManager.updateFlashcard();
-
-        } catch (error) {
-            console.error("Không thể thay đổi level:", error);
-            alert(error.message);
-        }
-    },
-	
-	/*** @description Kiểm tra phiên bản ứng dụng định kỳ (mỗi ngày một lần).*/
-    runPeriodicVersionCheck: function() {
-        const lastCheck = parseInt(localStorage.getItem(config.LOCAL_STORAGE_KEYS.LAST_VERSION_CHECK) || '0');
-        const oneDay = 24 * 60 * 60 * 1000;
-
-        if (!lastCheck || (Date.now() - lastCheck > oneDay)) {
-            console.log("Đã đến lúc kiểm tra phiên bản mới...");
-            const storedVersion = localStorage.getItem(config.LOCAL_STORAGE_KEYS.APP_VERSION);
-            if (storedVersion !== config.APP_VERSION) {
-                console.log(`Phiên bản cũ (${storedVersion}) được phát hiện. Cập nhật lên ${config.APP_VERSION}.`);
-                
-                // Dọn dẹp cache audio cũ
-                for (let i = localStorage.length - 1; i >= 0; i--) {
-                    const key = localStorage.key(i);
-                    if (key.startsWith(config.LOCAL_STORAGE_KEYS.AUDIO_CACHE_PREFIX)) {
-                        localStorage.removeItem(key);
-                    }
-                }
-                localStorage.setItem(config.LOCAL_STORAGE_KEYS.APP_VERSION, config.APP_VERSION);
-            }
-            localStorage.setItem(config.LOCAL_STORAGE_KEYS.LAST_VERSION_CHECK, Date.now().toString());
-        }
-    },
-
-    /*** @description Xử lý việc chuyển đổi giữa các tab giao diện chính. * @param {string} tabId - ID của tab cần hiển thị (ví dụ: 'home', 'flashcards').*/
-    changeTab: function(tabId) {	
-        soundManager.play('click');
-        
-        // Ẩn tất cả các tab content
-        dom.tabs.forEach(tab => {
-            tab.classList.add('hidden');
-        });
-        
-        // Hiển thị tab được chọn
-        const tabContent = document.getElementById(tabId);
-        if (tabContent) {
-            tabContent.classList.remove('hidden');
-        } else {
-            console.error(`Lỗi: Không tìm thấy nội dung cho tab có id="${tabId}"`);
-            return;
-        }
-        
-        // Cập nhật trạng thái active của nút nav
-        dom.navButtons.forEach(button => {
-            button.classList.remove('tab-active');
-        });
-        const activeButton = document.querySelector(`nav button[data-tab='${tabId}']`);
-        if (activeButton) {
-            activeButton.classList.add('tab-active');
-        }
-
-        // Cập nhật trạng thái và các giao diện phụ thuộc
-        state.isFlashcardsTabActive = (tabId === 'flashcards');
-        
-        if (state.isFlashcardsTabActive) {
-            // Khi vào tab flashcard, đảm bảo giao diện được cập nhật đúng
-            uiManager.updateFlashcard();
-            uiManager.updateCategoryFilters();
-        }
-        
-        if (tabId === 'stats') {
-            uiManager.renderStatsTab();
-        }
-    },
-
-    /*** @description Chức năng điều hướng đặc biệt khi người dùng muốn vào thẳng tab Flashcards.*/
-    navigateToFlashcardsTab: function() {
-        // Mặc định chọn chủ đề đầu tiên khi điều hướng từ trang chủ
-        if (state.categories.length > 0 && state.currentCategoryId === null) {
-            state.currentCategoryId = state.categories[0].id;
-        }
-        state.currentCardIndex = 0;
-        this.changeTab('flashcards');
-    },
-    
-    /*** @description Xử lý hành động lật thẻ.*/
-    handleFlashcardFlip: function() {
-        if (!state.isCardInteractable) return;
-        dom.currentFlashcard.classList.toggle('flipped');
-        
-        if (state.isFlashcardsTabActive && state.soundEnabled) {
-            setTimeout(() => {
-                const isFlipped = dom.currentFlashcard.classList.contains('flipped');
-                // Gọi hàm speakCurrentWord của chính module app
-                this.speakCurrentWord(isFlipped ? 'vietnamese' : 'english');
-            }, 100);
-        }
-    },
-
-    /*** @description Phát âm thanh cho từ hiện tại trên thẻ.*/
-    speakCurrentWord: function(language) {
-        const filteredCards = util.getFilteredCards();
-        if (filteredCards.length === 0) return;
-
-        const card = filteredCards[state.currentCardIndex];
-        if (!card) return;
-
-        const wordToSpeak = language === 'english' ? card.english : card.vietnamese;
-        const langCode = language === 'english' ? 'en-US' : 'vi-VN';
-        
-        // Ra lệnh cho soundManager phát âm
-        soundManager.speak(wordToSpeak, langCode);
-    },
-    
-    /*** @description Chuyển đến thẻ tiếp theo.*/
-    nextCard: function() {
-        const filteredCards = util.getFilteredCards();
-        if (filteredCards.length === 0) return;
-
-        state.currentCardIndex = (state.currentCardIndex + 1) % filteredCards.length;
-        uiManager.updateFlashcard();
-    },
-    
-    /*** @description Quay lại thẻ trước đó.*/
-    previousCard: function() {
-        const filteredCards = util.getFilteredCards();
-        if (filteredCards.length === 0) return;
-
-        state.currentCardIndex = (state.currentCardIndex - 1 + filteredCards.length) % filteredCards.length;
-        uiManager.updateFlashcard();
-    }	
-};
-
-
-// ===================================================================================
-// IV. KHỞI CHẠY ỨNG DỤNG
-// ===================================================================================
-
-/*** Lắng nghe sự kiện khi toàn bộ cấu trúc HTML đã được tải xong, * sau đó gọi app.init() để bắt đầu ứng dụng JavaScript. */
-document.addEventListener('DOMContentLoaded', () => {
-    app.init();
-});
-
-/** @description Chứa các hàm tiện ích có thể tái sử dụng trong toàn bộ ứng dụng. */
-const util = {
-    /**
-     * @description Chuyển đổi chuỗi tiếng Việt có dấu thành chuỗi không dấu, gạch dưới.
-     * @param {string} text - Chuỗi đầu vào.
-     * @returns {string} - Chuỗi đã được xử lý.
-     */
-    slugifyVietnamese: function(text) {
-        text = text.toLowerCase();
-        text = text.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a");
-        text = text.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, "e");
-        text = text.replace(/ì|í|ị|ỉ|ĩ/g, "i");
-        text = text.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, "o");
-        text = text.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, "u");
-        text = text.replace(/ỳ|ý|ỵ|ỷ|ỹ/g, "y");
-        text = text.replace(/đ/g, "d");
-        text = text.replace(/[^a-z0-9\s]/g, '');
-        text = text.replace(/\s+/g, '_');
-        return text;
-    },
-
-    /**
-     * @description Xáo trộn các phần tử của một mảng và trả về một mảng mới.
-     * @param {Array} array - Mảng cần xáo trộn.
-     * @returns {Array} - Mảng mới đã được xáo trộn.
-     */
-    shuffleArray: function(array) {
-        const shuffledArray = [...array];
-        for (let i = shuffledArray.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [shuffledArray[i], shuffledArray[j]] = [shuffledArray[j], shuffledArray[i]];
-        }
-        return shuffledArray;
-    },
-
-    /**
-     * @description Lấy danh sách flashcards đã được lọc theo chủ đề hiện tại.
-     * @returns {Array} - Mảng flashcards đã lọc.
-     */
-    getFilteredCards: function() {
-        // Đọc dữ liệu trực tiếp từ 'state'
-        return state.currentCategoryId 
-            ? state.flashcards.filter(card => card.categoryId === state.currentCategoryId)
-            : state.flashcards;
-    },
-
-    /**
-     * @description Lấy class màu gradient cho chủ đề.
-     * @param {string} color - Tên màu (blue, purple,...).
-     * @returns {string} - Chuỗi class của TailwindCSS.
-     */
-    getCategoryColorClass: function(color) {
-        const colorMap = {
-            'blue': 'from-blue-400 to-blue-600', 'purple': 'from-purple-400 to-purple-600',
-            'pink': 'from-pink-400 to-pink-600', 'green': 'from-green-400 to-green-600',
-            'yellow': 'from-yellow-400 to-yellow-600', 'red': 'from-red-400 to-red-600',
-            'indigo': 'from-indigo-400 to-indigo-600', 'teal': 'from-teal-400 to-teal-600',
-            'orange': 'from-orange-400 to-orange-600', 'gray': 'from-gray-400 to-gray-600'
-        };
-        // Đọc dữ liệu trực tiếp từ 'config'
-        return colorMap[color] || config.categoryColors[Math.floor(Math.random() * config.categoryColors.length)];
-    },
-    
-    /**
-     * @description Lấy class màu gradient cho trò chơi.
-     * @param {string} color - Tên màu.
-     * @returns {string} - Chuỗi class của TailwindCSS.
-     */
-    getGameColorClass: function(color) {
-		const colorMap = {
-			'blue': 'from-blue-400 to-blue-600', 'purple': 'from-purple-400 to-purple-600',
-			'green': 'from-green-400 to-green-600', 'red': 'from-red-400 to-red-600'
-		};
-		return colorMap[color] || 'from-blue-400 to-blue-600';
-	},
-
-    /**
-     * @description Lấy mã SVG cho các loại biểu tượng khác nhau. (Đã hợp nhất)
-     * @param {string} type - Loại icon ('category', 'game', 'quiz', 'badge').
-     * @param {string} iconName - Tên của icon.
-     * @returns {string} - Chuỗi SVG path.
-     */
-    getIcon: function(type, iconName) {
-        const iconMaps = {
-            category: {
-                'Gia đình & Con người': '<path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v1h8v-1zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-1a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v1h-3zM4.75 12.094A5.973 5.973 0 004 15v1H1v-1a3 3 0 013.75-2.906z"/>',
-			    'Danh từ chung': '<path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/>'
-            },
-            game: {
-                'puzzle': '<path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"/>',
-                'image': '<path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>',
-                'question': '<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>',
-                'volume-up': '<path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071a1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243a1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828a1 1 0 010-1.415z" clip-rule="evenodd"/>'
-            },
-            quiz: { 'document': '...', 'question': '...', 'book-open': '...' }, // (Nội dung icon được giữ nguyên)
-            badge: { 'star': '...', 'badge': '...', 'book': '...', 'play': '...' }
-        };
-        const defaultIcon = '<path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>';
-        return (iconMaps[type] && iconMaps[type][iconName]) || defaultIcon;
-    },
-
-    /**
-     * @description Tạo chuỗi HTML cho các ngôi sao đánh giá.
-     * @param {number} rating - Số sao từ 1 đến 5.
-     * @returns {string} - Chuỗi HTML.
-     */
-	getRatingStars: function(rating) {
-		let stars = '';
-		const starSVG = '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>';
-		for (let i = 0; i < 5; i++) {
-			stars += `<span class="${i < rating ? 'text-yellow-500' : 'text-gray-300'}">${starSVG}</span>`;
-		}
-		return `<div class="flex">${stars}</div>`;
-	}
-};
-
 /** * @description Xử lý tất cả các hoạt động liên quan đến âm thanh. * Phiên bản này kết hợp Web Audio API cho hiệu ứng và Text-to-Speech cho giọng đọc. */
 const soundManager = {
-
     // --- Phần 1: Hệ thống tạo âm thanh "Beep" (Web Audio API) ---
-
     /**
      * @private
      * @description Hàm lõi để tạo ra một âm thanh beep bằng Web Audio API.
@@ -2350,3 +1848,501 @@ const gameManager = {
 		}, 2000);
 	}
 };
+
+/** @description Chứa các hàm tiện ích có thể tái sử dụng trong toàn bộ ứng dụng. */
+const util = {
+    /**
+     * @description Chuyển đổi chuỗi tiếng Việt có dấu thành chuỗi không dấu, gạch dưới.
+     * @param {string} text - Chuỗi đầu vào.
+     * @returns {string} - Chuỗi đã được xử lý.
+     */
+    slugifyVietnamese: function(text) {
+        text = text.toLowerCase();
+        text = text.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a");
+        text = text.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, "e");
+        text = text.replace(/ì|í|ị|ỉ|ĩ/g, "i");
+        text = text.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, "o");
+        text = text.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, "u");
+        text = text.replace(/ỳ|ý|ỵ|ỷ|ỹ/g, "y");
+        text = text.replace(/đ/g, "d");
+        text = text.replace(/[^a-z0-9\s]/g, '');
+        text = text.replace(/\s+/g, '_');
+        return text;
+    },
+
+    /**
+     * @description Xáo trộn các phần tử của một mảng và trả về một mảng mới.
+     * @param {Array} array - Mảng cần xáo trộn.
+     * @returns {Array} - Mảng mới đã được xáo trộn.
+     */
+    shuffleArray: function(array) {
+        const shuffledArray = [...array];
+        for (let i = shuffledArray.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledArray[i], shuffledArray[j]] = [shuffledArray[j], shuffledArray[i]];
+        }
+        return shuffledArray;
+    },
+
+    /**
+     * @description Lấy danh sách flashcards đã được lọc theo chủ đề hiện tại.
+     * @returns {Array} - Mảng flashcards đã lọc.
+     */
+    getFilteredCards: function() {
+        // Đọc dữ liệu trực tiếp từ 'state'
+        return state.currentCategoryId 
+            ? state.flashcards.filter(card => card.categoryId === state.currentCategoryId)
+            : state.flashcards;
+    },
+
+    /**
+     * @description Lấy class màu gradient cho chủ đề.
+     * @param {string} color - Tên màu (blue, purple,...).
+     * @returns {string} - Chuỗi class của TailwindCSS.
+     */
+    getCategoryColorClass: function(color) {
+        const colorMap = {
+            'blue': 'from-blue-400 to-blue-600', 'purple': 'from-purple-400 to-purple-600',
+            'pink': 'from-pink-400 to-pink-600', 'green': 'from-green-400 to-green-600',
+            'yellow': 'from-yellow-400 to-yellow-600', 'red': 'from-red-400 to-red-600',
+            'indigo': 'from-indigo-400 to-indigo-600', 'teal': 'from-teal-400 to-teal-600',
+            'orange': 'from-orange-400 to-orange-600', 'gray': 'from-gray-400 to-gray-600'
+        };
+        // Đọc dữ liệu trực tiếp từ 'config'
+        return colorMap[color] || config.categoryColors[Math.floor(Math.random() * config.categoryColors.length)];
+    },
+    
+    /**
+     * @description Lấy class màu gradient cho trò chơi.
+     * @param {string} color - Tên màu.
+     * @returns {string} - Chuỗi class của TailwindCSS.
+     */
+    getGameColorClass: function(color) {
+		const colorMap = {
+			'blue': 'from-blue-400 to-blue-600', 'purple': 'from-purple-400 to-purple-600',
+			'green': 'from-green-400 to-green-600', 'red': 'from-red-400 to-red-600'
+		};
+		return colorMap[color] || 'from-blue-400 to-blue-600';
+	},
+
+    /**
+     * @description Lấy mã SVG cho các loại biểu tượng khác nhau. (Đã hợp nhất)
+     * @param {string} type - Loại icon ('category', 'game', 'quiz', 'badge').
+     * @param {string} iconName - Tên của icon.
+     * @returns {string} - Chuỗi SVG path.
+     */
+    getIcon: function(type, iconName) {
+        const iconMaps = {
+            category: {
+                'Gia đình & Con người': '<path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v1h8v-1zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-1a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v1h-3zM4.75 12.094A5.973 5.973 0 004 15v1H1v-1a3 3 0 013.75-2.906z"/>',
+			    'Danh từ chung': '<path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/>'
+            },
+            game: {
+                'puzzle': '<path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"/>',
+                'image': '<path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>',
+                'question': '<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>',
+                'volume-up': '<path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071a1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243a1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828a1 1 0 010-1.415z" clip-rule="evenodd"/>'
+            },
+            quiz: { 'document': '...', 'question': '...', 'book-open': '...' }, // (Nội dung icon được giữ nguyên)
+            badge: { 'star': '...', 'badge': '...', 'book': '...', 'play': '...' }
+        };
+        const defaultIcon = '<path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>';
+        return (iconMaps[type] && iconMaps[type][iconName]) || defaultIcon;
+    },
+
+    /**
+     * @description Tạo chuỗi HTML cho các ngôi sao đánh giá.
+     * @param {number} rating - Số sao từ 1 đến 5.
+     * @returns {string} - Chuỗi HTML.
+     */
+	getRatingStars: function(rating) {
+		let stars = '';
+		const starSVG = '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>';
+		for (let i = 0; i < 5; i++) {
+			stars += `<span class="${i < rating ? 'text-yellow-500' : 'text-gray-300'}">${starSVG}</span>`;
+		}
+		return `<div class="flex">${stars}</div>`;
+	}
+};
+
+/**
+ * @description ViewModel cho Tab Thống kê.
+ * Thu thập và xử lý tất cả dữ liệu cần thiết cho việc hiển thị.
+ * @returns {object} - Một đối tượng chứa dữ liệu đã được định dạng sẵn cho UI.
+ */
+function createStatsViewModel() {
+    // 1. LẤY DỮ LIỆU THÔ TỪ CÁC MODULE
+    const progress = progressManager.getUserProgress();
+    const currentLevelData = state.flashcardCache[state.currentLevel];
+
+    // --- Xử lý cho các chỉ số chính ---
+    const totalLearned = Object.values(progress.masteryScores).filter(score => score >= config.MASTERY_THRESHOLD).length;
+    const streakDays = progress.streakDays || 0;
+
+    // --- Xử lý cho Biểu đồ tròn (Mastery Chart) ---
+    let chartData = {
+        labels: ['Thông thạo', 'Đang học', 'Chưa học'],
+        data: [0, 0, 0]
+    };
+    if (currentLevelData?.flashcards) {
+        const wordIdsInLevel = new Set(currentLevelData.flashcards.map(word => word.id));
+        let mastered = 0, learning = 0;
+        for (const wordId in progress.masteryScores) {
+            if (wordIdsInLevel.has(parseInt(wordId))) {
+                const score = progress.masteryScores[wordId];
+                if (score >= config.MASTERY_THRESHOLD) mastered++;
+                else if (score > 0) learning++;
+            }
+        }
+        const unlearned = currentLevelData.flashcards.length - mastered - learning;
+        chartData.data = [mastered, learning, unlearned];
+    }
+
+    // --- Xử lý cho Lịch sử học tập (Heatmap) ---
+    const heatmapData = [];
+    const history = progress.dailyActivitiesHistory || {};
+    const daysToShow = 91;
+    for (let i = daysToShow - 1; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dateString = date.toDateString();
+        const activities = history[dateString] || 0;
+        
+        let level = 0;
+        if (activities > 0 && activities <= 2) level = 1;
+        else if (activities > 2 && activities <= 5) level = 2;
+        else if (activities > 5 && activities <= 10) level = 3;
+        else if (activities > 10) level = 4;
+
+        heatmapData.push({
+            level: level,
+            tooltip: activities > 0 ? `${activities} hoạt động - ${date.toLocaleDateString('vi-VN')}` : `Không hoạt động - ${date.toLocaleDateString('vi-VN')}`
+        });
+    }
+
+    // --- Xử lý cho Tiến độ theo chủ đề ---
+    const categoryProgress = state.categories.map(category => {
+        return {
+            name: category.name,
+            progress: progressManager.getCategoryProgress(category.id),
+            color: category.color || 'blue'
+        };
+    });
+
+    // 2. TRẢ VỀ MỘT ĐỐI TƯỢNG DUY NHẤT, SẠCH SẼ
+    return {
+        totalLearned,
+        streakDays,
+        chartData,
+        heatmapData,
+        categoryProgress
+    };
+}
+
+// ===================================================================================
+// III. MODULE ĐIỀU PHỐI CHÍNH CỦA ỨNG DỤNG (APP)
+// ===================================================================================
+
+/** @description "Nhạc trưởng" điều phối hoạt động của tất cả các module khác. */
+const app = {
+	/*** @description Hàm khởi tạo chính, được gọi khi ứng dụng bắt đầu.*/
+    init: function() {
+        console.log("🚀 FlashKids App is initializing...");
+        
+        // 1. Nạp các phần tử DOM vào bộ nhớ đệm
+        cacheDOMElements();
+        
+        // 2. Gán tất cả các sự kiện cho các nút bấm tĩnh
+        this.bindEventListeners();
+
+        // 3. Tải tiến độ và cài đặt của người dùng
+        const progress = progressManager.getUserProgress();
+        progressManager.loadUserSettings(progress);
+
+        // 4. Cập nhật các thành phần UI ban đầu dựa trên tiến độ
+        uiManager.updateWelcomeMessage(progress);
+        uiManager.updateUserStats();
+        uiManager.updateXpDisplay(progress);
+        
+        // 5. Xác định và tải dữ liệu cho level hiện tại
+        const savedLevel = localStorage.getItem(config.LOCAL_STORAGE_KEYS.CURRENT_LEVEL);
+        if (savedLevel) {
+            state.currentLevel = savedLevel;
+        }
+        this.changeLevel(state.currentLevel);
+        
+        // 6. Tải các giao diện tĩnh cho các tab phụ
+        uiManager.loadGames();
+        uiManager.loadBadges();
+        uiManager.loadQuizTypes();
+    },
+	
+	/**
+     * @description Gán tất cả các sự kiện cho các phần tử DOM tĩnh.
+     * Hàm này chỉ được gọi một lần duy nhất khi ứng dụng khởi chạy.
+     */
+    bindEventListeners: function() {
+        // --- Điều hướng chính (Navigation) ---
+        dom.navButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tabId = button.dataset.tab;
+                if (tabId === 'flashcards') this.navigateToFlashcardsTab();
+                else if (tabId) this.changeTab(tabId);
+            });
+        });
+
+        // --- Trang chủ (Home) ---
+        if (dom.startNowBtn) {
+            dom.startNowBtn.addEventListener('click', () => this.navigateToFlashcardsTab());
+        }
+        dom.levelBadges.forEach(badge => {
+            badge.addEventListener('click', () => {
+                const level = badge.dataset.level;
+                if (level) this.changeLevel(level, true);
+            });
+        });
+
+        // --- Thẻ từ vựng (Flashcards) ---
+        if (dom.currentFlashcard) {
+            dom.currentFlashcard.addEventListener('click', () => this.handleFlashcardFlip());
+        }
+        // Nút nghe trên 2 mặt thẻ
+        const listenBtnFront = dom.currentFlashcard?.querySelector('.flashcard-front .listen-btn');
+        const listenBtnBack = dom.currentFlashcard?.querySelector('.flashcard-back .listen-btn');
+        if (listenBtnFront) {
+            listenBtnFront.addEventListener('click', (event) => {
+                event.stopPropagation();
+                this.speakCurrentWord('english');
+            });
+        }
+        if (listenBtnBack) {
+            listenBtnBack.addEventListener('click', (event) => {
+                event.stopPropagation();
+                this.speakCurrentWord('vietnamese');
+            });
+        }
+        if (dom.prevCardBtn) dom.prevCardBtn.addEventListener('click', () => this.previousCard());
+        if (dom.nextCardBtn) dom.nextCardBtn.addEventListener('click', () => this.nextCard());
+        if (dom.markLearnedBtn) dom.markLearnedBtn.addEventListener('click', () => progressManager.markCurrentWordAsLearned());
+
+        // --- Menu Người dùng (User Menu) ---
+        if (dom.userMenuButton && dom.userMenu) {
+            dom.userMenuButton.addEventListener('click', (event) => {
+                event.stopPropagation();
+                dom.userMenu.classList.toggle('hidden');
+            });
+            window.addEventListener('click', () => {
+                if (!dom.userMenu.classList.contains('hidden')) {
+                    dom.userMenu.classList.add('hidden');
+                }
+            });
+        }
+        if (dom.menuSettingsLink) {
+            dom.menuSettingsLink.addEventListener('click', (event) => {
+                event.preventDefault();
+                this.changeTab('settings');
+                if (dom.userMenu) dom.userMenu.classList.add('hidden');
+            });
+        }
+
+        // --- Xử lý đóng tất cả Modals ---
+        dom.modals.forEach(modal => {
+            // Logic 1: Click ra ngoài (vào lớp nền mờ) để đóng
+            modal.addEventListener('click', (event) => {
+                if (event.target === modal) {
+                    uiManager.closeModal(modal.id);
+                }
+            });
+            // Logic 2: Click vào bất kỳ nút nào có class .close-modal-btn để đóng
+            const closeButtons = modal.querySelectorAll('.close-modal-btn');
+            closeButtons.forEach(button => {
+                button.addEventListener('click', () => uiManager.closeModal(modal.id));
+            });
+        });
+    },
+	
+    /**
+     * @description Tải dữ liệu cho một level và cập nhật toàn bộ giao diện.
+     * @param {string} level - Tên của level (ví dụ: 'a1').
+     * @param {boolean} isUserAction - True nếu hành động này do người dùng click.
+     */
+    changeLevel: async function(level, isUserAction = false) {
+        // Hàm runPeriodicVersionCheck sẽ được chúng ta hoàn thiện ở bước sau
+        this.runPeriodicVersionCheck();
+        if (isUserAction) {
+            soundManager.play('click');
+        }
+        
+        state.currentLevel = level;
+        localStorage.setItem(config.LOCAL_STORAGE_KEYS.CURRENT_LEVEL, level);
+        
+        // Ra lệnh cho uiManager cập nhật giao diện các nút chọn level
+        uiManager.updateLevelBadges(level);
+
+        try {
+            // Yêu cầu dataManager tải dữ liệu
+            const data = await dataManager.loadLevel(level);
+            
+            // Cập nhật dữ liệu vào state trung tâm
+            state.categories = data.categories || [];
+            state.flashcards = data.flashcards || [];
+            
+            // Xử lý logic đếm số từ cho mỗi chủ đề
+            state.categories.forEach(category => {
+                const count = state.flashcards.filter(card => card.categoryId === category.id).length;
+                category.wordCount = count;
+            });
+
+            // Reset trạng thái chọn chủ đề và thẻ
+            state.currentCategoryId = null;
+            state.currentCardIndex = 0;
+            
+            // Ra lệnh cho uiManager vẽ lại các thành phần giao diện cần thiết
+            uiManager.loadCategories();
+            uiManager.loadCategoryFilters();
+            uiManager.updateFlashcard();
+
+        } catch (error) {
+            console.error("Không thể thay đổi level:", error);
+            alert(error.message);
+        }
+    },
+	
+	/*** @description Kiểm tra phiên bản ứng dụng định kỳ (mỗi ngày một lần).*/
+    runPeriodicVersionCheck: function() {
+        const lastCheck = parseInt(localStorage.getItem(config.LOCAL_STORAGE_KEYS.LAST_VERSION_CHECK) || '0');
+        const oneDay = 24 * 60 * 60 * 1000;
+
+        if (!lastCheck || (Date.now() - lastCheck > oneDay)) {
+            console.log("Đã đến lúc kiểm tra phiên bản mới...");
+            const storedVersion = localStorage.getItem(config.LOCAL_STORAGE_KEYS.APP_VERSION);
+            if (storedVersion !== config.APP_VERSION) {
+                console.log(`Phiên bản cũ (${storedVersion}) được phát hiện. Cập nhật lên ${config.APP_VERSION}.`);
+                
+                // Dọn dẹp cache audio cũ
+                for (let i = localStorage.length - 1; i >= 0; i--) {
+                    const key = localStorage.key(i);
+                    if (key.startsWith(config.LOCAL_STORAGE_KEYS.AUDIO_CACHE_PREFIX)) {
+                        localStorage.removeItem(key);
+                    }
+                }
+                localStorage.setItem(config.LOCAL_STORAGE_KEYS.APP_VERSION, config.APP_VERSION);
+            }
+            localStorage.setItem(config.LOCAL_STORAGE_KEYS.LAST_VERSION_CHECK, Date.now().toString());
+        }
+    },
+
+    /*** @description Xử lý việc chuyển đổi giữa các tab giao diện chính. * @param {string} tabId - ID của tab cần hiển thị (ví dụ: 'home', 'flashcards').*/
+    changeTab: function(tabId) {	
+        soundManager.play('click');
+        
+        // Ẩn tất cả các tab content
+        dom.tabs.forEach(tab => {
+            tab.classList.add('hidden');
+        });
+        
+        // Hiển thị tab được chọn
+        const tabContent = document.getElementById(tabId);
+        if (tabContent) {
+            tabContent.classList.remove('hidden');
+        } else {
+            console.error(`Lỗi: Không tìm thấy nội dung cho tab có id="${tabId}"`);
+            return;
+        }
+        
+        // Cập nhật trạng thái active của nút nav
+        dom.navButtons.forEach(button => {
+            button.classList.remove('tab-active');
+        });
+        const activeButton = document.querySelector(`nav button[data-tab='${tabId}']`);
+        if (activeButton) {
+            activeButton.classList.add('tab-active');
+        }
+
+        // Cập nhật trạng thái và các giao diện phụ thuộc
+        state.isFlashcardsTabActive = (tabId === 'flashcards');
+        
+        if (state.isFlashcardsTabActive) {
+            // Khi vào tab flashcard, đảm bảo giao diện được cập nhật đúng
+            uiManager.updateFlashcard();
+            uiManager.updateCategoryFilters();
+        }
+        
+        if (tabId === 'stats') {
+            uiManager.renderStatsTab();
+        }
+    },
+
+    /*** @description Chức năng điều hướng đặc biệt khi người dùng muốn vào thẳng tab Flashcards.*/
+    navigateToFlashcardsTab: function() {
+        // Mặc định chọn chủ đề đầu tiên khi điều hướng từ trang chủ
+        if (state.categories.length > 0 && state.currentCategoryId === null) {
+            state.currentCategoryId = state.categories[0].id;
+        }
+        state.currentCardIndex = 0;
+        this.changeTab('flashcards');
+    },
+    
+    /*** @description Xử lý hành động lật thẻ.*/
+    handleFlashcardFlip: function() {
+        if (!state.isCardInteractable) return;
+        dom.currentFlashcard.classList.toggle('flipped');
+        
+        if (state.isFlashcardsTabActive && state.soundEnabled) {
+            setTimeout(() => {
+                const isFlipped = dom.currentFlashcard.classList.contains('flipped');
+                // Gọi hàm speakCurrentWord của chính module app
+                this.speakCurrentWord(isFlipped ? 'vietnamese' : 'english');
+            }, 100);
+        }
+    },
+
+    /*** @description Phát âm thanh cho từ hiện tại trên thẻ.*/
+    speakCurrentWord: function(language) {
+        const filteredCards = util.getFilteredCards();
+        if (filteredCards.length === 0) return;
+
+        const card = filteredCards[state.currentCardIndex];
+        if (!card) return;
+
+        const wordToSpeak = language === 'english' ? card.english : card.vietnamese;
+        const langCode = language === 'english' ? 'en-US' : 'vi-VN';
+        
+        // Ra lệnh cho soundManager phát âm
+        soundManager.speak(wordToSpeak, langCode);
+    },
+    
+    /*** @description Chuyển đến thẻ tiếp theo.*/
+    nextCard: function() {
+        const filteredCards = util.getFilteredCards();
+        if (filteredCards.length === 0) return;
+
+        state.currentCardIndex = (state.currentCardIndex + 1) % filteredCards.length;
+        uiManager.updateFlashcard();
+    },
+    
+    /*** @description Quay lại thẻ trước đó.*/
+    previousCard: function() {
+        const filteredCards = util.getFilteredCards();
+        if (filteredCards.length === 0) return;
+
+        state.currentCardIndex = (state.currentCardIndex - 1 + filteredCards.length) % filteredCards.length;
+        uiManager.updateFlashcard();
+    }	
+};
+
+
+// ===================================================================================
+// IV. KHỞI CHẠY ỨNG DỤNG
+// ===================================================================================
+
+/*** Lắng nghe sự kiện khi toàn bộ cấu trúc HTML đã được tải xong, * sau đó gọi app.init() để bắt đầu ứng dụng JavaScript. */
+document.addEventListener('DOMContentLoaded', () => {
+    app.init();
+});
+
+
+
+
+
+
